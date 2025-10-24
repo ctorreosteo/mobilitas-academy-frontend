@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { theme } from '../theme';
 
 const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Benvenuto in Mobilitas Academy</Text>
+        <Text style={styles.title}>Benvenuti in Mobilitas Academy</Text>
         <Text style={styles.subtitle}>
           La piattaforma di formazione interna del tuo team
         </Text>
@@ -18,7 +19,7 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background.primary, // Blu scuro dal tema
   },
   content: {
     flex: 1,
@@ -29,13 +30,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.primary, // Verde dal tema
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary, // Bianco dal tema
     textAlign: 'center',
     lineHeight: 24,
   },

@@ -1,10 +1,12 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 
 import HomeScreen from './src/screens/HomeScreen';
+import { theme } from './src/theme';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient();
@@ -17,11 +19,12 @@ export default function App() {
           initialRouteName="Home"
           screenOptions={{
             headerStyle: {
-              backgroundColor: '#2196F3',
+              backgroundColor: theme.colors.primary, // Blu scuro
             },
-            headerTintColor: '#fff',
+            headerTintColor: theme.colors.text.secondary, // Bianco
             headerTitleStyle: {
               fontWeight: 'bold',
+              fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
             },
           }}
         >

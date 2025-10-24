@@ -1,5 +1,37 @@
 // Tipi TypeScript per l'applicazione Mobilitas Academy
 
+// Tipi per il tema
+export interface Theme {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    accent: string;
+    error: string;
+    text: {
+      primary: string;
+      secondary: string;
+      accent: string;
+      error: string;
+    };
+    background: {
+      primary: string;
+      secondary: string;
+      white: string;
+    };
+  };
+  fonts: {
+    primary: string;
+    weights: {
+      light: string;
+      regular: string;
+      medium: string;
+      semiBold: string;
+      bold: string;
+    };
+  };
+}
+
 export interface User {
   id: string;
   name: string;
