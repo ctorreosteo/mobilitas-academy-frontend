@@ -31,7 +31,7 @@ export default function App() {
           <Stack.Screen 
             name="Home" 
             component={HomeScreen} 
-            options={{ title: 'Mobilitas Academy' }}
+            options={{ title: 'Studio Osteopatico' }}
           />
         </Stack.Navigator>
         <StatusBar style="auto" />

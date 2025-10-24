@@ -1,4 +1,4 @@
-// Tipi TypeScript per l'applicazione Mobilitas Academy
+// Tipi TypeScript per l'applicazione Studio Osteopatico
 
 // Tipi per il tema
 export interface Theme {
@@ -46,6 +46,10 @@ export interface Course {
   instructor: string;
   duration: number; // in minuti
   isCompleted: boolean;
+  completionPercentage: number; // 0-100
+  category: string;
+  difficulty: 'Principiante' | 'Intermedio' | 'Avanzato';
+  coverImage?: string;
 }
 
 export interface Video {
