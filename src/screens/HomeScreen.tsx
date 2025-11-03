@@ -1,58 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
-import CourseCard from '../components/CourseCard';
-import { mockCourses } from '../data/mockCourses';
-import { Course } from '../types';
 
 const HomeScreen: React.FC = () => {
-  const renderCourse = ({ item }: { item: Course }) => (
-    <CourseCard
-      title={item.title}
-      instructor={item.instructor}
-      duration={item.duration}
-      completionPercentage={item.completionPercentage}
-      isCompleted={item.isCompleted}
-      coverImage={item.coverImage}
-    />
-  );
-
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Studio Osteopatico</Text>
-        <Text style={styles.subtitle}>
-          La tua formazione continua in osteopatia
-        </Text>
-      </View>
-      
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{mockCourses.length}</Text>
-          <Text style={styles.statLabel}>Corsi</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>
-            {mockCourses.filter(course => course.isCompleted).length}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Benvenuto</Text>
+          <Text style={styles.subtitle}>
+            La tua formazione continua in osteopatia
           </Text>
-          <Text style={styles.statLabel}>Completati</Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>
-            {Math.round(mockCourses.reduce((acc, course) => acc + course.completionPercentage, 0) / mockCourses.length)}%
+        
+        <View style={styles.welcomeCard}>
+          <Text style={styles.welcomeTitle}>Studio Osteopatico</Text>
+          <Text style={styles.welcomeText}>
+            Accedi alla tua piattaforma di formazione professionale. 
+            Scopri i corsi disponibili, monitora i tuoi progressi e 
+            continua a crescere nella tua carriera osteopatica.
           </Text>
-          <Text style={styles.statLabel}>Progresso</Text>
         </View>
-      </View>
 
-      <FlatList
-        data={mockCourses}
-        renderItem={renderCourse}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.coursesList}
-        showsVerticalScrollIndicator={false}
-      />
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>8</Text>
+            <Text style={styles.statLabel}>Corsi Disponibili</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>2</Text>
+            <Text style={styles.statLabel}>Completati</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>53%</Text>
+            <Text style={styles.statLabel}>Progresso</Text>
+          </View>
+        </View>
+
+        <View style={styles.quickActions}>
+          <Text style={styles.quickActionsTitle}>Azioni Rapide</Text>
+          <View style={styles.actionButtons}>
+            <View style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>Continua Corso</Text>
+            </View>
+            <View style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>Nuovi Corsi</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -62,17 +59,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background.primary, // Blu scuro dal tema
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 0,
+    paddingTop: 32,
     paddingBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.text.primary, // Verde dal tema
-    marginTop: 32,
     marginBottom: 8,
   },
   subtitle: {
@@ -80,6 +80,35 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.text.secondary, // Bianco dal tema
     opacity: 0.9,
+  },
+  welcomeCard: {
+    backgroundColor: theme.colors.background.white,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+    marginBottom: 12,
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+    lineHeight: 24,
+    opacity: 0.8,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -117,9 +146,42 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  coursesList: {
+  quickActions: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+  },
+  quickActionsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.primary,
+    marginBottom: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    backgroundColor: theme.colors.background.white,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+    textAlign: 'center',
   },
 });
 

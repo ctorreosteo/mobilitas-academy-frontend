@@ -1,39 +1,47 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 
 import HomeScreen from './src/screens/HomeScreen';
-import { theme } from './src/theme';
+import CoursesScreen from './src/screens/CoursesScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
-const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 const queryClient = new QueryClient();
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Home"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: theme.colors.primary, // Blu scuro
-            },
-            headerTintColor: theme.colors.text.secondary, // Bianco
-            headerTitleStyle: {
-              fontWeight: 'bold',
-              fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-            },
-          }}
-        >
-          <Stack.Screen 
+        <Tab.Navigator>
+          <Tab.Screen 
             name="Home" 
             component={HomeScreen} 
-            options={{ title: 'Studio Osteopatico' }}
+            options={{ 
+              title: 'Home',
+              tabBarLabel: 'Home',
+            }}
           />
-        </Stack.Navigator>
+          <Tab.Screen 
+            name="Courses" 
+            component={CoursesScreen} 
+            options={{ 
+              title: 'Corsi',
+              tabBarLabel: 'Corsi',
+            }}
+          />
+          <Tab.Screen 
+            name="Profile" 
+            component={ProfileScreen} 
+            options={{ 
+              title: 'Profilo',
+              tabBarLabel: 'Profilo',
+            }}
+          />
+        </Tab.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
     </QueryClientProvider>

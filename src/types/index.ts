@@ -5,7 +5,6 @@ export interface Theme {
   colors: {
     primary: string;
     secondary: string;
-    background: string;
     accent: string;
     error: string;
     text: {
