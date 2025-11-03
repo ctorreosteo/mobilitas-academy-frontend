@@ -11,6 +11,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import CourseVideosScreen from './src/screens/CourseVideosScreen';
+import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 import { theme } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -44,6 +45,14 @@ const CoursesStack = () => {
         component={CourseVideosScreen}
         options={{ 
           title: 'Video del Corso',
+          headerBackTitleVisible: false,
+        }}
+      />
+      <Stack.Screen 
+        name="VideoPlayer" 
+        component={VideoPlayerScreen}
+        options={{ 
+          title: 'Video',
           headerBackTitleVisible: false,
         }}
       />

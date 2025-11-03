@@ -1,17 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { theme } from '../theme';
 import { Course, Chapter, Video } from '../types';
 import { mockChapters } from '../data/mockChapters';
 import { mockVideos } from '../data/mockVideos';
 import ChapterSection from '../components/ChapterSection';
 
-type CourseVideosScreenRouteProp = RouteProp<{ params: { course: Course } }, 'params'>;
+type CoursesStackParamList = {
+  CoursesList: undefined;
+  CourseVideos: { course: Course };
+  VideoPlayer: { video: Video };
+};
+
+type CourseVideosScreenRouteProp = RouteProp<CoursesStackParamList, 'CourseVideos'>;
+type NavigationProp = StackNavigationProp<CoursesStackParamList, 'VideoPlayer'>;
 
 const CourseVideosScreen: React.FC = () => {
   const route = useRoute<CourseVideosScreenRouteProp>();
+  const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
 
   const courseChapters = mockChapters
@@ -21,8 +30,7 @@ const CourseVideosScreen: React.FC = () => {
   const courseVideos = mockVideos.filter(v => v.courseId === course.id);
 
   const handleVideoPress = (video: Video) => {
-    // TODO: Navigate to video player screen
-    console.log('Opening video:', video.title);
+    navigation.navigate('VideoPlayer', { video });
   };
 
   const totalDuration = courseVideos.reduce((acc, v) => acc + v.duration, 0);

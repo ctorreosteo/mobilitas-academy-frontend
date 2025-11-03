@@ -68,4 +68,5 @@ export interface Video {
   order: number;
   isCompleted: boolean;
   thumbnail?: string;
+  description?: string;
 }

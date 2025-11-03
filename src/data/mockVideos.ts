@@ -12,6 +12,7 @@ export const mockVideos: Video[] = [
     order: 1,
     isCompleted: true,
     thumbnail: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+    description: 'Benvenuto in questo corso sull\'anatomia funzionale del sistema muscolo-scheletrico. In questa introduzione verranno presentati gli obiettivi del corso, la struttura didattica e i concetti fondamentali che verranno approfonditi nelle lezioni successive.',
   },
   {
     id: 'v1-1-2',
@@ -23,6 +24,7 @@ export const mockVideos: Video[] = [
     order: 2,
     isCompleted: true,
     thumbnail: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+    description: 'Questo video introduce i principi fondamentali dell\'anatomia funzionale, esplorando come la struttura del corpo umano si relaziona con la sua funzione. Verranno analizzati i concetti di movimento, postura e biomeccanica di base.',
   },
   // Corso 1 - Capitolo 2
   {
@@ -35,6 +37,7 @@ export const mockVideos: Video[] = [
     order: 1,
     isCompleted: true,
     thumbnail: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+    description: 'Approfondimento dettagliato sulla struttura ossea: composizione, tipologie di ossa, crescita e rimodellamento. Questo video fornisce le basi anatomiche necessarie per comprendere la biomeccanica del sistema scheletrico.',
   },
   {
     id: 'v1-2-2',

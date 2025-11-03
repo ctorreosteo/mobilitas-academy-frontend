@@ -8,6 +8,7 @@ import { Course } from '../types';
 type CoursesStackParamList = {
   CoursesList: undefined;
   CourseVideos: { course: Course };
+  VideoPlayer: { video: import('../types').Video };
 };
 
 type NavigationProp = StackNavigationProp<CoursesStackParamList, 'CourseVideos'>;
