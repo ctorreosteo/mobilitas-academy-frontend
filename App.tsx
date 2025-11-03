@@ -38,7 +38,10 @@ const CoursesStack = () => {
       <Stack.Screen 
         name="CoursesList" 
         component={CoursesScreen}
-        options={{ title: 'Corsi', headerShown: false }}
+        options={{ 
+          title: 'Corsi',
+          headerShown: false,
+        }}
       />
       <Stack.Screen 
         name="CourseVideos" 

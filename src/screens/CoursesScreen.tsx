@@ -20,14 +20,10 @@ const CoursesScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Studio Osteopatico</Text>
-        <Text style={styles.subtitle}>
-          La tua formazione continua in osteopatia
-        </Text>
+        <Text style={styles.headerTitle}>Corsi</Text>
       </View>
-      
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statNumber}>{mockCourses.length}</Text>
@@ -65,22 +61,16 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 0,
+    paddingTop: 12,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(114, 250, 147, 0.15)',
   },
-  title: {
+  headerTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary, // Verde dal tema
-    marginTop: 32,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary, // Bianco dal tema
-    opacity: 0.9,
+    color: theme.colors.secondary, // Verde
   },
   statsContainer: {
     flexDirection: 'row',
@@ -89,6 +79,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: theme.colors.text.primary, // Verde
     marginHorizontal: 20,
+    marginTop: 16,
     borderRadius: 16,
     marginBottom: 20,
     shadowColor: '#000',
