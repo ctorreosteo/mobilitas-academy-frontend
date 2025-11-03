@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,10 +10,46 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import { theme } from './src/theme';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 const queryClient = new QueryClient();
+
+// Stack Navigator per la sezione Corsi
+const CoursesStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.secondary,
+        headerTitleStyle: {
+          fontWeight: '600',
+          color: theme.colors.secondary,
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="CoursesList" 
+        component={CoursesScreen}
+        options={{ title: 'Corsi', headerShown: false }}
+      />
+      <Stack.Screen 
+        name="CourseVideos" 
+        component={CourseVideosScreen}
+        options={{ 
+          title: 'Video del Corso',
+          headerBackTitleVisible: false,
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 export default function App() {
   return (
@@ -73,10 +110,11 @@ export default function App() {
           />
           <Tab.Screen 
             name="Courses" 
-            component={CoursesScreen} 
+            component={CoursesStack} 
             options={{ 
               title: 'Corsi',
               tabBarLabel: 'Corsi',
+              headerShown: false,
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons 
                   name={focused ? 'library' : 'library-outline'} 

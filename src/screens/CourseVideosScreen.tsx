@@ -34,8 +34,10 @@ const CourseVideosScreen: React.FC = () => {
   const formatTotalDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) {
+    if (hours > 0 && mins > 0) {
       return `${hours}h ${mins}m`;
+    } else if (hours > 0) {
+      return `${hours}h`;
     }
     return `${mins}m`;
   };
@@ -51,6 +53,10 @@ const CourseVideosScreen: React.FC = () => {
           <Text style={styles.instructor}>di {course.instructor}</Text>
         </View>
 
+        <View style={styles.descriptionContainer}>
+          <Text style={styles.descriptionText}>{course.description}</Text>
+        </View>
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{courseChapters.length}</Text>
@@ -63,7 +69,9 @@ const CourseVideosScreen: React.FC = () => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{formatTotalDuration(totalDuration)}</Text>
+            <Text style={styles.statValue} numberOfLines={1}>
+              {formatTotalDuration(totalDuration)}
+            </Text>
             <Text style={styles.statLabel}>Durata</Text>
           </View>
         </View>
@@ -128,6 +136,22 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     opacity: 0.7,
   },
+  descriptionContainer: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: 'rgba(114, 250, 147, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(114, 250, 147, 0.1)',
+  },
+  descriptionText: {
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+    opacity: 0.85,
+    lineHeight: 22,
+  },
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,6 +168,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   statValue: {
     fontSize: 24,
@@ -151,6 +176,8 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.secondary,
     marginBottom: 4,
+    textAlign: 'center',
+    minHeight: 32,
   },
   statLabel: {
     fontSize: 12,
