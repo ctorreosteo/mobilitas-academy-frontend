@@ -51,10 +51,21 @@ export interface Course {
   coverImage?: string;
 }
 
+export interface Chapter {
+  id: string;
+  title: string;
+  order: number;
+  courseId: string;
+}
+
 export interface Video {
   id: string;
   title: string;
   url: string;
   duration: number; // in secondi
   courseId: string;
+  chapterId: string;
+  order: number;
+  isCompleted: boolean;
+  thumbnail?: string;
 }

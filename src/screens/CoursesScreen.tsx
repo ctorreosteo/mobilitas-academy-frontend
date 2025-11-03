@@ -9,6 +9,7 @@ import { Course } from '../types';
 const CoursesScreen: React.FC = () => {
   const renderCourse = ({ item }: { item: Course }) => (
     <CourseCard
+      course={item}
       title={item.title}
       instructor={item.instructor}
       duration={item.duration}

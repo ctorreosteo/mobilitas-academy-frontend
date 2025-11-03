@@ -1,8 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, Platform, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { theme } from '../theme';
+import { Course } from '../types';
+
+type CoursesStackParamList = {
+  CoursesList: undefined;
+  CourseVideos: { course: Course };
+};
+
+type NavigationProp = StackNavigationProp<CoursesStackParamList, 'CourseVideos'>;
 
 interface CourseCardProps {
+  course: Course;
   title: string;
   instructor: string;
   duration: number; // in minuti
@@ -12,6 +23,7 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
+  course,
   title,
   instructor,
   duration,
@@ -19,6 +31,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
   isCompleted,
   coverImage,
 }) => {
+  const navigation = useNavigation<NavigationProp>();
+
+  const handleContinue = () => {
+    navigation.navigate('CourseVideos', { course });
+  };
+
   return (
     <View style={styles.card}>
       {coverImage && (
@@ -52,11 +70,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
       
       <View style={styles.footer}>
         <Text style={styles.duration}>{duration} min</Text>
-        <View style={styles.continueButton}>
+        <TouchableOpacity 
+          style={styles.continueButton}
+          onPress={handleContinue}
+          activeOpacity={0.8}
+        >
           <Text style={styles.continueText}>
             {isCompleted ? 'Rivedi' : 'Continua'}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
