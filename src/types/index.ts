@@ -49,6 +49,7 @@ export interface Course {
   category: string;
   difficulty: 'Principiante' | 'Intermedio' | 'Avanzato';
   coverImage?: string;
+  youtubePlaylistId?: string; // ID playlist YouTube per questo corso
 }
 
 export interface Chapter {
@@ -56,6 +57,7 @@ export interface Chapter {
   title: string;
   order: number;
   courseId: string;
+  youtubePlaylistId?: string; // ID playlist YouTube per questo capitolo
 }
 
 export interface Video {
@@ -69,4 +71,5 @@ export interface Video {
   isCompleted: boolean;
   thumbnail?: string;
   description?: string;
+  youtubeVideoId?: string; // ID video YouTube per il player
 }

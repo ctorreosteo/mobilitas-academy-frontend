@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+// @ts-ignore - @expo/vector-icons is included in Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { Course, Chapter, Video } from '../types';
 import { mockChapters } from '../data/mockChapters';
 import { mockVideos } from '../data/mockVideos';
 import ChapterSection from '../components/ChapterSection';
+import { useYouTubePlaylist } from '../hooks/useYouTubePlaylist';
 
 type CoursesStackParamList = {
   CoursesList: undefined;
@@ -23,17 +26,72 @@ const CourseVideosScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
 
-  const courseChapters = mockChapters
-    .filter(ch => ch.courseId === course.id)
-    .sort((a, b) => a.order - b.order);
+  // Se il corso ha una playlist YouTube, usa quella direttamente
+  const isYouTubeCourse = !!course.youtubePlaylistId;
+  
+  // Hook per recuperare video dalla playlist del corso (se è un corso YouTube)
+  const { videos: youtubeVideos, loading: loadingYoutube, error: youtubeError } = useYouTubePlaylist(
+    course.youtubePlaylistId
+  );
 
-  const courseVideos = mockVideos.filter(v => v.courseId === course.id);
+  // Per corsi YouTube: crea un capitolo virtuale con tutti i video
+  // Per corsi legacy: usa la logica esistente con mockChapters
+  const courseChapters = useMemo(() => {
+    if (isYouTubeCourse) {
+      // Crea un singolo capitolo virtuale per i video YouTube
+      return [{
+        id: `chapter-${course.id}`,
+        title: 'Video del corso',
+        order: 1,
+        courseId: course.id,
+      }];
+    }
+    // Logica legacy per corsi mock
+    return mockChapters
+      .filter(ch => ch.courseId === course.id)
+      .sort((a, b) => a.order - b.order);
+  }, [course.id, isYouTubeCourse]);
+
+  // Combina video mock e YouTube
+  const courseVideos = useMemo(() => {
+    if (isYouTubeCourse) {
+      // Per corsi YouTube, usa solo i video YouTube
+      const virtualChapterId = `chapter-${course.id}`;
+      return youtubeVideos.map(v => ({
+        ...v,
+        courseId: course.id,
+        chapterId: virtualChapterId,
+      }));
+    }
+    
+    // Logica legacy per corsi mock
+    const mockVideosForCourse = mockVideos.filter(v => v.courseId === course.id);
+    const chaptersWithPlaylist = courseChapters.filter(ch => ch.youtubePlaylistId);
+    const firstPlaylistId = chaptersWithPlaylist[0]?.youtubePlaylistId;
+    const firstChapterId = chaptersWithPlaylist[0]?.id;
+    
+    // Se ci sono video YouTube da capitoli, aggiungili
+    if (youtubeVideos.length > 0 && firstChapterId && firstPlaylistId) {
+      const videosWithChapter = youtubeVideos.map(v => ({
+        ...v,
+        courseId: course.id,
+        chapterId: firstChapterId,
+      }));
+      return [...mockVideosForCourse, ...videosWithChapter];
+    }
+    
+    return mockVideosForCourse;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.id, youtubeVideos.length, isYouTubeCourse]);
 
   const handleVideoPress = (video: Video) => {
     navigation.navigate('VideoPlayer', { video });
   };
 
-  const totalDuration = courseVideos.reduce((acc, v) => acc + v.duration, 0);
+  const totalDuration = useMemo(() => 
+    courseVideos.reduce((acc, v) => acc + v.duration, 0),
+    [courseVideos]
+  );
   const completedVideos = courseVideos.filter(v => v.isCompleted).length;
   const progressPercentage = courseVideos.length > 0 
     ? Math.round((completedVideos / courseVideos.length) * 100) 
@@ -66,11 +124,15 @@ const CourseVideosScreen: React.FC = () => {
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{courseChapters.length}</Text>
-            <Text style={styles.statLabel}>Capitoli</Text>
-          </View>
-          <View style={styles.statDivider} />
+          {!isYouTubeCourse && (
+            <>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{courseChapters.length}</Text>
+                <Text style={styles.statLabel}>Capitoli</Text>
+              </View>
+              <View style={styles.statDivider} />
+            </>
+          )}
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{courseVideos.length}</Text>
             <Text style={styles.statLabel}>Video</Text>
@@ -102,15 +164,70 @@ const CourseVideosScreen: React.FC = () => {
           </Text>
         </View>
 
+        {loadingYoutube && youtubeVideos.length === 0 && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.secondary} />
+            <Text style={styles.loadingText}>Caricamento video da YouTube...</Text>
+          </View>
+        )}
+
+        {youtubeError && (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle" size={24} color={theme.colors.error} style={styles.errorIcon} />
+            <Text style={styles.errorText}>
+              Errore nel caricamento video da YouTube
+            </Text>
+            <Text style={styles.errorDetails}>{youtubeError}</Text>
+            <Text style={styles.errorHint}>
+              Verifica:
+              {'\n'}• File .env con EXPO_PUBLIC_YOUTUBE_API_KEY configurata
+              {'\n'}• API key valida e YouTube Data API v3 abilitata
+              {'\n'}• ID playlist corretto: {course.youtubePlaylistId || 'N/A'}
+            </Text>
+          </View>
+        )}
+
+        {!youtubeError && !loadingYoutube && isYouTubeCourse && youtubeVideos.length === 0 && (
+          <View style={styles.warningContainer}>
+            <Ionicons name="information-circle" size={24} color={theme.colors.accent} style={styles.errorIcon} />
+            <Text style={styles.warningText}>
+              Nessun video caricato
+            </Text>
+            <Text style={styles.errorHint}>
+              Possibili cause:
+              {'\n'}• API key YouTube non configurata nel file .env
+              {'\n'}• Playlist vuota o video non accessibili
+              {'\n'}• Controlla la console per dettagli
+            </Text>
+          </View>
+        )}
+
+        {isYouTubeCourse && !course.youtubePlaylistId && (
+          <View style={styles.warningContainer}>
+            <Ionicons name="information-circle" size={24} color={theme.colors.accent} style={styles.errorIcon} />
+            <Text style={styles.warningText}>
+              Playlist ID non configurato
+            </Text>
+            <Text style={styles.errorHint}>
+              Verifica che il corso abbia un youtubePlaylistId valido
+            </Text>
+          </View>
+        )}
+
         <View style={styles.chaptersContainer}>
-          {courseChapters.map((chapter) => (
-            <ChapterSection
-              key={chapter.id}
-              chapter={chapter}
-              videos={courseVideos}
-              onVideoPress={handleVideoPress}
-            />
-          ))}
+          {courseChapters.map((chapter) => {
+            // Filtra i video per questo capitolo
+            const chapterVideos = courseVideos.filter(v => v.chapterId === chapter.id);
+            
+            return (
+              <ChapterSection
+                key={chapter.id}
+                chapter={chapter}
+                videos={chapterVideos}
+                onVideoPress={handleVideoPress}
+              />
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -248,6 +365,71 @@ const styles = StyleSheet.create({
   },
   chaptersContainer: {
     paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+    opacity: 0.7,
+  },
+  errorContainer: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(255, 104, 105, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 104, 105, 0.3)',
+  },
+  warningContainer: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 20,
+    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(14, 165, 233, 0.3)',
+  },
+  errorIcon: {
+    marginBottom: 12,
+    alignSelf: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.error,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  warningText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.accent,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorDetails: {
+    fontSize: 13,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.error,
+    marginBottom: 12,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  errorHint: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+    opacity: 0.7,
+    lineHeight: 18,
   },
 });
 

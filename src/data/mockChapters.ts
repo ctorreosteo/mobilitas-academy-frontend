@@ -61,5 +61,11 @@ export const mockChapters: Chapter[] = [
     order: 3,
     courseId: '3',
   },
+  {
+    id: 'ch9-1',
+    title: 'Tunnel Carpale',
+    order: 1,
+    courseId: '9',
+    youtubePlaylistId: 'PLOdEzl1B0okFAZSC00pvqFgYk-ieRnDYc',
+  },
 ];
-

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { theme } from '../theme';
 import { Video, Course } from '../types';
 import { mockCourses } from '../data/mockCourses';
@@ -15,8 +16,24 @@ const VideoPlayerScreen: React.FC = () => {
   const route = useRoute<VideoPlayerScreenRouteProp>();
   const { video } = route.params;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playerState, setPlayerState] = useState<'playing' | 'paused' | 'ended' | 'unstarted'>('unstarted');
+  const [showPlayButton, setShowPlayButton] = useState(true);
+  const playerRef = useRef<any>(null);
 
   const course = mockCourses.find(c => c.id === video.courseId);
+  const isYouTubeVideo = !!video.youtubeVideoId;
+
+  // Auto-play quando il video è caricato
+  useEffect(() => {
+    if (isYouTubeVideo && playerState === 'unstarted') {
+      // Aspetta un attimo per assicurarsi che il player sia pronto
+      const timer = setTimeout(() => {
+        setIsPlaying(true);
+        setShowPlayButton(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isYouTubeVideo, playerState]);
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -25,8 +42,30 @@ const VideoPlayerScreen: React.FC = () => {
   };
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-    // TODO: Implement actual video playback
+    if (isYouTubeVideo) {
+      setIsPlaying(!isPlaying);
+      setShowPlayButton(false);
+    }
+  };
+
+  const handleYouTubeStateChange = (state: string) => {
+    console.log('YouTube Player State:', state);
+    if (state === 'playing') {
+      setIsPlaying(true);
+      setPlayerState('playing');
+      setShowPlayButton(false);
+    } else if (state === 'paused') {
+      setIsPlaying(false);
+      setPlayerState('paused');
+      setShowPlayButton(true);
+    } else if (state === 'ended') {
+      setIsPlaying(false);
+      setPlayerState('ended');
+      setShowPlayButton(true);
+    } else if (state === 'unstarted') {
+      setPlayerState('unstarted');
+      setShowPlayButton(true);
+    }
   };
 
   return (
@@ -37,37 +76,92 @@ const VideoPlayerScreen: React.FC = () => {
       >
         {/* Video Player Container */}
         <View style={styles.videoContainer}>
-          {video.thumbnail ? (
-            <Image 
-              source={{ uri: video.thumbnail }} 
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
+          {isYouTubeVideo ? (
+            <View style={styles.youtubeWrapper}>
+              <View 
+                style={[
+                  styles.youtubePlayerWrapper,
+                  showPlayButton && styles.youtubePlayerWrapperDisabled
+                ]}
+                pointerEvents={showPlayButton ? 'none' : 'auto'}
+              >
+                <YoutubePlayer
+                  ref={playerRef}
+                  height={screenWidth * 0.5625}
+                  videoId={video.youtubeVideoId!}
+                  play={isPlaying}
+                  onChangeState={handleYouTubeStateChange}
+                  onError={(error) => {
+                    console.error('YouTube Player Error:', error);
+                    setShowPlayButton(true);
+                  }}
+                  initialPlayerParams={{
+                    controls: true,
+                    modestbranding: true,
+                  }}
+                />
+              </View>
+              {/* Play Button Overlay per YouTube */}
+              {showPlayButton && (
+                <View 
+                  style={styles.youtubePlayButtonContainer}
+                  pointerEvents="box-none"
+                >
+                  <TouchableOpacity 
+                    style={styles.youtubePlayButtonTouchable}
+                    onPress={() => {
+                      console.log('Play button pressed');
+                      setIsPlaying(true);
+                      setShowPlayButton(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.youtubePlayButton}>
+                      <Ionicons 
+                        name="play" 
+                        size={50} 
+                        color={theme.colors.primary} 
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           ) : (
-            <View style={styles.thumbnailPlaceholder}>
-              <Ionicons name="videocam" size={64} color={theme.colors.text.secondary} />
-            </View>
-          )}
-          
-          {/* Play Button Overlay */}
-          <TouchableOpacity 
-            style={styles.playButtonContainer}
-            onPress={handlePlayPause}
-            activeOpacity={0.8}
-          >
-            <View style={styles.playButton}>
-              <Ionicons 
-                name={isPlaying ? 'pause' : 'play'} 
-                size={40} 
-                color={theme.colors.primary} 
-              />
-            </View>
-          </TouchableOpacity>
+            <>
+              {video.thumbnail ? (
+                <Image 
+                  source={{ uri: video.thumbnail }} 
+                  style={styles.thumbnail}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.thumbnailPlaceholder}>
+                  <Ionicons name="videocam" size={64} color={theme.colors.text.secondary} />
+                </View>
+              )}
+              
+              {/* Play Button Overlay */}
+              <TouchableOpacity 
+                style={styles.playButtonContainer}
+                onPress={handlePlayPause}
+                activeOpacity={0.8}
+              >
+                <View style={styles.playButton}>
+                  <Ionicons 
+                    name={isPlaying ? 'pause' : 'play'} 
+                    size={40} 
+                    color={theme.colors.primary} 
+                  />
+                </View>
+              </TouchableOpacity>
 
-          {/* Duration Badge */}
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
-          </View>
+              {/* Duration Badge */}
+              <View style={styles.durationBadge}>
+                <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Video Info */}
@@ -136,6 +230,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  youtubeWrapper: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  youtubePlayerWrapper: {
+    width: '100%',
+    height: '100%',
+  },
+  youtubePlayerWrapperDisabled: {
+    opacity: 0.5,
+  },
   thumbnail: {
     width: '100%',
     height: '100%',
@@ -168,6 +274,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  youtubePlayButtonContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 10,
+  },
+  youtubePlayButtonTouchable: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  youtubePlayButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(114, 250, 147, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 12,
+    zIndex: 11,
   },
   durationBadge: {
     position: 'absolute',

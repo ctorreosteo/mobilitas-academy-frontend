@@ -97,4 +97,16 @@ export const mockCourses: Course[] = [
     difficulty: 'Principiante',
     coverImage: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop',
   },
+  {
+    id: '9',
+    title: 'Tunnel Carpale',
+    description: 'Corso completo sul trattamento del tunnel carpale',
+    instructor: 'Dr. Studio Osteopatico',
+    duration: 0, // Verrà calcolato dalla playlist
+    isCompleted: false,
+    completionPercentage: 0,
+    category: 'Patologie',
+    difficulty: 'Intermedio',
+    coverImage: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=300&fit=crop',
+  },
 ];

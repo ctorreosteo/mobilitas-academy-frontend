@@ -1,0 +1,79 @@
+# 🔧 Troubleshooting YouTube Integration
+
+## Problema: Video non vengono caricati
+
+### 1. Verifica API Key
+
+**Crea file `.env` nella root del progetto:**
+```bash
+EXPO_PUBLIC_YOUTUBE_API_KEY=AIzaSyAjwyOg90C7ULFMM_DwiT1dL7dGTdf48Ok
+```
+
+**Riavvia il server Expo:**
+```bash
+# Stop server (Ctrl+C)
+npm start
+```
+
+### 2. Verifica API Key valida
+
+- Vai su https://console.cloud.google.com/
+- Verifica che la chiave sia attiva
+- Verifica che "YouTube Data API v3" sia abilitata
+- Controlla la quota giornaliera (10,000 unità/giorno)
+
+### 3. Verifica ID Playlist
+
+L'ID playlist deve essere correttamente configurato in `src/data/mockChapters.ts`:
+
+```typescript
+{
+  id: 'ch9-1',
+  title: 'Tunnel Carpale',
+  order: 1,
+  courseId: '9',
+  youtubePlaylistId: 'PLOdEzl1B0okFAZSC00pvqFgYk-ieRnDYc', // ✅ Corretto
+}
+```
+
+### 4. Controlla i log della console
+
+Apri la console del browser/device e cerca:
+- `🔄 Caricamento playlist YouTube:` - Playlist in caricamento
+- `✅ Recuperati X video` - Video caricati con successo
+- `❌ Errore` - Errore durante il caricamento
+
+### 5. Errori comuni
+
+**Errore 403 (Forbidden):**
+- API key non valida
+- Quota giornaliera superata
+- YouTube Data API v3 non abilitata
+
+**Errore 404 (Not Found):**
+- ID playlist errato
+- Playlist non esiste o privata
+
+**Nessun video trovato:**
+- Playlist vuota
+- Video privati/non accessibili
+- API key senza permessi
+
+### 6. Test rapido
+
+Apri la console del browser e esegui:
+```javascript
+console.log('API Key:', process.env.EXPO_PUBLIC_YOUTUBE_API_KEY);
+```
+
+Se è `undefined`, la variabile d'ambiente non è caricata correttamente.
+
+### 7. Soluzione rapida
+
+Se continui ad avere problemi, verifica:
+1. ✅ File `.env` esiste nella root
+2. ✅ Variabile `EXPO_PUBLIC_YOUTUBE_API_KEY` è presente
+3. ✅ Server Expo riavviato dopo creazione `.env`
+4. ✅ API key è valida su Google Cloud Console
+5. ✅ YouTube Data API v3 è abilitata
+
