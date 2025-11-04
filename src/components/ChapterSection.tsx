@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { Chapter, Video } from '../types';

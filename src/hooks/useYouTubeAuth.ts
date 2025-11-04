@@ -136,15 +136,16 @@ export function useYouTubeAuth(): UseYouTubeAuthResult {
           throw new Error(errorMsg);
         }
       } else if (result.type === 'error') {
-        const errorMsg = result.error?.message || JSON.stringify(result.params);
+        const errorMsg = result.error?.message || 'Errore durante l\'autenticazione';
         console.error('❌ Errore autenticazione:', errorMsg);
-        throw new Error(errorMsg || 'Errore durante l\'autenticazione');
+        throw new Error(errorMsg);
       } else if (result.type === 'cancel') {
         console.log('⚠️ Autenticazione annullata dall\'utente');
         setError('Autenticazione annullata');
       } else {
         console.warn('⚠️ Tipo risultato non gestito:', result.type);
-        console.warn('⚠️ Parametri:', JSON.stringify(result.params, null, 2));
+        const params = 'params' in result ? JSON.stringify(result.params, null, 2) : 'N/A';
+        console.warn('⚠️ Parametri:', params);
         setError(`Risultato autenticazione: ${result.type}. Verifica il redirect URI in Google Cloud Console.`);
       }
     } catch (err) {

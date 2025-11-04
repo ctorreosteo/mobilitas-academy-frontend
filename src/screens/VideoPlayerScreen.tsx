@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { theme } from '../theme';
@@ -91,7 +92,7 @@ const VideoPlayerScreen: React.FC = () => {
                   videoId={video.youtubeVideoId!}
                   play={isPlaying}
                   onChangeState={handleYouTubeStateChange}
-                  onError={(error) => {
+                  onError={(error: any) => {
                     console.error('YouTube Player Error:', error);
                     setShowPlayButton(true);
                   }}

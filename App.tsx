@@ -1,18 +1,21 @@
 import React from 'react';
+// import { useState } from 'react'; // Temporaneamente disabilitato per splash screen
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
+// import SplashScreen from './src/components/SplashScreen'; // Temporaneamente disabilitato
 import { theme } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -84,6 +87,13 @@ const errorBoundaryStyles = StyleSheet.create({
   },
 });
 
+const styles = StyleSheet.create({
+  headerLogo: {
+    width: 120,
+    height: 40,
+  },
+});
+
 // Stack Navigator per la sezione Corsi
 const CoursesStack = () => {
   return (
@@ -114,7 +124,7 @@ const CoursesStack = () => {
         component={CourseVideosScreen}
         options={{ 
           title: 'Video del Corso',
-          headerBackTitleVisible: false,
+          headerBackTitle: '',
         }}
       />
       <Stack.Screen 
@@ -122,7 +132,7 @@ const CoursesStack = () => {
         component={VideoPlayerScreen}
         options={{ 
           title: 'Video',
-          headerBackTitleVisible: false,
+          headerBackTitle: '',
         }}
       />
     </Stack.Navigator>
@@ -130,6 +140,23 @@ const CoursesStack = () => {
 };
 
 export default function App() {
+  // Animazione splash screen temporaneamente disabilitata
+  // const [showSplash, setShowSplash] = useState(true);
+
+  // const handleSplashFinish = () => {
+  //   setShowSplash(false);
+  // };
+
+  // if (showSplash) {
+  //   return (
+  //     <ErrorBoundary>
+  //       <SafeAreaProvider>
+  //         <SplashScreen onFinish={handleSplashFinish} />
+  //       </SafeAreaProvider>
+  //     </ErrorBoundary>
+  //   );
+  // }
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
@@ -178,6 +205,13 @@ export default function App() {
             options={{ 
               title: 'Home',
               tabBarLabel: 'Home',
+              headerTitle: () => (
+                <Image
+                  source={require('./assets/logo_verde.png')}
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                />
+              ),
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons 
                   name={focused ? 'home' : 'home-outline'} 

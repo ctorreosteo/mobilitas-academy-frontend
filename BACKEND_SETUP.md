@@ -196,3 +196,4 @@ Per maggiore sicurezza, puoi:
 
 Se l'app è **solo per uso interno del team** e non sarà pubblica, l'approccio attuale va bene (anche se non è best practice). Le credenziali saranno esposte, ma solo i membri del team avranno accesso all'app.
 
+
