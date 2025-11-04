@@ -68,7 +68,27 @@ console.log('API Key:', process.env.EXPO_PUBLIC_YOUTUBE_API_KEY);
 
 Se è `undefined`, la variabile d'ambiente non è caricata correttamente.
 
-### 7. Soluzione rapida
+### 7. Includere playlist "non in elenco" (unlisted)
+
+Le playlist unlisted non vengono recuperate automaticamente dall'API. Per includerle, aggiungi gli ID delle playlist nel file `.env`:
+
+```bash
+EXPO_PUBLIC_YOUTUBE_UNLISTED_PLAYLISTS=PLxxxxx1,PLxxxxx2,PLxxxxx3
+```
+
+**Come trovare l'ID di una playlist unlisted:**
+- Apri la playlist su YouTube
+- L'URL è: `https://www.youtube.com/playlist?list=PLxxxxx`
+- L'ID è la parte dopo `list=` (es. `PLxxxxx`)
+
+**Esempio completo nel file `.env`:**
+```bash
+EXPO_PUBLIC_YOUTUBE_API_KEY=AIzaSy...
+EXPO_PUBLIC_YOUTUBE_CHANNEL_ID=UC...
+EXPO_PUBLIC_YOUTUBE_UNLISTED_PLAYLISTS=PLOdEzl1B0okFAZSC00pvqFgYk-ieRnDYc,PLxxxxx2
+```
+
+### 8. Soluzione rapida
 
 Se continui ad avere problemi, verifica:
 1. ✅ File `.env` esiste nella root

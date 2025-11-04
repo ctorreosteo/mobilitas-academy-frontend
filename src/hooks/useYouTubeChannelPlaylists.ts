@@ -11,8 +11,11 @@ interface UseYouTubeChannelPlaylistsResult {
 /**
  * Hook per recuperare tutti i corsi da un canale YouTube
  * Ogni playlist diventa un corso
+ * Se refresh token è configurato, recupera TUTTE le playlist (incluse unlisted)
  */
-export function useYouTubeChannelPlaylists(channelId: string | undefined): UseYouTubeChannelPlaylistsResult {
+export function useYouTubeChannelPlaylists(
+  channelId: string | undefined
+): UseYouTubeChannelPlaylistsResult {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +47,7 @@ export function useYouTubeChannelPlaylists(channelId: string | undefined): UseYo
       try {
         console.log('🔄 Caricamento playlist dal canale YouTube:', channelId);
         
-        // Recupera tutte le playlist del canale
+        // Recupera tutte le playlist del canale (usa automaticamente OAuth se refresh token è configurato)
         const playlists = await fetchChannelPlaylists(channelId);
         
         if (cancelled) return;

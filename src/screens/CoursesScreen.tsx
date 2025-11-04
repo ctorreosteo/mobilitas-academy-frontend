@@ -5,13 +5,17 @@ import { theme } from '../theme';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
 import { useYouTubeChannelPlaylists } from '../hooks/useYouTubeChannelPlaylists';
+import { hasRefreshToken } from '../services/youtubeTokenService';
 
 // Channel ID da variabile d'ambiente o fallback a undefined
 const YOUTUBE_CHANNEL_ID = process.env.EXPO_PUBLIC_YOUTUBE_CHANNEL_ID || undefined;
 
 const CoursesScreen: React.FC = () => {
-  // Carica i corsi dal canale YouTube
+  // Carica i corsi dal canale YouTube (usa automaticamente OAuth se refresh token è configurato)
   const { courses, loading, error } = useYouTubeChannelPlaylists(YOUTUBE_CHANNEL_ID);
+  
+  // Verifica se refresh token è configurato
+  const usingOAuth = hasRefreshToken();
 
   const renderCourse = ({ item }: { item: Course }) => (
     <CourseCard
@@ -40,6 +44,13 @@ const CoursesScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Corsi</Text>
+        {usingOAuth && (
+          <View style={styles.authBadge}>
+            <Text style={styles.authBadgeText}>
+              ✅ Tutte le playlist incluse (incluse unlisted)
+            </Text>
+          </View>
+        )}
       </View>
       
       {loading && (
@@ -101,7 +112,9 @@ const CoursesScreen: React.FC = () => {
                   <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>Nessun corso disponibile</Text>
                     <Text style={styles.emptyHint}>
-                      Il canale potrebbe non avere playlist pubbliche o potrebbe esserci un problema con l'API key.
+                      {usingOAuth 
+                        ? 'Nessuna playlist trovata nel canale YouTube.'
+                        : 'Il canale potrebbe non avere playlist pubbliche. Configura EXPO_PUBLIC_YOUTUBE_REFRESH_TOKEN per vedere anche le playlist "non in elenco".'}
                     </Text>
                   </View>
                 }
@@ -131,6 +144,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.secondary, // Verde
+  },
+  authBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(114, 250, 147, 0.1)',
+    alignSelf: 'flex-start',
+  },
+  authBadgeText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.secondary,
   },
   statsContainer: {
     flexDirection: 'row',

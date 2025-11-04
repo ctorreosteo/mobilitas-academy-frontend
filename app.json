@@ -3,6 +3,7 @@
     "name": "Studio Osteopatico",
     "slug": "studio-osteopatico-frontend",
     "version": "1.0.0",
+    "scheme": "mobilitas-academy",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
