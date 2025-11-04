@@ -15,6 +15,8 @@ import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
+import AdvancedCoursesScreen from './src/screens/AdvancedCoursesScreen';
+import AdvancedCourseVideosScreen from './src/screens/AdvancedCourseVideosScreen';
 // import SplashScreen from './src/components/SplashScreen'; // Temporaneamente disabilitato
 import { theme } from './src/theme';
 
@@ -139,6 +141,51 @@ const CoursesStack = () => {
   );
 };
 
+// Stack Navigator per la sezione Corsi Avanzati
+const AdvancedCoursesStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.secondary,
+        headerTitleStyle: {
+          fontWeight: '600',
+          color: theme.colors.secondary,
+        },
+      }}
+    >
+      <Stack.Screen 
+        name="AdvancedCoursesList" 
+        component={AdvancedCoursesScreen}
+        options={{ 
+          title: 'Corsi Avanzati',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="AdvancedCourseVideos" 
+        component={AdvancedCourseVideosScreen}
+        options={{ 
+          title: 'Moduli del Corso',
+          headerBackTitle: '',
+        }}
+      />
+      <Stack.Screen 
+        name="VideoPlayer" 
+        component={VideoPlayerScreen}
+        options={{ 
+          title: 'Video',
+          headerBackTitle: '',
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 export default function App() {
   // Animazione splash screen temporaneamente disabilitata
   // const [showSplash, setShowSplash] = useState(true);
@@ -231,6 +278,22 @@ export default function App() {
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons 
                   name={focused ? 'library' : 'library-outline'} 
+                  size={26} 
+                  color={color} 
+                />
+              ),
+            }}
+          />
+          <Tab.Screen 
+            name="AdvancedCourses" 
+            component={AdvancedCoursesStack} 
+            options={{ 
+              title: 'Corsi Avanzati',
+              tabBarLabel: 'Avanzati',
+              headerShown: false,
+              tabBarIcon: ({ color, size, focused }) => (
+                <Ionicons 
+                  name={focused ? 'school' : 'school-outline'} 
                   size={26} 
                   color={color} 
                 />

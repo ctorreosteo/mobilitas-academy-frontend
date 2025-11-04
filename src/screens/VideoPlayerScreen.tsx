@@ -5,6 +5,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import { Video as ExpoVideo, ResizeMode } from 'expo-av';
 import { theme } from '../theme';
 import { Video, Course } from '../types';
 import { mockCourses } from '../data/mockCourses';
@@ -23,6 +24,8 @@ const VideoPlayerScreen: React.FC = () => {
 
   const course = mockCourses.find(c => c.id === video.courseId);
   const isYouTubeVideo = !!video.youtubeVideoId;
+  const isHLSVideo = !isYouTubeVideo && video.url && video.url.includes('.m3u8');
+  const videoRef = useRef<ExpoVideo>(null);
 
   // Auto-play quando il video è caricato
   useEffect(() => {
@@ -42,10 +45,24 @@ const VideoPlayerScreen: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
     if (isYouTubeVideo) {
       setIsPlaying(!isPlaying);
       setShowPlayButton(false);
+    } else if (isHLSVideo && videoRef.current) {
+      try {
+        if (isPlaying) {
+          await videoRef.current.pauseAsync();
+          setIsPlaying(false);
+          setShowPlayButton(true);
+        } else {
+          await videoRef.current.playAsync();
+          setIsPlaying(true);
+          setShowPlayButton(false);
+        }
+      } catch (error) {
+        console.error('Errore nel controllo video:', error);
+      }
     }
   };
 
@@ -128,6 +145,51 @@ const VideoPlayerScreen: React.FC = () => {
                 </View>
               )}
             </View>
+          ) : isHLSVideo ? (
+            <>
+              <ExpoVideo
+                ref={videoRef}
+                style={styles.hlsVideo}
+                source={{ uri: video.url }}
+                useNativeControls={true}
+                resizeMode={ResizeMode.CONTAIN}
+                onPlaybackStatusUpdate={(status) => {
+                  if (status.isLoaded) {
+                    if (status.isPlaying) {
+                      setIsPlaying(true);
+                      setShowPlayButton(false);
+                    } else {
+                      setIsPlaying(false);
+                      setShowPlayButton(true);
+                    }
+                  }
+                }}
+                onError={(error) => {
+                  console.error('Video Player Error:', error);
+                  setShowPlayButton(true);
+                }}
+              />
+              {/* Play Button Overlay per HLS (mostrato quando non in riproduzione) */}
+              {showPlayButton && (
+                <TouchableOpacity 
+                  style={styles.playButtonContainer}
+                  onPress={handlePlayPause}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.playButton}>
+                    <Ionicons 
+                      name="play" 
+                      size={40} 
+                      color={theme.colors.primary} 
+                    />
+                  </View>
+                </TouchableOpacity>
+              )}
+              {/* Duration Badge */}
+              <View style={styles.durationBadge}>
+                <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
+              </View>
+            </>
           ) : (
             <>
               {video.thumbnail ? (
@@ -254,6 +316,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  hlsVideo: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
   },
   playButtonContainer: {
     position: 'absolute',
