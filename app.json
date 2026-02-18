@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Studio Osteopatico",
+    "name": "Mobilitas",
     "slug": "studio-osteopatico-frontend",
     "version": "1.0.0",
     "scheme": "mobilitas-academy",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/favicon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
