@@ -1,16 +1,14 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-// @ts-ignore - @expo/vector-icons is included in Expo SDK
-import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
-import { Course, Chapter, Video } from '../types';
+import { Course, Video } from '../types';
 import { mockChapters } from '../data/mockChapters';
-import { mockVideos } from '../data/mockVideos';
+import { courseVideos } from '../data/videos';
 import ChapterSection from '../components/ChapterSection';
-import { useYouTubePlaylist } from '../hooks/useYouTubePlaylist';
+import { getCachedDurationFromHls } from '../utils/hlsDuration';
 
 type CoursesStackParamList = {
   CoursesList: undefined;
@@ -26,91 +24,78 @@ const CourseVideosScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
 
-  // Se il corso ha una playlist YouTube, usa quella direttamente
-  const isYouTubeCourse = !!course.youtubePlaylistId;
-  
-  // Hook per recuperare video dalla playlist del corso (se è un corso YouTube)
-  const { videos: youtubeVideos, loading: loadingYoutube, error: youtubeError } = useYouTubePlaylist(
-    course.youtubePlaylistId
+  const courseChapters = useMemo(() =>
+    mockChapters
+      .filter(ch => ch.courseId === course.id)
+      .sort((a, b) => a.order - b.order),
+    [course.id]
   );
 
-  // Per corsi YouTube: crea un capitolo virtuale con tutti i video
-  // Per corsi legacy: usa la logica esistente con mockChapters
-  const courseChapters = useMemo(() => {
-    if (isYouTubeCourse) {
-      // Crea un singolo capitolo virtuale per i video YouTube
-      return [{
-        id: `chapter-${course.id}`,
-        title: 'Video del corso',
-        order: 1,
-        courseId: course.id,
-      }];
-    }
-    // Logica legacy per corsi mock
-    return mockChapters
-      .filter(ch => ch.courseId === course.id)
-      .sort((a, b) => a.order - b.order);
-  }, [course.id, isYouTubeCourse]);
+  const courseVideosList = useMemo(() =>
+    courseVideos
+      .filter(v => v.courseId === course.id)
+      .sort((a, b) => a.order - b.order),
+    [course.id]
+  );
 
-  // Combina video mock e YouTube
-  const courseVideos = useMemo(() => {
-    if (isYouTubeCourse) {
-      // Per corsi YouTube, usa solo i video YouTube
-      const virtualChapterId = `chapter-${course.id}`;
-      return youtubeVideos.map(v => ({
-        ...v,
-        courseId: course.id,
-        chapterId: virtualChapterId,
-      }));
+  const [videosWithDuration, setVideosWithDuration] = useState<Video[]>(courseVideosList);
+  const [loadingDurations, setLoadingDurations] = useState(true);
+
+  useEffect(() => {
+    setVideosWithDuration(courseVideosList);
+    const needDuration = courseVideosList.filter(
+      v => (v.duration <= 0 || !v.duration) && v.url?.includes('.m3u8')
+    );
+    if (needDuration.length === 0) {
+      setLoadingDurations(false);
+      return;
     }
-    
-    // Logica legacy per corsi mock
-    const mockVideosForCourse = mockVideos.filter(v => v.courseId === course.id);
-    const chaptersWithPlaylist = courseChapters.filter(ch => ch.youtubePlaylistId);
-    const firstPlaylistId = chaptersWithPlaylist[0]?.youtubePlaylistId;
-    const firstChapterId = chaptersWithPlaylist[0]?.id;
-    
-    // Se ci sono video YouTube da capitoli, aggiungili
-    if (youtubeVideos.length > 0 && firstChapterId && firstPlaylistId) {
-      const videosWithChapter = youtubeVideos.map(v => ({
-        ...v,
-        courseId: course.id,
-        chapterId: firstChapterId,
-      }));
-      return [...mockVideosForCourse, ...videosWithChapter];
-    }
-    
-    return mockVideosForCourse;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course.id, youtubeVideos.length, isYouTubeCourse]);
+    let cancelled = false;
+    setLoadingDurations(true);
+    Promise.all(
+      needDuration.map(async (video) => {
+        const duration = await getCachedDurationFromHls(video.url || '');
+        return { id: video.id, duration };
+      })
+    ).then((results) => {
+      if (cancelled) return;
+      const byId = new Map(results.map((r) => [r.id, r.duration]));
+      setVideosWithDuration((prev) =>
+        prev.map((v) => {
+          const d = byId.get(v.id);
+          return d !== undefined ? { ...v, duration: d } : v;
+        })
+      );
+      setLoadingDurations(false);
+    }).catch(() => setLoadingDurations(false));
+    return () => { cancelled = true; };
+  }, [courseVideosList]);
 
   const handleVideoPress = (video: Video) => {
     navigation.navigate('VideoPlayer', { video });
   };
 
-  const totalDuration = useMemo(() => 
-    courseVideos.reduce((acc, v) => acc + v.duration, 0),
-    [courseVideos]
+  const totalDuration = useMemo(() =>
+    videosWithDuration.reduce((acc, v) => acc + v.duration, 0),
+    [videosWithDuration]
   );
-  const completedVideos = courseVideos.filter(v => v.isCompleted).length;
-  const progressPercentage = courseVideos.length > 0 
-    ? Math.round((completedVideos / courseVideos.length) * 100) 
+  const completedVideos = videosWithDuration.filter(v => v.isCompleted).length;
+  const progressPercentage = videosWithDuration.length > 0
+    ? Math.round((completedVideos / videosWithDuration.length) * 100)
     : 0;
 
   const formatTotalDuration = (seconds: number): string => {
+    if (seconds <= 0) return '—';
     const hours = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
-    if (hours > 0 && mins > 0) {
-      return `${hours}h ${mins}m`;
-    } else if (hours > 0) {
-      return `${hours}h`;
-    }
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
     return `${mins}m`;
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -124,23 +109,19 @@ const CourseVideosScreen: React.FC = () => {
         </View>
 
         <View style={styles.statsContainer}>
-          {!isYouTubeCourse && (
-            <>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{courseChapters.length}</Text>
-                <Text style={styles.statLabel}>Capitoli</Text>
-              </View>
-              <View style={styles.statDivider} />
-            </>
-          )}
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{courseVideos.length}</Text>
+            <Text style={styles.statValue}>{courseChapters.length}</Text>
+            <Text style={styles.statLabel}>Moduli</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{videosWithDuration.length}</Text>
             <Text style={styles.statLabel}>Video</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue} numberOfLines={1}>
-              {formatTotalDuration(totalDuration)}
+              {loadingDurations && totalDuration === 0 ? '...' : formatTotalDuration(totalDuration)}
             </Text>
             <Text style={styles.statLabel}>Durata</Text>
           </View>
@@ -152,73 +133,21 @@ const CourseVideosScreen: React.FC = () => {
             <Text style={styles.progressPercentage}>{progressPercentage}%</Text>
           </View>
           <View style={styles.progressBar}>
-            <View 
+            <View
               style={[
-                styles.progressFill, 
-                { width: `${progressPercentage}%` }
-              ]} 
+                styles.progressFill,
+                { width: `${progressPercentage}%` },
+              ]}
             />
           </View>
           <Text style={styles.progressText}>
-            {completedVideos} di {courseVideos.length} video completati
+            {completedVideos} di {videosWithDuration.length} video completati
           </Text>
         </View>
 
-        {loadingYoutube && youtubeVideos.length === 0 && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.secondary} />
-            <Text style={styles.loadingText}>Caricamento video da YouTube...</Text>
-          </View>
-        )}
-
-        {youtubeError && (
-          <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle" size={24} color={theme.colors.error} style={styles.errorIcon} />
-            <Text style={styles.errorText}>
-              Errore nel caricamento video da YouTube
-            </Text>
-            <Text style={styles.errorDetails}>{youtubeError}</Text>
-            <Text style={styles.errorHint}>
-              Verifica:
-              {'\n'}• File .env con EXPO_PUBLIC_YOUTUBE_API_KEY configurata
-              {'\n'}• API key valida e YouTube Data API v3 abilitata
-              {'\n'}• ID playlist corretto: {course.youtubePlaylistId || 'N/A'}
-            </Text>
-          </View>
-        )}
-
-        {!youtubeError && !loadingYoutube && isYouTubeCourse && youtubeVideos.length === 0 && (
-          <View style={styles.warningContainer}>
-            <Ionicons name="information-circle" size={24} color={theme.colors.accent} style={styles.errorIcon} />
-            <Text style={styles.warningText}>
-              Nessun video caricato
-            </Text>
-            <Text style={styles.errorHint}>
-              Possibili cause:
-              {'\n'}• API key YouTube non configurata nel file .env
-              {'\n'}• Playlist vuota o video non accessibili
-              {'\n'}• Controlla la console per dettagli
-            </Text>
-          </View>
-        )}
-
-        {isYouTubeCourse && !course.youtubePlaylistId && (
-          <View style={styles.warningContainer}>
-            <Ionicons name="information-circle" size={24} color={theme.colors.accent} style={styles.errorIcon} />
-            <Text style={styles.warningText}>
-              Playlist ID non configurato
-            </Text>
-            <Text style={styles.errorHint}>
-              Verifica che il corso abbia un youtubePlaylistId valido
-            </Text>
-          </View>
-        )}
-
         <View style={styles.chaptersContainer}>
           {courseChapters.map((chapter) => {
-            // Filtra i video per questo capitolo
-            const chapterVideos = courseVideos.filter(v => v.chapterId === chapter.id);
-            
+            const chapterVideos = videosWithDuration.filter(v => v.chapterId === chapter.id);
             return (
               <ChapterSection
                 key={chapter.id}
@@ -366,72 +295,6 @@ const styles = StyleSheet.create({
   chaptersContainer: {
     paddingHorizontal: 20,
   },
-  loadingContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-    opacity: 0.7,
-  },
-  errorContainer: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 20,
-    backgroundColor: 'rgba(255, 104, 105, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 104, 105, 0.3)',
-  },
-  warningContainer: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 20,
-    backgroundColor: 'rgba(14, 165, 233, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(14, 165, 233, 0.3)',
-  },
-  errorIcon: {
-    marginBottom: 12,
-    alignSelf: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.error,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  warningText: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.accent,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  errorDetails: {
-    fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.error,
-    marginBottom: 12,
-    textAlign: 'center',
-    opacity: 0.9,
-  },
-  errorHint: {
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-    opacity: 0.7,
-    lineHeight: 18,
-  },
 });
 
 export default CourseVideosScreen;
-

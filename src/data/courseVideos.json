@@ -1,0 +1,82 @@
+[
+  {
+    "id": "gestionale-p1",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 1,
+    "title": "Panoramica 1",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/b6e96798ab05cdfad66052f8e37df14e/manifest/video.m3u8",
+    "duration": 946,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p2",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 2,
+    "title": "Panoramica 2",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/698c70bfacf06a49ea2177bcbe6ab88d/manifest/video.m3u8",
+    "duration": 457,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p3",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 3,
+    "title": "Panoramica 3",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/99996361b7b6f61d5f0eac940306f7c8/manifest/video.m3u8",
+    "duration": 145,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p4",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 4,
+    "title": "Panoramica 4",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/2c7ae9623d62aa1bc22cd206d8833912/manifest/video.m3u8",
+    "duration": 279,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p5",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 5,
+    "title": "Panoramica 5",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/f83a700e2b0614d4df4375279ade45bc/manifest/video.m3u8",
+    "duration": 230,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p6",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 6,
+    "title": "Panoramica 6",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/45c9e1b3c071e643969d057b2a11d9f0/manifest/video.m3u8",
+    "duration": 155,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p7",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 7,
+    "title": "Panoramica 7",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/925fb2ea443d3d35196c1d2b5aaedc01/manifest/video.m3u8",
+    "duration": 170,
+    "isCompleted": false
+  },
+  {
+    "id": "gestionale-p8",
+    "courseId": "gestionale",
+    "chapterId": "gestionale-panoramiche",
+    "order": 8,
+    "title": "Panoramica 8",
+    "url": "https://customer-tkak4rgxc1u8iwd8.cloudflarestream.com/b2c2116edba66756c8fdec92c49c3cec/manifest/video.m3u8",
+    "duration": 256,
+    "isCompleted": false
+  }
+]
