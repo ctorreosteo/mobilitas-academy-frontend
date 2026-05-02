@@ -13,7 +13,7 @@ interface ChapterSectionProps {
 }
 
 const ChapterSection: React.FC<ChapterSectionProps> = ({ chapter, videos, onVideoPress }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const chapterVideos = videos.filter(v => v.chapterId === chapter.id).sort((a, b) => a.order - b.order);
   const completedCount = chapterVideos.filter(v => v.isCompleted).length;
 

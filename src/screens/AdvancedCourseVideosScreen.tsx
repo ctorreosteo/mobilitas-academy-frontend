@@ -13,7 +13,7 @@ import { fetchCloudflareCourseModules, fetchCloudflareCourseVideos } from '../se
 type AdvancedCoursesStackParamList = {
   AdvancedCoursesList: undefined;
   AdvancedCourseVideos: { course: Course };
-  VideoPlayer: { video: Video };
+  VideoPlayer: { video: Video; course?: Course };
 };
 
 type AdvancedCourseVideosScreenRouteProp = RouteProp<AdvancedCoursesStackParamList, 'AdvancedCourseVideos'>;
@@ -67,7 +67,7 @@ const AdvancedCourseVideosScreen: React.FC = () => {
   }, [course.id]);
 
   const handleVideoPress = (video: Video) => {
-    navigation.navigate('VideoPlayer', { video });
+    navigation.navigate('VideoPlayer', { video, course });
   };
 
   const totalDuration = useMemo(() => 

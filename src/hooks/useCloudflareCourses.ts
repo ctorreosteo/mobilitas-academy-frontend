@@ -29,6 +29,7 @@ export function useCloudflareCourses(): UseCloudflareCoursesResult {
       } catch (err: any) {
         console.error('❌ Errore nel caricamento corsi Cloudflare:', err);
         if (isMounted) {
+          setCourses([]);
           setError(err.message || 'Errore nel caricamento dei corsi avanzati');
         }
       } finally {

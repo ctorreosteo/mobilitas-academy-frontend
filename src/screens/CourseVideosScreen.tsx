@@ -1,19 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { theme } from '../theme';
-import { Course, Video } from '../types';
-import { mockChapters } from '../data/mockChapters';
-import { courseVideos } from '../data/videos';
+import { Course, Video, Chapter } from '../types';
 import ChapterSection from '../components/ChapterSection';
 import { getCachedDurationFromHls } from '../utils/hlsDuration';
+import { loadFormazioneCourseContent } from '../services/formazioneCourseContent';
 
 type CoursesStackParamList = {
   CoursesList: undefined;
   CourseVideos: { course: Course };
-  VideoPlayer: { video: Video };
+  VideoPlayer: { video: Video; course?: Course };
 };
 
 type CourseVideosScreenRouteProp = RouteProp<CoursesStackParamList, 'CourseVideos'>;
@@ -24,29 +23,50 @@ const CourseVideosScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
 
-  const courseChapters = useMemo(() =>
-    mockChapters
-      .filter(ch => ch.courseId === course.id)
-      .sort((a, b) => a.order - b.order),
-    [course.id]
-  );
-
-  const courseVideosList = useMemo(() =>
-    courseVideos
-      .filter(v => v.courseId === course.id)
-      .sort((a, b) => a.order - b.order),
-    [course.id]
-  );
-
-  const [videosWithDuration, setVideosWithDuration] = useState<Video[]>(courseVideosList);
+  const [courseChapters, setCourseChapters] = useState<Chapter[]>([]);
+  /** Solo da API: l’effetto durate dipende da questo per evitare loop. */
+  const [sourceVideos, setSourceVideos] = useState<Video[]>([]);
+  const [videosWithDuration, setVideosWithDuration] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingDurations, setLoadingDurations] = useState(true);
 
   useEffect(() => {
-    setVideosWithDuration(courseVideosList);
-    const needDuration = courseVideosList.filter(
-      v => (v.duration <= 0 || !v.duration) && v.url?.includes('.m3u8')
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setLoadError(null);
+        const { chapters, videos } = await loadFormazioneCourseContent(course);
+        if (cancelled) return;
+        setCourseChapters(chapters);
+        setSourceVideos(videos);
+        setVideosWithDuration(videos);
+      } catch (e) {
+        if (!cancelled) {
+          setLoadError(e instanceof Error ? e.message : 'Errore nel caricamento del corso');
+          setCourseChapters([]);
+          setSourceVideos([]);
+          setVideosWithDuration([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [course]);
+
+  useEffect(() => {
+    const needDuration = sourceVideos.filter(
+      (v) => (v.duration <= 0 || !v.duration) && v.url?.includes('.m3u8')
     );
     if (needDuration.length === 0) {
+      setVideosWithDuration(sourceVideos);
       setLoadingDurations(false);
       return;
     }
@@ -57,32 +77,37 @@ const CourseVideosScreen: React.FC = () => {
         const duration = await getCachedDurationFromHls(video.url || '');
         return { id: video.id, duration };
       })
-    ).then((results) => {
-      if (cancelled) return;
-      const byId = new Map(results.map((r) => [r.id, r.duration]));
-      setVideosWithDuration((prev) =>
-        prev.map((v) => {
-          const d = byId.get(v.id);
-          return d !== undefined ? { ...v, duration: d } : v;
-        })
-      );
-      setLoadingDurations(false);
-    }).catch(() => setLoadingDurations(false));
-    return () => { cancelled = true; };
-  }, [courseVideosList]);
+    )
+      .then((results) => {
+        if (cancelled) return;
+        const byId = new Map(results.map((r) => [r.id, r.duration]));
+        setVideosWithDuration(
+          sourceVideos.map((v) => {
+            const d = byId.get(v.id);
+            return d !== undefined ? { ...v, duration: d } : v;
+          })
+        );
+        setLoadingDurations(false);
+      })
+      .catch(() => setLoadingDurations(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceVideos]);
 
   const handleVideoPress = (video: Video) => {
-    navigation.navigate('VideoPlayer', { video });
+    navigation.navigate('VideoPlayer', { video, course });
   };
 
-  const totalDuration = useMemo(() =>
-    videosWithDuration.reduce((acc, v) => acc + v.duration, 0),
+  const totalDuration = useMemo(
+    () => videosWithDuration.reduce((acc, v) => acc + v.duration, 0),
     [videosWithDuration]
   );
-  const completedVideos = videosWithDuration.filter(v => v.isCompleted).length;
-  const progressPercentage = videosWithDuration.length > 0
-    ? Math.round((completedVideos / videosWithDuration.length) * 100)
-    : 0;
+  const completedVideos = videosWithDuration.filter((v) => v.isCompleted).length;
+  const progressPercentage =
+    videosWithDuration.length > 0
+      ? Math.round((completedVideos / videosWithDuration.length) * 100)
+      : 0;
 
   const formatTotalDuration = (seconds: number): string => {
     if (seconds <= 0) return '—';
@@ -92,6 +117,17 @@ const CourseVideosScreen: React.FC = () => {
     if (hours > 0) return `${hours}h`;
     return `${mins}m`;
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.colors.secondary} />
+          <Text style={styles.loadingText}>Caricamento moduli e lezioni…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -107,6 +143,12 @@ const CourseVideosScreen: React.FC = () => {
         <View style={styles.descriptionContainer}>
           <Text style={styles.descriptionText}>{course.description}</Text>
         </View>
+
+        {loadError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{loadError}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
@@ -134,10 +176,7 @@ const CourseVideosScreen: React.FC = () => {
           </View>
           <View style={styles.progressBar}>
             <View
-              style={[
-                styles.progressFill,
-                { width: `${progressPercentage}%` },
-              ]}
+              style={[styles.progressFill, { width: `${progressPercentage}%` }]}
             />
           </View>
           <Text style={styles.progressText}>
@@ -146,8 +185,13 @@ const CourseVideosScreen: React.FC = () => {
         </View>
 
         <View style={styles.chaptersContainer}>
+          {courseChapters.length === 0 && !loadError ? (
+            <Text style={styles.emptyHint}>Nessun modulo disponibile per questo corso.</Text>
+          ) : null}
           {courseChapters.map((chapter) => {
-            const chapterVideos = videosWithDuration.filter(v => v.chapterId === chapter.id);
+            const chapterVideos = videosWithDuration
+              .filter((v) => v.chapterId === chapter.id)
+              .sort((a, b) => a.order - b.order);
             return (
               <ChapterSection
                 key={chapter.id}
@@ -167,6 +211,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.primary,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: theme.colors.text.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  errorBanner: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 99, 99, 0.12)',
+  },
+  errorText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  emptyHint: {
+    fontSize: 15,
+    color: theme.colors.text.secondary,
+    opacity: 0.75,
+    textAlign: 'center',
+    paddingVertical: 16,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   scrollContent: {
     paddingBottom: 32,

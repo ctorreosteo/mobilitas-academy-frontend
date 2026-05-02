@@ -1,37 +1,112 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
+import {
+  getAuthToken,
+  setAuthToken,
+  setStoredUserProfile,
+  clearAllAuth,
+} from '../services/authTokenStorage';
 
-// Configurazione base per le chiamate API
-const API_BASE_URL = 'http://localhost:8080/api';
+const backendOrigin = process.env.EXPO_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
+export const API_BASE_URL = backendOrigin ? `${backendOrigin}/api` : 'http://localhost:8080/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor per aggiungere token di autenticazione
+type AuthRetryConfig = InternalAxiosRequestConfig & { __isRetry?: boolean };
+
+interface ApiEnvelope<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string | null;
+}
+
+interface RefreshPayload {
+  token: string;
+  username?: string;
+  nome?: string;
+  cognome?: string;
+  email?: string;
+  ruoli?: string[];
+}
+
 apiClient.interceptors.request.use(
-  (config) => {
-    // Qui si può aggiungere la logica per il token
-    // const token = getAuthToken();
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+  async (config) => {
+    const token = await getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor per gestire le risposte
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Qui si può gestire la logica di error handling globale
-    console.error('API Error:', error);
-    return Promise.reject(error);
+  async (error) => {
+    const original = error.config as AuthRetryConfig | undefined;
+    const status = error.response?.status;
+
+    if (status !== 401 || !original || original.__isRetry) {
+      console.error('API Error:', error);
+      return Promise.reject(error);
+    }
+
+    const path = original.url ?? '';
+    if (
+      path.includes('/auth/login') ||
+      path.includes('/auth/register') ||
+      path.includes('/auth/refresh')
+    ) {
+      console.error('API Error:', error);
+      return Promise.reject(error);
+    }
+
+    try {
+      const token = await getAuthToken();
+      if (!token) {
+        await clearAllAuth();
+        return Promise.reject(error);
+      }
+
+      const { data: envelope } = await axios.post<ApiEnvelope<RefreshPayload>>(
+        `${API_BASE_URL}/auth/refresh`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          timeout: 15000,
+        }
+      );
+
+      if (!envelope.success || !envelope.data?.token) {
+        throw new Error('refresh failed');
+      }
+
+      const d = envelope.data;
+      await setAuthToken(d.token);
+      if (d.username != null && d.email != null) {
+        await setStoredUserProfile({
+          username: d.username,
+          nome: d.nome ?? '',
+          cognome: d.cognome ?? '',
+          email: d.email,
+          ruoli: d.ruoli ?? [],
+        });
+      }
+
+      original.__isRetry = true;
+      original.headers = original.headers ?? {};
+      original.headers.Authorization = `Bearer ${d.token}`;
+      return apiClient.request(original);
+    } catch {
+      await clearAllAuth();
+      console.error('API Error:', error);
+      return Promise.reject(error);
+    }
   }
 );

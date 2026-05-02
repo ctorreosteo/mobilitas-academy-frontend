@@ -8,7 +8,7 @@ import { Course } from '../types';
 type CoursesStackParamList = {
   CoursesList: undefined;
   CourseVideos: { course: Course };
-  VideoPlayer: { video: import('../types').Video };
+  VideoPlayer: { video: import('../types').Video; course?: Course };
 };
 
 type NavigationProp = StackNavigationProp<CoursesStackParamList, 'CourseVideos'>;
@@ -21,6 +21,8 @@ interface CourseCardProps {
   completionPercentage: number;
   isCompleted: boolean;
   coverImage?: string;
+  /** Corso in catalogo ma senza accesso (backend `attivo: false`) */
+  isLocked?: boolean;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -31,15 +33,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
   completionPercentage,
   isCompleted,
   coverImage,
+  isLocked,
 }) => {
   const navigation = useNavigation<NavigationProp>();
 
   const handleContinue = () => {
+    if (isLocked) return;
     navigation.navigate('CourseVideos', { course });
   };
 
+  const durationLabel = duration > 0 ? `${duration} min` : '—';
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isLocked && styles.cardLocked]}>
       {coverImage && (
         <Image 
           source={{ uri: coverImage }} 
@@ -50,6 +56,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
       )}
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
+        {isLocked ? (
+          <View style={styles.lockBadge}>
+            <Text style={styles.lockBadgeText}>Bloccato</Text>
+          </View>
+        ) : null}
       </View>
       
       <Text style={styles.instructor}>di {instructor}</Text>
@@ -70,14 +81,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
       </View>
       
       <View style={styles.footer}>
-        <Text style={styles.duration}>{duration} min</Text>
+        <Text style={styles.duration}>{durationLabel}</Text>
         <TouchableOpacity 
-          style={styles.continueButton}
+          style={[styles.continueButton, isLocked && styles.continueButtonDisabled]}
           onPress={handleContinue}
-          activeOpacity={0.8}
+          activeOpacity={isLocked ? 1 : 0.8}
+          disabled={isLocked}
         >
-          <Text style={styles.continueText}>
-            {isCompleted ? 'Rivedi' : 'Continua'}
+          <Text style={[styles.continueText, isLocked && styles.continueTextDisabled]}>
+            {isLocked ? 'Non disponibile' : isCompleted ? 'Rivedi' : 'Continua'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -106,6 +118,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
+  cardLocked: {
+    opacity: 0.92,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -113,6 +128,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     padding: 20,
     paddingTop: 20,
+    gap: 8,
+  },
+  lockBadge: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  lockBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+    opacity: 0.75,
   },
   title: {
     fontSize: 18,
@@ -180,11 +209,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
+  continueButtonDisabled: {
+    backgroundColor: theme.colors.background.secondary,
+  },
   continueText: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.text.primary, // Verde
     fontWeight: '600',
+  },
+  continueTextDisabled: {
+    color: theme.colors.text.secondary,
   },
 });
 

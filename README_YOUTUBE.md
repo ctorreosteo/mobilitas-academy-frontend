@@ -24,17 +24,7 @@ npm start
 
 ### 3. Verifica ID Playlist
 
-L'ID playlist deve essere correttamente configurato in `src/data/mockChapters.ts`:
-
-```typescript
-{
-  id: 'ch9-1',
-  title: 'Tunnel Carpale',
-  order: 1,
-  courseId: '9',
-  youtubePlaylistId: 'PLOdEzl1B0okFAZSC00pvqFgYk-ieRnDYc', // ✅ Corretto
-}
-```
+I capitoli (`Chapter`) e gli ID playlist YouTube arrivano dai dati caricati in app (es. API formazione / Cloudflare), tramite il campo `youtubePlaylistId` quando previsto dal flusso.
 
 ### 4. Controlla i log della console
 

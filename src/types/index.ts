@@ -50,6 +50,10 @@ export interface Course {
   difficulty: 'Principiante' | 'Intermedio' | 'Avanzato';
   coverImage?: string;
   youtubePlaylistId?: string; // ID playlist YouTube per questo corso
+  /** Da GET /api/formazione/corsi: utente può accedere al corso */
+  formazioneAttivo?: boolean;
+  ruoloRichiestoTipo?: string | null;
+  ruoloRichiestoId?: number | null;
 }
 
 export interface Chapter {
@@ -72,4 +76,6 @@ export interface Video {
   thumbnail?: string;
   description?: string;
   youtubeVideoId?: string; // ID video YouTube per il player
+  cloudflareUid?: string | null;
+  richiedeToken?: boolean;
 }

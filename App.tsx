@@ -19,6 +19,7 @@ import AdvancedCoursesScreen from './src/screens/AdvancedCoursesScreen';
 import AdvancedCourseVideosScreen from './src/screens/AdvancedCourseVideosScreen';
 // import SplashScreen from './src/components/SplashScreen'; // Temporaneamente disabilitato
 import { theme } from './src/theme';
+import TestAuthGate from './src/components/TestAuthGate';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -208,6 +209,7 @@ export default function App() {
     <ErrorBoundary>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
+          <TestAuthGate>
           <NavigationContainer>
         <Tab.Navigator
           screenOptions={{
@@ -318,6 +320,7 @@ export default function App() {
         </Tab.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
+          </TestAuthGate>
     </QueryClientProvider>
     </SafeAreaProvider>
     </ErrorBoundary>

@@ -53,17 +53,5 @@ Una volta configurata l'API key, i video verranno recuperati automaticamente qua
 
 ### Esempio
 
-Nel file `src/data/mockChapters.ts`:
-
-```typescript
-{
-  id: 'ch9-1',
-  title: 'Tunnel Carpale',
-  order: 1,
-  courseId: '9',
-  youtubePlaylistId: 'PLOdEzl1B0okFAZSC00pvqFgYk-ieRnDYc',
-}
-```
-
-Il sistema recupererà automaticamente tutti i video da questa playlist!
+Associa `youtubePlaylistId` ai capitoli nei dati che l’app riceve (non più da file mock nel repo). Il sistema recupererà i video da quella playlist quando il flusso lo usa.
 

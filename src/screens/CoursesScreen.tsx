@@ -1,35 +1,93 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform, FlatList } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '../theme';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
-import { mockCourses } from '../data/mockCourses';
+import { useFormazioneCourses } from '../hooks/useFormazioneCourses';
+import { isAxiosError } from 'axios';
+
+function coursesErrorMessage(error: unknown): string {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
+      return 'Accesso negato: effettua il login e assicurati che il token JWT sia salvato nell’app.';
+    }
+    if (!error.response) {
+      return 'Impossibile raggiungere il server. Controlla la rete e EXPO_PUBLIC_BACKEND_URL.';
+    }
+  }
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return 'Si è verificato un errore nel caricamento dei corsi.';
+}
 
 const CoursesScreen: React.FC = () => {
-  const courses = mockCourses;
+  const { data: courses = [], isPending, isError, error, refetch, isRefetching } =
+    useFormazioneCourses();
 
-  const renderCourse = ({ item }: { item: Course }) => (
-    <CourseCard
-      course={item}
-      title={item.title}
-      instructor={item.instructor}
-      duration={item.duration}
-      completionPercentage={item.completionPercentage}
-      isCompleted={item.isCompleted}
-      coverImage={item.coverImage}
-    />
+  const renderCourse = useCallback(
+    ({ item }: { item: Course }) => (
+      <CourseCard
+        course={item}
+        title={item.title}
+        instructor={item.instructor}
+        duration={item.duration}
+        completionPercentage={item.completionPercentage}
+        isCompleted={item.isCompleted}
+        coverImage={item.coverImage}
+        isLocked={item.formazioneAttivo === false}
+      />
+    ),
+    []
   );
 
   const stats = useMemo(() => {
     const totalCourses = courses.length;
-    const completedCourses = courses.filter(course => course.isCompleted).length;
-    const avgProgress = courses.length > 0
-      ? Math.round(courses.reduce((acc, course) => acc + course.completionPercentage, 0) / courses.length)
-      : 0;
+    const completedCourses = courses.filter((course) => course.isCompleted).length;
+    const avgProgress =
+      courses.length > 0
+        ? Math.round(
+            courses.reduce((acc, course) => acc + course.completionPercentage, 0) /
+              courses.length
+          )
+        : 0;
 
     return { totalCourses, completedCourses, avgProgress };
   }, [courses]);
+
+  const listHeader = useMemo(
+    () =>
+      isError && courses.length > 0 ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{coursesErrorMessage(error)}</Text>
+        </View>
+      ) : null,
+    [isError, error, courses.length]
+  );
+
+  if (isPending && courses.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Corsi</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={theme.colors.secondary} />
+          <Text style={styles.loadingHint}>Caricamento corsi…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -58,9 +116,19 @@ const CoursesScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.coursesList}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={listHeader}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
+            tintColor={theme.colors.secondary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Nessun corso disponibile</Text>
+            <Text style={styles.emptyText}>
+              {isError ? coursesErrorMessage(error) : 'Nessun corso disponibile'}
+            </Text>
           </View>
         }
       />
@@ -85,6 +153,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.secondary,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingHint: {
+    marginTop: 12,
+    fontSize: 15,
+    color: theme.colors.text.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(255, 99, 99, 0.12)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -135,6 +226,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.text.secondary,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    textAlign: 'center',
   },
 });
 

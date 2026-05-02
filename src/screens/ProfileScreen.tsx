@@ -1,9 +1,101 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { theme } from '../theme';
+import { TEST_AUTH_EMAIL } from '../config/testAuth';
+import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
+import { fetchCurrentUser, logoutMobilitas, performTestLogin } from '../services/authApi';
+
+function initialsFromProfile(p: StoredUserProfile | null, fallbackEmail: string): string {
+  if (p?.nome?.trim() && p?.cognome?.trim()) {
+    return `${p.nome.trim()[0] ?? ''}${p.cognome.trim()[0] ?? ''}`.toUpperCase() || '?';
+  }
+  const email = p?.email || fallbackEmail;
+  const local = email.split('@')[0] || '?';
+  const compact = local.replace(/[^a-z0-9]/gi, '');
+  if (compact.length >= 2) return compact.slice(0, 2).toUpperCase();
+  return local.slice(0, 2).toUpperCase() || '?';
+}
 
 const ProfileScreen: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  const loadProfile = useCallback(async () => {
+    const local = await getStoredUserProfile();
+    setProfile(local);
+    setSyncing(true);
+    try {
+      const fresh = await fetchCurrentUser();
+      setProfile(fresh);
+    } catch {
+      // token assente / rete: resta snapshot locale
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
+
+  const displayName =
+    profile?.nome && profile?.cognome
+      ? `${profile.nome} ${profile.cognome}`.trim()
+      : profile?.username || profile?.email?.split('@')[0] || TEST_AUTH_EMAIL.split('@')[0];
+  const displayEmail = profile?.email || TEST_AUTH_EMAIL;
+  const roleLine =
+    profile?.ruoli?.length && profile.ruoli.length > 0
+      ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
+      : '—';
+
+  const handleLogout = () => {
+    Alert.alert('Esci', 'Vuoi terminare la sessione su questo dispositivo?', [
+      { text: 'Annulla', style: 'cancel' },
+      {
+        text: 'Esci',
+        style: 'destructive',
+        onPress: async () => {
+          await logoutMobilitas();
+          queryClient.clear();
+          setProfile(null);
+          Alert.alert(
+            'Sessione terminata',
+            'Per continuare con l’account di test, usa «Accedi di nuovo».',
+            [
+              { text: 'OK' },
+              {
+                text: 'Accedi di nuovo',
+                onPress: async () => {
+                  try {
+                    await performTestLogin();
+                    await loadProfile();
+                  } catch (e) {
+                    Alert.alert('Errore', e instanceof Error ? e.message : 'Login non riuscito');
+                  }
+                },
+              },
+            ]
+          );
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -17,12 +109,19 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>DR</Text>
+              <Text style={styles.avatarText}>
+                {initialsFromProfile(profile, TEST_AUTH_EMAIL)}
+              </Text>
             </View>
           </View>
-          <Text style={styles.userName}>Dr. Mario Rossi</Text>
-          <Text style={styles.userEmail}>mario.rossi@studioosteopatico.it</Text>
-          <Text style={styles.userRole}>Studente</Text>
+          <View style={styles.profileTitleRow}>
+            <Text style={styles.userName}>{displayName}</Text>
+            {syncing ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} style={styles.syncSpinner} />
+            ) : null}
+          </View>
+          <Text style={styles.userEmail}>{displayEmail}</Text>
+          <Text style={styles.userRole}>{roleLine}</Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -77,7 +176,7 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.menuItemArrow}>›</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.menuItem, styles.logoutItem]}>
+          <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
             <Text style={[styles.menuItemText, styles.logoutText]}>Esci</Text>
           </TouchableOpacity>
         </View>
@@ -146,12 +245,21 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.background.white,
   },
+  profileTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  syncSpinner: {
+    marginLeft: 4,
+  },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.primary,
-    marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,

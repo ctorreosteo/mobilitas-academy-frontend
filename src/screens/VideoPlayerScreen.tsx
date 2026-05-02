@@ -8,15 +8,19 @@ import { Video as ExpoVideo, ResizeMode, Audio } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { theme } from '../theme';
 import { Video, Course } from '../types';
-import { mockCourses } from '../data/mockCourses';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-type VideoPlayerScreenRouteProp = RouteProp<{ params: { video: Video } }, 'params'>;
+type VideoPlayerRouteParams = { video: Video; course?: Course };
+
+type VideoPlayerScreenRouteProp = RouteProp<
+  { VideoPlayer: VideoPlayerRouteParams },
+  'VideoPlayer'
+>;
 
 const VideoPlayerScreen: React.FC = () => {
   const route = useRoute<VideoPlayerScreenRouteProp>();
-  const { video } = route.params;
+  const { video, course } = route.params;
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPlayButton, setShowPlayButton] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
@@ -26,7 +30,6 @@ const VideoPlayerScreen: React.FC = () => {
   const videoRef = useRef<ExpoVideo>(null);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  const course = mockCourses.find(c => c.id === video.courseId);
   const isHLSVideo = video.url && video.url.includes('.m3u8');
 
   const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const;

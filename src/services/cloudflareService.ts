@@ -6,7 +6,7 @@ const CLOUDFLARE_STREAM_TOKEN = process.env.EXPO_PUBLIC_CLOUDFLARE_STREAM_TOKEN 
 const CLOUDFLARE_STREAM_SUBDOMAIN = process.env.EXPO_PUBLIC_CLOUDFLARE_STREAM_SUBDOMAIN || '';
 const STREAM_API_BASE = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/stream`;
 
-// Costanti per il corso temporaneo "Introduzione"
+// Id interni per il corso/modulo aggregato da Stream (metadata per corsi multipli in futuro)
 const DEFAULT_COURSE_ID = 'course-introduzione';
 const DEFAULT_MODULE_ID = 'module-introduzione';
 
@@ -86,8 +86,8 @@ async function fetchAllStreamVideos(): Promise<StreamVideo[]> {
 }
 
 /**
- * Recupera tutti i corsi avanzati da Cloudflare Stream
- * TEMPORANEO: Tutti i video appartengono a un unico corso "Introduzione"
+ * Recupera i corsi avanzati da Cloudflare Stream (un corso aggregato da tutti i video del catalogo).
+ * Titolo e descrizione derivano dai metadata del primo video quando presenti.
  */
 export async function fetchCloudflareCourses(): Promise<Course[]> {
   try {
@@ -107,34 +107,36 @@ export async function fetchCloudflareCourses(): Promise<Course[]> {
       return [];
     }
     
-    // TEMPORANEO: Crea un unico corso "Introduzione" con tutti i video
+    const first = videos[0];
+    const meta = first?.meta;
+    const title =
+      meta?.courseTitle ||
+      meta?.title ||
+      meta?.name ||
+      'Cloudflare Stream';
+    const description = meta?.courseDescription || meta?.description || '';
+    const instructor = meta?.instructor?.trim() || '—';
+
     const totalSeconds = videos.reduce((sum, v) => sum + (v.duration || 0), 0);
     const totalMinutes = Math.round(totalSeconds / 60);
     
     const courses: Course[] = [{
       id: DEFAULT_COURSE_ID,
-      title: 'Introduzione',
-      description: 'Corso di introduzione con tutti i video disponibili su Cloudflare Stream',
-      instructor: 'Dr. Mobilitas',
+      title,
+      description,
+      instructor,
       duration: totalMinutes,
       isCompleted: false,
       completionPercentage: 0,
-      category: 'Avanzato',
+      category: meta?.category || 'Avanzato',
       difficulty: 'Avanzato',
-      coverImage: videos[0]?.thumbnail, // Usa la thumbnail del primo video come cover
+      coverImage: first?.thumbnail,
     }];
     
-    console.log(`✅ Creato corso "Introduzione" con ${videos.length} video (durata totale: ${totalMinutes} min)`);
+    console.log(`✅ Corso aggregato Stream (${title}) con ${videos.length} video (durata totale: ${totalMinutes} min)`);
     return courses;
   } catch (error: any) {
     console.error('❌ Errore nel recupero corsi da Cloudflare:', error.message);
-    
-    // Fallback a dati mock per sviluppo
-    if (process.env.NODE_ENV === 'development') {
-      console.log('⚠️ Usando dati mock per sviluppo');
-      return getMockAdvancedCourses();
-    }
-    
     throw new Error(`Errore nel recupero corsi da Cloudflare: ${error.message}`);
   }
 }
@@ -152,16 +154,21 @@ export async function fetchCloudflareCourseModules(courseId: string): Promise<Ch
       return [];
     }
     
-    // Se il corso è "Introduzione", restituisci un unico modulo
     if (courseId === DEFAULT_COURSE_ID) {
+      const videos = await fetchAllStreamVideos();
+      const first = videos[0];
+      const moduleTitle =
+        first?.meta?.moduleTitle ||
+        first?.meta?.module ||
+        'Modulo';
       const modules: Chapter[] = [{
         id: DEFAULT_MODULE_ID,
-        title: 'Video del corso',
+        title: moduleTitle,
         order: 1,
         courseId: courseId,
       }];
       
-      console.log(`✅ Creato modulo unico per corso "Introduzione"`);
+      console.log(`✅ Modulo unico aggregato Stream (${moduleTitle})`);
       return modules;
     }
     
@@ -211,7 +218,6 @@ export async function fetchCloudflareModuleVideos(courseId: string, moduleId: st
     
     const videos = await fetchAllStreamVideos();
     
-    // Se è il modulo "Introduzione", restituisci tutti i video
     if (moduleId === DEFAULT_MODULE_ID && courseId === DEFAULT_COURSE_ID) {
       const allVideos = videos
         .map((v, index) => ({
@@ -228,7 +234,7 @@ export async function fetchCloudflareModuleVideos(courseId: string, moduleId: st
         }))
         .sort((a, b) => a.order - b.order);
       
-      console.log(`✅ Recuperati ${allVideos.length} video per modulo "Introduzione"`);
+      console.log(`✅ Recuperati ${allVideos.length} video per modulo aggregato Stream`);
       return allVideos;
     }
     
@@ -279,25 +285,4 @@ export async function fetchCloudflareCourseVideos(courseId: string): Promise<Vid
     return [];
   }
 }
-
-/**
- * Dati mock per sviluppo (temporaneo)
- */
-function getMockAdvancedCourses(): Course[] {
-  return [
-    {
-      id: 'advanced-1',
-      title: 'Osteopatia Avanzata: Tecniche Specializzate',
-      description: 'Corso avanzato sulle tecniche osteopatiche più specializzate',
-      instructor: 'Dr. Expert',
-      duration: 180,
-      isCompleted: false,
-      completionPercentage: 0,
-      category: 'Avanzato',
-      difficulty: 'Avanzato',
-      coverImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
-    },
-  ];
-}
-
 
