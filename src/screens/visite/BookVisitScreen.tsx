@@ -11,7 +11,7 @@ import {
   Platform,
   Modal,
 } from 'react-native';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme } from '../../theme';
@@ -27,13 +27,23 @@ import {
 import { fetchCurrentUser } from '../../services/authApi';
 import { SelectModal } from './SelectModal';
 import {
+  addDays,
+  addMonths,
+  expandSlotsToHourly,
   formatDayTitle,
   formatSlotLabel,
+  formatWeekdayLongIt,
   groupSlotsByDay,
   osteopataLabel,
   studioLabel,
   toYmd,
 } from './visiteFormatting';
+
+function initialVisitYmdTomorrow(): string {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return toYmd(addDays(t, 1));
+}
 
 type FormSectionRow = { readonly kind: 'form' };
 const FORM_SECTION_ROW: FormSectionRow = { kind: 'form' };
@@ -49,7 +59,7 @@ type VisitSection =
 
 const BookVisitScreen: React.FC = () => {
   const queryClient = useQueryClient();
-  const [dataVisitaYmd, setDataVisitaYmd] = useState(() => toYmd(new Date()));
+  const [dataVisitaYmd, setDataVisitaYmd] = useState(initialVisitYmdTomorrow);
   const range = useMemo(
     () => ({ dataInizio: dataVisitaYmd, dataFine: dataVisitaYmd }),
     [dataVisitaYmd]
@@ -61,8 +71,9 @@ const BookVisitScreen: React.FC = () => {
   const [modalOsteopata, setModalOsteopata] = useState(false);
   const [modalStudio, setModalStudio] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [androidPickerKey, setAndroidPickerKey] = useState(0);
-  const [iosPickerDate, setIosPickerDate] = useState(() => new Date(`${toYmd(new Date())}T12:00:00`));
+  const [iosPickerDate, setIosPickerDate] = useState(
+    () => new Date(`${initialVisitYmdTomorrow()}T12:00:00`)
+  );
 
   const startOfToday = useMemo(() => {
     const t = new Date();
@@ -70,25 +81,36 @@ const BookVisitScreen: React.FC = () => {
     return t;
   }, []);
 
-  const applyDataVisita = useCallback((d: Date) => {
-    setDataVisitaYmd(toYmd(d));
-    setSlotSelezionato(null);
-  }, []);
+  const maxSelectableDate = useMemo(() => addMonths(startOfToday, 3), [startOfToday]);
+
+  const clampToSelectableRange = useCallback(
+    (d: Date): Date => {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      const minT = startOfToday.getTime();
+      const maxT = maxSelectableDate.getTime();
+      let t = x.getTime();
+      if (t < minT) t = minT;
+      if (t > maxT) t = maxT;
+      return new Date(t);
+    },
+    [startOfToday, maxSelectableDate]
+  );
+
+  const applyDataVisita = useCallback(
+    (d: Date) => {
+      const clamped = clampToSelectableRange(d);
+      setDataVisitaYmd(toYmd(clamped));
+      setSlotSelezionato(null);
+    },
+    [clampToSelectableRange]
+  );
 
   const openDatePicker = useCallback(() => {
-    setIosPickerDate(new Date(`${dataVisitaYmd}T12:00:00`));
-    setAndroidPickerKey((k) => k + 1);
+    const clamped = clampToSelectableRange(new Date(`${dataVisitaYmd}T12:00:00`));
+    setIosPickerDate(new Date(clamped.getFullYear(), clamped.getMonth(), clamped.getDate(), 12, 0, 0, 0));
     setDatePickerOpen(true);
-  }, [dataVisitaYmd]);
-
-  const onAndroidPickerChange = useCallback(
-    (event: DateTimePickerEvent, date?: Date) => {
-      setDatePickerOpen(false);
-      if (event.type === 'dismissed') return;
-      if (date) applyDataVisita(date);
-    },
-    [applyDataVisita]
-  );
+  }, [dataVisitaYmd, clampToSelectableRange]);
 
   const profileQuery = useQuery({
     queryKey: ['auth-me-profile'],
@@ -143,10 +165,19 @@ const BookVisitScreen: React.FC = () => {
   const osteopataSelezionato = osteopati.find((o) => o.id === osteopataId) ?? null;
   const studioSelezionato = studi.find((s) => s.id === studioId) ?? null;
 
-  const daySections = useMemo(
-    () => groupSlotsByDay(disponibilitaQuery.data ?? []),
+  const pazienteNomeCompleto = useMemo(() => {
+    const p = profileQuery.data;
+    if (!p) return '';
+    const parts = [p.nome?.trim(), p.cognome?.trim()].filter(Boolean);
+    return parts.join(' ');
+  }, [profileQuery.data]);
+
+  const slotsEspansi = useMemo(
+    () => expandSlotsToHourly(disponibilitaQuery.data ?? []),
     [disponibilitaQuery.data]
   );
+
+  const daySections = useMemo(() => groupSlotsByDay(slotsEspansi), [slotsEspansi]);
 
   const refreshing =
     profileQuery.isFetching ||
@@ -303,7 +334,8 @@ const BookVisitScreen: React.FC = () => {
                     <Text style={styles.selectValue}>{formatDayTitle(dataVisitaYmd)}</Text>
                   </Pressable>
                   <Text style={styles.fieldHint}>
-                    La stessa data viene inviata come inizio e fine intervallo all’API delle disponibilità.
+                    Di default è selezionato domani; puoi scegliere una data fino a tre mesi da oggi. La stessa
+                    data viene inviata come inizio e fine intervallo all’API delle disponibilità.
                   </Text>
 
                   {studioId != null && osteopataId != null && (
@@ -366,9 +398,7 @@ const BookVisitScreen: React.FC = () => {
                       {formatDayTitle(new Date(slotSelezionato.inizio).toISOString().slice(0, 10))}
                       {'\n'}
                       {formatSlotLabel(slotSelezionato.inizio, slotSelezionato.fine)}
-                      {slotSelezionato.stanza?.nome
-                        ? `\n${slotSelezionato.stanza.nome}`
-                        : ''}
+                      {pazienteNomeCompleto ? `\n${pazienteNomeCompleto}` : ''}
                     </Text>
                   </View>
                 ) : null}
@@ -421,20 +451,18 @@ const BookVisitScreen: React.FC = () => {
         }}
       />
 
-      {datePickerOpen && Platform.OS === 'android' ? (
-        <DateTimePicker
-          key={androidPickerKey}
-          value={iosPickerDate}
-          mode="date"
-          display="default"
-          minimumDate={startOfToday}
-          onChange={onAndroidPickerChange}
-        />
-      ) : null}
-
-      {Platform.OS !== 'android' ? (
-        <Modal visible={datePickerOpen} animationType="slide" transparent>
-          <Pressable style={styles.dateModalBackdrop} onPress={() => setDatePickerOpen(false)}>
+      <Modal visible={datePickerOpen} animationType="fade" transparent>
+        <View style={styles.dateModalRoot}>
+          <Pressable
+            style={styles.dateModalBackdrop}
+            onPress={() => setDatePickerOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Chiudi selezione data"
+          >
+            {/* Nessun BlurView: evita crash in Expo Go / build senza native expo-blur */}
+            <View style={styles.dateModalBackdropDim} pointerEvents="none" />
+          </Pressable>
+          <View style={styles.dateModalSheetWrap} pointerEvents="box-none">
             <Pressable style={styles.dateModalSheet} onPress={(e) => e.stopPropagation()}>
               <View style={styles.dateModalToolbar}>
                 <Pressable onPress={() => setDatePickerOpen(false)} hitSlop={12}>
@@ -452,12 +480,16 @@ const BookVisitScreen: React.FC = () => {
                   </Text>
                 </Pressable>
               </View>
+              <Text style={styles.dateModalWeekday} accessibilityLiveRegion="polite">
+                {formatWeekdayLongIt(iosPickerDate)}
+              </Text>
               <View style={styles.datePickerSurface}>
                 <DateTimePicker
                   value={iosPickerDate}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   minimumDate={startOfToday}
+                  maximumDate={maxSelectableDate}
                   {...(Platform.OS === 'ios'
                     ? {
                         themeVariant: 'dark' as const,
@@ -465,14 +497,18 @@ const BookVisitScreen: React.FC = () => {
                       }
                     : {})}
                   onChange={(_, date) => {
-                    if (date) setIosPickerDate(date);
+                    if (!date) return;
+                    const c = clampToSelectableRange(date);
+                    setIosPickerDate(
+                      new Date(c.getFullYear(), c.getMonth(), c.getDate(), 12, 0, 0, 0)
+                    );
                   }}
                 />
               </View>
             </Pressable>
-          </Pressable>
-        </Modal>
-      ) : null}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -688,9 +724,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  dateModalBackdrop: {
+  dateModalRoot: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  dateModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  /** Simula “sfuocato” con velo scuro (blur nativo richiede dev client con expo-blur linkato). */
+  dateModalBackdropDim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 8, 24, 0.68)',
+  },
+  dateModalSheetWrap: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
   },
   dateModalSheet: {
@@ -719,6 +765,15 @@ const styles = StyleSheet.create({
   dateModalToolbarBtnPrimary: {
     color: theme.colors.secondary,
     fontWeight: '700',
+  },
+  dateModalWeekday: {
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    paddingTop: 4,
+    paddingBottom: 8,
+    letterSpacing: 0.5,
   },
   datePickerSurface: {
     backgroundColor: theme.colors.background.primary,

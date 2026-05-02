@@ -1,5 +1,36 @@
 import type { OsteopataDto, SlotDisponibilitaDto, StudioDto } from '../../services/studioVisitsService';
 
+const HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Scompone una fascia oraria lunga (es. 9–13) in segmenti consecutivi da al massimo 1 ora,
+ * mantenendo stanza e status. Sotto l’ora resta un solo segmento (es. 45 min).
+ */
+export function expandSlotToHourlyChunks(slot: SlotDisponibilitaDto): SlotDisponibilitaDto[] {
+  const startMs = new Date(slot.inizio).getTime();
+  const endMs = new Date(slot.fine).getTime();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return [slot];
+  }
+
+  const out: SlotDisponibilitaDto[] = [];
+  let cursor = startMs;
+  while (cursor < endMs) {
+    const next = Math.min(cursor + HOUR_MS, endMs);
+    out.push({
+      ...slot,
+      inizio: new Date(cursor).toISOString(),
+      fine: new Date(next).toISOString(),
+    });
+    cursor = next;
+  }
+  return out.length > 0 ? out : [slot];
+}
+
+export function expandSlotsToHourly(slots: SlotDisponibilitaDto[]): SlotDisponibilitaDto[] {
+  return slots.flatMap(expandSlotToHourlyChunks);
+}
+
 export function toYmd(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
@@ -7,6 +38,12 @@ export function toYmd(d: Date): string {
 export function addDays(d: Date, n: number): Date {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
+  return x;
+}
+
+export function addMonths(d: Date, n: number): Date {
+  const x = new Date(d.getTime());
+  x.setMonth(x.getMonth() + n);
   return x;
 }
 
@@ -25,6 +62,17 @@ export function formatDayTitle(isoDay: string): string {
     year: 'numeric',
   });
 }
+
+/** Giorno della settimana per esteso in italiano, es. "Lunedì", "Mercoledì". */
+export function formatWeekdayLongIt(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(`${d}T12:00:00`) : d;
+  const raw = date.toLocaleDateString('it-IT', { weekday: 'long' }).trim();
+  if (!raw) return '';
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+/** Alias verso {@link formatWeekdayLongIt}: evita crash se il bundle Metro è ancora su import vecchi. */
+export const formatWeekdayShortIt = formatWeekdayLongIt;
 
 export function groupSlotsByDay(
   slots: SlotDisponibilitaDto[]
