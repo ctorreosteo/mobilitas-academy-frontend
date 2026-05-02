@@ -117,6 +117,10 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.subtitle}>
             Gestisci il tuo account e le impostazioni
           </Text>
+          <View style={styles.headerBadge}>
+            <Ionicons name="sparkles-outline" size={14} color={theme.colors.text.primary} />
+            <Text style={styles.headerBadgeText}>Area personale</Text>
+          </View>
         </View>
         
         <View style={styles.profileCard}>
@@ -138,15 +142,15 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+          <View style={styles.statCard}>
             <Text style={styles.statNumber}>2</Text>
             <Text style={styles.statLabel}>Corsi Completati</Text>
           </View>
-          <View style={styles.statItem}>
+          <View style={styles.statCard}>
             <Text style={styles.statNumber}>6</Text>
             <Text style={styles.statLabel}>In Corso</Text>
           </View>
-          <View style={styles.statItem}>
+          <View style={styles.statCard}>
             <Text style={styles.statNumber}>53%</Text>
             <Text style={styles.statLabel}>Progresso</Text>
           </View>
@@ -154,83 +158,96 @@ const ProfileScreen: React.FC = () => {
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Impostazioni</Text>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Modifica Profilo</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Notifiche</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Privacy</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Aiuto e Supporto</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
+          <View style={styles.sectionCard}>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Modifica Profilo</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Notifiche</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Privacy</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Aiuto e Supporto</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Sessione e dati</Text>
-
-          <TouchableOpacity
-            style={[styles.menuItem, styles.actionRow]}
-            onPress={handleCleanAndRefresh}
-            disabled={cleaning}
-            activeOpacity={0.75}
-          >
-            <View style={styles.actionRowLeft}>
-              <Ionicons name="refresh-circle-outline" size={22} color={theme.colors.accent} />
-              <View style={styles.actionTexts}>
-                <Text style={styles.menuItemText}>Pulisci cache e aggiorna</Text>
-                <Text style={styles.actionSubtitle}>
-                  Cache app, token YouTube locale, durate HLS in memoria
-                </Text>
+          <View style={styles.sectionCard}>
+            <TouchableOpacity
+              style={[styles.menuItem, styles.actionRow]}
+              onPress={handleCleanAndRefresh}
+              disabled={cleaning}
+              activeOpacity={0.75}
+            >
+              <View style={styles.actionRowLeft}>
+                <Ionicons name="refresh-circle-outline" size={22} color={theme.colors.accent} />
+                <View style={styles.actionTexts}>
+                  <Text style={styles.menuItemText}>Pulisci cache e aggiorna</Text>
+                  <Text style={styles.actionSubtitle}>
+                    Cache app, token YouTube locale, durate HLS in memoria
+                  </Text>
+                </View>
               </View>
-            </View>
-            {cleaning ? (
-              <ActivityIndicator size="small" color={theme.colors.accent} />
-            ) : (
-              <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} style={styles.menuItemArrow} />
-            )}
-          </TouchableOpacity>
+              {cleaning ? (
+                <ActivityIndicator size="small" color={theme.colors.accent} />
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} style={styles.menuItemArrow} />
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.menuItem, styles.logoutItem, styles.actionRow]}
-            onPress={handleLogout}
-            activeOpacity={0.75}
-          >
-            <View style={styles.actionRowLeft}>
-              <Ionicons name="log-out-outline" size={22} color={theme.colors.error} />
-              <View style={styles.actionTexts}>
-                <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
-                <Text style={[styles.actionSubtitle, styles.logoutSubtitle]}>
-                  Disconnetti e torna alla schermata di accesso
-                </Text>
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity
+              style={[styles.menuItem, styles.logoutItem, styles.actionRow]}
+              onPress={handleLogout}
+              activeOpacity={0.75}
+            >
+              <View style={styles.actionRowLeft}>
+                <Ionicons name="log-out-outline" size={22} color={theme.colors.error} />
+                <View style={styles.actionTexts}>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
+                  <Text style={[styles.actionSubtitle, styles.logoutSubtitle]}>
+                    Disconnetti e torna alla schermata di accesso
+                  </Text>
+                </View>
               </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.error} style={{ opacity: 0.5 }} />
-          </TouchableOpacity>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.error} style={{ opacity: 0.5 }} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.sectionCard}>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Cambia Password</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Cambia Password</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
+            <View style={styles.menuDivider} />
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuItemText}>Esporta Dati</Text>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>Esporta Dati</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -249,7 +266,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 32,
-    paddingBottom: 16,
+    paddingBottom: 18,
   },
   title: {
     fontSize: 32,
@@ -264,13 +281,35 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary, // Bianco dal tema
     opacity: 0.9,
   },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(114,250,147,0.35)',
+    backgroundColor: 'rgba(114,250,147,0.12)',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
   profileCard: {
-    backgroundColor: theme.colors.background.white,
+    backgroundColor: theme.colors.background.secondary,
     marginHorizontal: 20,
     marginBottom: 20,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,37,82,0.08)',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -288,6 +327,8 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: theme.colors.primary,
+    borderWidth: 3,
+    borderColor: 'rgba(114,250,147,0.22)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -324,31 +365,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.text.primary,
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 12,
+    overflow: 'hidden',
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    backgroundColor: theme.colors.text.primary, // Verde
+    justifyContent: 'space-between',
     marginHorizontal: 20,
-    borderRadius: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
-  statItem: {
+  statCard: {
+    flex: 1,
+    backgroundColor: theme.colors.background.secondary,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,37,82,0.07)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    marginHorizontal: 4,
   },
   statNumber: {
     fontSize: 24,
@@ -358,41 +400,48 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.primary, // Blu
-    opacity: 0.7,
+    opacity: 0.72,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   menuSection: {
     marginHorizontal: 20,
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.text.primary,
-    marginBottom: 12,
+    marginBottom: 10,
+    marginLeft: 2,
+  },
+  sectionCard: {
+    backgroundColor: theme.colors.background.secondary,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,37,82,0.06)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 5,
+    elevation: 2,
   },
   menuItem: {
-    backgroundColor: theme.colors.background.white,
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    paddingVertical: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+  },
+  menuDivider: {
+    marginHorizontal: 18,
+    height: 1,
+    backgroundColor: 'rgba(0,37,82,0.08)',
   },
   menuItemText: {
     fontSize: 16,
@@ -431,8 +480,7 @@ const styles = StyleSheet.create({
   },
   logoutItem: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: theme.colors.error,
+    borderWidth: 0,
   },
   logoutText: {
     color: theme.colors.error,

@@ -99,7 +99,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.background.white,
+    backgroundColor: theme.colors.background.secondary,
     borderRadius: 16,
     marginBottom: 16,
     shadowColor: '#000',
