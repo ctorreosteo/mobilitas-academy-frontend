@@ -11,17 +11,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
 import { theme } from '../theme';
-import { TEST_AUTH_EMAIL } from '../config/testAuth';
 import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
-import { fetchCurrentUser, logoutMobilitas, performTestLogin } from '../services/authApi';
+import { fetchCurrentUser } from '../services/authApi';
+import { useAuth } from '../context/AuthContext';
 
-function initialsFromProfile(p: StoredUserProfile | null, fallbackEmail: string): string {
+function initialsFromProfile(p: StoredUserProfile | null): string {
   if (p?.nome?.trim() && p?.cognome?.trim()) {
     return `${p.nome.trim()[0] ?? ''}${p.cognome.trim()[0] ?? ''}`.toUpperCase() || '?';
   }
-  const email = p?.email || fallbackEmail;
+  const email = p?.email?.trim() || '';
+  if (!email) return '?';
   const local = email.split('@')[0] || '?';
   const compact = local.replace(/[^a-z0-9]/gi, '');
   if (compact.length >= 2) return compact.slice(0, 2).toUpperCase();
@@ -29,7 +29,7 @@ function initialsFromProfile(p: StoredUserProfile | null, fallbackEmail: string)
 }
 
 const ProfileScreen: React.FC = () => {
-  const queryClient = useQueryClient();
+  const { signOut } = useAuth();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [syncing, setSyncing] = useState(false);
 
@@ -56,8 +56,8 @@ const ProfileScreen: React.FC = () => {
   const displayName =
     profile?.nome && profile?.cognome
       ? `${profile.nome} ${profile.cognome}`.trim()
-      : profile?.username || profile?.email?.split('@')[0] || TEST_AUTH_EMAIL.split('@')[0];
-  const displayEmail = profile?.email || TEST_AUTH_EMAIL;
+      : profile?.username || profile?.email?.split('@')[0] || 'Utente';
+  const displayEmail = profile?.email || '—';
   const roleLine =
     profile?.ruoli?.length && profile.ruoli.length > 0
       ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
@@ -70,27 +70,9 @@ const ProfileScreen: React.FC = () => {
         text: 'Esci',
         style: 'destructive',
         onPress: async () => {
-          await logoutMobilitas();
-          queryClient.clear();
+          await signOut();
           setProfile(null);
-          Alert.alert(
-            'Sessione terminata',
-            'Per continuare con l’account di test, usa «Accedi di nuovo».',
-            [
-              { text: 'OK' },
-              {
-                text: 'Accedi di nuovo',
-                onPress: async () => {
-                  try {
-                    await performTestLogin();
-                    await loadProfile();
-                  } catch (e) {
-                    Alert.alert('Errore', e instanceof Error ? e.message : 'Login non riuscito');
-                  }
-                },
-              },
-            ]
-          );
+          Alert.alert('Sessione terminata', 'Effettua di nuovo l’accesso dalla schermata di login.');
         },
       },
     ]);
@@ -110,7 +92,7 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {initialsFromProfile(profile, TEST_AUTH_EMAIL)}
+                {initialsFromProfile(profile)}
               </Text>
             </View>
           </View>

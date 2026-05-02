@@ -1,5 +1,4 @@
 import React from 'react';
-// import { useState } from 'react'; // Temporaneamente disabilitato per splash screen
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -8,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
@@ -17,15 +16,15 @@ import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 import AdvancedCoursesScreen from './src/screens/AdvancedCoursesScreen';
 import AdvancedCourseVideosScreen from './src/screens/AdvancedCourseVideosScreen';
-// import SplashScreen from './src/components/SplashScreen'; // Temporaneamente disabilitato
+import LoginScreen from './src/screens/LoginScreen';
 import { theme } from './src/theme';
-import TestAuthGate from './src/components/TestAuthGate';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const RootStack = createStackNavigator();
 const queryClient = new QueryClient();
 
-// Error Boundary Component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error: Error | null }
@@ -52,9 +51,7 @@ class ErrorBoundary extends React.Component<
           <Text style={errorBoundaryStyles.message}>
             {this.state.error?.message || 'Errore sconosciuto'}
           </Text>
-          <Text style={errorBoundaryStyles.hint}>
-            Controlla la console per i dettagli
-          </Text>
+          <Text style={errorBoundaryStyles.hint}>Controlla la console per i dettagli</Text>
         </View>
       );
     }
@@ -90,14 +87,13 @@ const errorBoundaryStyles = StyleSheet.create({
   },
 });
 
-const styles = StyleSheet.create({
+const headerLogoStyles = StyleSheet.create({
   headerLogo: {
     width: 120,
     height: 40,
   },
 });
 
-// Stack Navigator per la sezione Corsi
 const CoursesStack = () => {
   return (
     <Stack.Navigator
@@ -114,26 +110,26 @@ const CoursesStack = () => {
         },
       }}
     >
-      <Stack.Screen 
-        name="CoursesList" 
+      <Stack.Screen
+        name="CoursesList"
         component={CoursesScreen}
-        options={{ 
+        options={{
           title: 'Corsi',
           headerShown: false,
         }}
       />
-      <Stack.Screen 
-        name="CourseVideos" 
+      <Stack.Screen
+        name="CourseVideos"
         component={CourseVideosScreen}
-        options={{ 
+        options={{
           title: 'Video del Corso',
           headerBackTitle: '',
         }}
       />
-      <Stack.Screen 
-        name="VideoPlayer" 
+      <Stack.Screen
+        name="VideoPlayer"
         component={VideoPlayerScreen}
-        options={{ 
+        options={{
           title: 'Video',
           headerBackTitle: '',
         }}
@@ -142,7 +138,6 @@ const CoursesStack = () => {
   );
 };
 
-// Stack Navigator per la sezione Corsi Avanzati
 const AdvancedCoursesStack = () => {
   return (
     <Stack.Navigator
@@ -159,26 +154,26 @@ const AdvancedCoursesStack = () => {
         },
       }}
     >
-      <Stack.Screen 
-        name="AdvancedCoursesList" 
+      <Stack.Screen
+        name="AdvancedCoursesList"
         component={AdvancedCoursesScreen}
-        options={{ 
+        options={{
           title: 'Corsi Avanzati',
           headerShown: false,
         }}
       />
-      <Stack.Screen 
-        name="AdvancedCourseVideos" 
+      <Stack.Screen
+        name="AdvancedCourseVideos"
         component={AdvancedCourseVideosScreen}
-        options={{ 
+        options={{
           title: 'Moduli del Corso',
           headerBackTitle: '',
         }}
       />
-      <Stack.Screen 
-        name="VideoPlayer" 
+      <Stack.Screen
+        name="VideoPlayer"
         component={VideoPlayerScreen}
-        options={{ 
+        options={{
           title: 'Video',
           headerBackTitle: '',
         }}
@@ -187,142 +182,146 @@ const AdvancedCoursesStack = () => {
   );
 };
 
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: theme.colors.secondary,
+        tabBarInactiveTintColor: theme.colors.secondary,
+        tabBarStyle: {
+          backgroundColor: theme.colors.background.primary,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(114, 250, 147, 0.15)',
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: -2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          height: 80,
+          paddingBottom: 28,
+          paddingTop: 12,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+          color: theme.colors.secondary,
+        },
+        headerStyle: {
+          backgroundColor: theme.colors.background.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: theme.colors.secondary,
+        headerTitleStyle: {
+          fontWeight: '600',
+          color: theme.colors.secondary,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'Home',
+          tabBarLabel: 'Home',
+          headerTitle: () => (
+            <Image
+              source={require('./assets/logo_verde.png')}
+              style={headerLogoStyles.headerLogo}
+              resizeMode="contain"
+            />
+          ),
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Courses"
+        component={CoursesStack}
+        options={{
+          title: 'Corsi',
+          tabBarLabel: 'Corsi',
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'library' : 'library-outline'} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AdvancedCourses"
+        component={AdvancedCoursesStack}
+        options={{
+          title: 'Corsi Avanzati',
+          tabBarLabel: 'Avanzati',
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'school' : 'school-outline'} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: 'Profilo',
+          tabBarLabel: 'Profilo',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={26} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+const bootStyles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background.primary,
+  },
+});
+
+function RootNavigator() {
+  const { isReady, isSignedIn } = useAuth();
+
+  if (!isReady) {
+    return (
+      <View style={bootStyles.boot}>
+        <ActivityIndicator size="large" color={theme.colors.secondary} />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {!isSignedIn ? (
+          <RootStack.Screen name="Login" component={LoginScreen} />
+        ) : (
+          <RootStack.Screen name="Main" component={MainTabNavigator} />
+        )}
+      </RootStack.Navigator>
+      <StatusBar style="light" />
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
-  // Animazione splash screen temporaneamente disabilitata
-  // const [showSplash, setShowSplash] = useState(true);
-
-  // const handleSplashFinish = () => {
-  //   setShowSplash(false);
-  // };
-
-  // if (showSplash) {
-  //   return (
-  //     <ErrorBoundary>
-  //       <SafeAreaProvider>
-  //         <SplashScreen onFinish={handleSplashFinish} />
-  //       </SafeAreaProvider>
-  //     </ErrorBoundary>
-  //   );
-  // }
-
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <TestAuthGate>
-          <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            tabBarActiveTintColor: theme.colors.secondary,
-            tabBarInactiveTintColor: theme.colors.secondary,
-            tabBarStyle: {
-              backgroundColor: theme.colors.background.primary,
-              borderTopWidth: 1,
-              borderTopColor: 'rgba(114, 250, 147, 0.15)',
-              elevation: 8,
-              shadowColor: '#000',
-              shadowOffset: {
-                width: 0,
-                height: -2,
-              },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              height: 80,
-              paddingBottom: 28,
-              paddingTop: 12,
-            },
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: '500',
-              color: theme.colors.secondary,
-            },
-            headerStyle: {
-              backgroundColor: theme.colors.background.primary,
-              elevation: 0,
-              shadowOpacity: 0,
-            },
-            headerTintColor: theme.colors.secondary,
-            headerTitleStyle: {
-              fontWeight: '600',
-              color: theme.colors.secondary,
-            },
-          }}
-        >
-          <Tab.Screen 
-            name="Home" 
-            component={HomeScreen} 
-            options={{ 
-              title: 'Home',
-              tabBarLabel: 'Home',
-              headerTitle: () => (
-                <Image
-                  source={require('./assets/logo_verde.png')}
-                  style={styles.headerLogo}
-                  resizeMode="contain"
-                />
-              ),
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? 'home' : 'home-outline'} 
-                  size={26} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
-          <Tab.Screen 
-            name="Courses" 
-            component={CoursesStack} 
-            options={{ 
-              title: 'Corsi',
-              tabBarLabel: 'Corsi',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? 'library' : 'library-outline'} 
-                  size={26} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
-          <Tab.Screen 
-            name="AdvancedCourses" 
-            component={AdvancedCoursesStack} 
-            options={{ 
-              title: 'Corsi Avanzati',
-              tabBarLabel: 'Avanzati',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? 'school' : 'school-outline'} 
-                  size={26} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
-          <Tab.Screen 
-            name="Profile" 
-            component={ProfileScreen} 
-            options={{ 
-              title: 'Profilo',
-              tabBarLabel: 'Profilo',
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons 
-                  name={focused ? 'person-circle' : 'person-circle-outline'} 
-                  size={26} 
-                  color={color} 
-                />
-              ),
-            }}
-          />
-        </Tab.Navigator>
-        <StatusBar style="auto" />
-      </NavigationContainer>
-          </TestAuthGate>
-    </QueryClientProvider>
-    </SafeAreaProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }

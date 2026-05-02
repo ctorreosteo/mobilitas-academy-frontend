@@ -7,8 +7,6 @@ import {
   clearAllAuth,
   StoredUserProfile,
 } from './authTokenStorage';
-import { TEST_AUTH_EMAIL, TEST_AUTH_PASSWORD } from '../config/testAuth';
-
 export interface LoginRequestBody {
   username: string;
   password: string;
@@ -77,8 +75,7 @@ export async function refreshAuthToken(): Promise<string> {
   if (!data.success || !data.data?.token) {
     throw new Error(data.message || data.error || 'Refresh fallito');
   }
-  await setAuthToken(data.data.token);
-  await setStoredUserProfile(toStoredProfile(data.data));
+  await persistLoginSession(data.data);
   return data.data.token;
 }
 
@@ -93,6 +90,12 @@ export async function logoutMobilitas(): Promise<void> {
   }
 }
 
+/** Salva JWT e profilo dopo login o refresh con payload completo. */
+export async function persistLoginSession(session: LoginResponseData): Promise<void> {
+  await setAuthToken(session.token);
+  await setStoredUserProfile(toStoredProfile(session));
+}
+
 /** GET /api/auth/me — profilo corrente; aggiorna lo snapshot locale. */
 export async function fetchCurrentUser(): Promise<StoredUserProfile> {
   const { data } = await apiClient.get<ApiResponseDto<UserInfoResponseDto>>('/auth/me');
@@ -104,9 +107,3 @@ export async function fetchCurrentUser(): Promise<StoredUserProfile> {
   return profile;
 }
 
-/** Login di test: JWT + profilo in AsyncStorage. */
-export async function performTestLogin(): Promise<void> {
-  const session = await loginMobilitas(TEST_AUTH_EMAIL, TEST_AUTH_PASSWORD);
-  await setAuthToken(session.token);
-  await setStoredUserProfile(toStoredProfile(session));
-}

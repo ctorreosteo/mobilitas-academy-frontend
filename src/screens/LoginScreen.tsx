@@ -1,0 +1,349 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
+import { theme } from '../theme';
+import { useAuth } from '../context/AuthContext';
+
+const inputBg = '#E2E8F0';
+
+const LoginScreen: React.FC = () => {
+  const { signIn } = useAuth();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async () => {
+    setError(null);
+    if (!username.trim() || !password) {
+      setError('Inserisci username o email e password.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await signIn(username.trim(), password);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Accesso non riuscito');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.logoWrap}>
+            <Image
+              source={require('../../assets/logo_verde.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+
+          <Text style={styles.title}>Benvenuto in Mobilitas</Text>
+          <Text style={styles.subtitle}>Accedi al tuo account Mobilitas HQ</Text>
+
+          <View style={styles.fieldBlock}>
+            <Text style={styles.label}>Username</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email o username"
+              placeholderTextColor="rgba(0,37,82,0.45)"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              textContentType="username"
+              editable={!submitting}
+            />
+          </View>
+
+          <View style={styles.fieldBlock}>
+            <View style={styles.passwordRow}>
+              <Text style={styles.passwordLabel}>Password</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Password dimenticata?',
+                    'Contatta l’amministratore di Mobilitas HQ per reimpostare l’accesso.'
+                  )
+                }
+                hitSlop={12}
+              >
+                <Text style={styles.linkMuted}>Password dimenticata?</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="rgba(0,37,82,0.45)"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              textContentType="password"
+              editable={!submitting}
+            />
+          </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <TouchableOpacity
+            style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
+            onPress={onSubmit}
+            disabled={submitting}
+            activeOpacity={0.85}
+          >
+            {submitting ? (
+              <ActivityIndicator color={theme.colors.secondary} />
+            ) : (
+              <Text style={styles.primaryBtnText}>Accedi</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.separatorRow}>
+            <View style={styles.separatorLine} />
+            <Text style={styles.separatorText}>O continua con</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          <View style={styles.socialRow}>
+            <TouchableOpacity
+              style={styles.socialBtn}
+              onPress={() => Alert.alert('Apple', 'Accesso con Apple sarà disponibile a breve.')}
+              accessibilityLabel="Continua con Apple"
+            >
+              <Ionicons name="logo-apple" size={24} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialBtn}
+              onPress={() => Alert.alert('Google', 'Accesso con Google sarà disponibile a breve.')}
+              accessibilityLabel="Continua con Google"
+            >
+              <Ionicons name="logo-google" size={22} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialBtn}
+              onPress={() => Alert.alert('Meta', 'Accesso con Meta sarà disponibile a breve.')}
+              accessibilityLabel="Continua con Meta"
+            >
+              <Ionicons name="infinite" size={26} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footerRegister}>
+            <Text style={styles.footerMuted}>Non hai un account? </Text>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  'Registrazione',
+                  'La registrazione dall’app sarà disponibile a breve. Usa il portale Mobilitas HQ se previsto.'
+                )
+              }
+            >
+              <Text style={styles.footerLink}>Registrati</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.legal}>
+            Cliccando su Accedi, accetti i nostri{' '}
+            <Text
+              style={styles.legalAccent}
+              onPress={() => Alert.alert('Termini', 'Documento legale in aggiornamento.')}
+            >
+              Termini d’uso
+            </Text>
+            .
+          </Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: theme.colors.background.primary,
+  },
+  flex: {
+    flex: 1,
+  },
+  scroll: {
+    paddingHorizontal: 28,
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.secondary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: 'rgba(255,255,255,0.72)',
+    textAlign: 'center',
+    marginBottom: 28,
+  },
+  fieldBlock: {
+    marginBottom: 18,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+    marginBottom: 8,
+  },
+  passwordLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  linkMuted: {
+    fontSize: 13,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+    opacity: 0.9,
+    textDecorationLine: 'underline',
+  },
+  input: {
+    backgroundColor: inputBg,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    fontSize: 16,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 14,
+    marginBottom: 12,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  primaryBtn: {
+    marginTop: 8,
+    backgroundColor: theme.colors.background.primary,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: theme.colors.accent,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnDisabled: {
+    opacity: 0.7,
+  },
+  primaryBtnText: {
+    fontSize: 17,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.secondary,
+  },
+  separatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 28,
+  },
+  separatorLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  separatorText: {
+    marginHorizontal: 14,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.55)',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  socialBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,37,82,0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(114,250,147,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerRegister: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginTop: 28,
+    marginBottom: 20,
+  },
+  footerMuted: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  footerLink: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  legal: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.5)',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  legalAccent: {
+    color: theme.colors.accent,
+    fontWeight: '600',
+  },
+});
+
+export default LoginScreen;
