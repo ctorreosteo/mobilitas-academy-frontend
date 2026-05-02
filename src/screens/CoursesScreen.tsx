@@ -3,12 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  Platform,
   FlatList,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
@@ -80,6 +81,7 @@ const CoursesScreen: React.FC = () => {
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Corsi</Text>
+          <Text style={styles.headerSubtitle}>Sto caricando il catalogo formazione...</Text>
         </View>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
@@ -93,21 +95,38 @@ const CoursesScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Corsi</Text>
+        <Text style={styles.headerSubtitle}>
+          Catalogo aggiornato con stato accesso, progresso e ripresa rapida.
+        </Text>
       </View>
 
-      <View style={styles.statsContainer}>
+      <View style={styles.statsCard}>
         <View style={styles.statItem}>
+          <View style={styles.statIconWrap}>
+            <Ionicons name="library-outline" size={16} color={theme.colors.primary} />
+          </View>
           <Text style={styles.statNumber}>{stats.totalCourses}</Text>
-          <Text style={styles.statLabel}>Corsi</Text>
+          <Text style={styles.statLabel}>Totali</Text>
         </View>
         <View style={styles.statItem}>
+          <View style={styles.statIconWrap}>
+            <Ionicons name="checkmark-circle-outline" size={16} color={theme.colors.primary} />
+          </View>
           <Text style={styles.statNumber}>{stats.completedCourses}</Text>
           <Text style={styles.statLabel}>Completati</Text>
         </View>
         <View style={styles.statItem}>
+          <View style={styles.statIconWrap}>
+            <Ionicons name="trending-up-outline" size={16} color={theme.colors.primary} />
+          </View>
           <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
-          <Text style={styles.statLabel}>Progresso</Text>
+          <Text style={styles.statLabel}>Media</Text>
         </View>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
+        <Text style={styles.sectionHeaderHint}>Scorri per vedere e aprire i contenuti</Text>
       </View>
 
       <FlatList
@@ -143,16 +162,19 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(114, 250, 147, 0.15)',
+    paddingTop: 14,
+    paddingBottom: 10,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    fontSize: 30,
+    fontWeight: '800',
     color: theme.colors.secondary,
+  },
+  headerSubtitle: {
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.9)',
   },
   centered: {
     flex: 1,
@@ -164,10 +186,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 15,
     color: theme.colors.text.secondary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   errorBanner: {
     backgroundColor: 'rgba(255, 99, 99, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 99, 99, 0.35)',
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -175,18 +198,18 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 14,
     color: theme.colors.text.primary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
-  statsContainer: {
+  statsCard: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    alignItems: 'stretch',
+    paddingHorizontal: 8,
+    paddingVertical: 10,
     backgroundColor: theme.colors.text.primary,
     marginHorizontal: 20,
-    marginTop: 16,
+    marginTop: 8,
     borderRadius: 16,
-    marginBottom: 20,
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -198,25 +221,48 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+    minWidth: 80,
+    paddingVertical: 6,
+  },
+  statIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 37, 82, 0.14)',
+    marginBottom: 4,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    fontSize: 25,
+    fontWeight: '800',
     color: theme.colors.primary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.primary,
     opacity: 0.7,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  sectionHeaderTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+  },
+  sectionHeaderHint: {
+    marginTop: 2,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.84)',
+  },
   coursesList: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   emptyContainer: {
     paddingVertical: 40,
@@ -225,7 +271,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: theme.colors.text.secondary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     textAlign: 'center',
   },
 });
