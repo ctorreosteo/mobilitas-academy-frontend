@@ -110,3 +110,22 @@ export function formatPrezzoEUR(n: number | null | undefined): string | null {
   if (n == null || Number.isNaN(Number(n))) return null;
   return Number(n).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
 }
+
+/**
+ * Da istanti ISO dello slot (come in `SlotDisponibilitaDto`) a campi attesi dal backend per una visita
+ * (`dataVisita` YYYY-MM-DD e orari HH:mm:ss nel fuso locale del dispositivo).
+ */
+export function slotIsoToVisitaFields(inizioIso: string, fineIso: string): {
+  dataVisita: string;
+  oraInizio: string;
+  oraFine: string;
+} {
+  const a = new Date(inizioIso);
+  const b = new Date(fineIso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const ymd = (d: Date) =>
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const hms = (d: Date) =>
+    `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return { dataVisita: ymd(a), oraInizio: hms(a), oraFine: hms(b) };
+}

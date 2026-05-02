@@ -10,8 +10,9 @@ import type { ApiResponseDto } from './formazioneService';
  * GET /api/osteopati/disponibilita-effettive?dataInizio&dataFine&studioId&osteopataIds=...
  * (Giorno singolo: GET /api/visite/disponibilita?data&osteopataId&studioId — non usato qui.)
  *
- * Prenotazioni (allineare al backend se gli endpoint reali differiscono):
- * POST /api/visite-studio/prenotazioni
+ * Creazione visita da app paziente: visiteService `POST /api/visite` (VisitaDto).
+ * Legacy / altri flussi:
+ * POST /api/visite-studio/prenotazioni — `creaPrenotazioneVisita`
  * DELETE /api/visite-studio/prenotazioni/:id
  *
  * Storico visite paziente: visiteService (GET /api/visite/by-paziente/...).

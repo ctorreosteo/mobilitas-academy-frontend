@@ -16,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme } from '../../theme';
 import {
-  creaPrenotazioneVisita,
   fetchDisponibilitaVisite,
   fetchOsteopatiPerStudio,
   fetchStudiAttivi,
@@ -24,6 +23,7 @@ import {
   type SlotDisponibilitaDto,
   type StudioDto,
 } from '../../services/studioVisitsService';
+import { createVisita } from '../../services/visiteService';
 import { fetchCurrentUser } from '../../services/authApi';
 import { SelectModal } from './SelectModal';
 import {
@@ -35,6 +35,7 @@ import {
   formatWeekdayLongIt,
   groupSlotsByDay,
   osteopataLabel,
+  slotIsoToVisitaFields,
   studioLabel,
   toYmd,
 } from './visiteFormatting';
@@ -148,7 +149,25 @@ const BookVisitScreen: React.FC = () => {
   });
 
   const prenotaMutation = useMutation({
-    mutationFn: creaPrenotazioneVisita,
+    mutationFn: (vars: {
+      slot: SlotDisponibilitaDto;
+      osteopataId: number;
+      studioId: number;
+      pazienteId: number | null | undefined;
+    }) => {
+      const { dataVisita, oraInizio, oraFine } = slotIsoToVisitaFields(vars.slot.inizio, vars.slot.fine);
+      return createVisita({
+        dataVisita,
+        oraInizio,
+        oraFine,
+        osteopata: { id: vars.osteopataId },
+        studio: { id: vars.studioId },
+        ...(vars.slot.stanza?.id != null ? { stanza: { id: vars.slot.stanza.id } } : {}),
+        ...(typeof vars.pazienteId === 'number' && vars.pazienteId > 0
+          ? { paziente: { id: vars.pazienteId } }
+          : {}),
+      });
+    },
     onSuccess: () => {
       setSlotSelezionato(null);
       queryClient.invalidateQueries({ queryKey: ['visite-by-paziente'] });
@@ -205,9 +224,10 @@ const BookVisitScreen: React.FC = () => {
           text: 'Conferma',
           onPress: () =>
             prenotaMutation.mutate({
+              slot: slotSelezionato,
               osteopataId,
               studioId,
-              inizio: slotSelezionato.inizio,
+              pazienteId: profileQuery.data?.pazienteId,
             }),
         },
       ]
