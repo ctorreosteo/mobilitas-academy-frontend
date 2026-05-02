@@ -1,53 +1,109 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 const HomeScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const { userProfile } = useAuth();
+
+  const nome = userProfile?.nome?.trim() || 'Professionista';
+  const cognome = userProfile?.cognome?.trim() || '';
+  const fullName = [nome, cognome].filter(Boolean).join(' ');
+  const isOsteopata = (userProfile?.ruoli ?? []).some(
+    (r) => r.toUpperCase().includes('OSTEOPATA') || r.toUpperCase().includes('ADMIN')
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Benvenuto</Text>
-          <Text style={styles.subtitle}>
-            La tua formazione continua in osteopatia
+        <View style={styles.heroCard}>
+          <Text style={styles.heroOverline}>Mobilitas Academy</Text>
+          <Text style={styles.heroTitle}>Ciao {fullName}</Text>
+          <Text style={styles.heroSubtitle}>
+            Dashboard aggiornata per formazione, prenotazioni visite e gestione acquisti.
           </Text>
-        </View>
-        
-        <View style={styles.welcomeCard}>
-          <Text style={styles.welcomeTitle}>Studio Osteopatico</Text>
-          <Text style={styles.welcomeText}>
-            Accedi alla tua piattaforma di formazione professionale. 
-            Scopri i corsi disponibili, monitora i tuoi progressi e 
-            continua a crescere nella tua carriera osteopatica.
-          </Text>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>Corsi Disponibili</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Completati</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>53%</Text>
-            <Text style={styles.statLabel}>Progresso</Text>
+          <View style={styles.heroTags}>
+            <View style={styles.heroTag}>
+              <Text style={styles.heroTagText}>{isOsteopata ? 'Modalità osteopata' : 'Modalità paziente'}</Text>
+            </View>
+            <View style={styles.heroTagMuted}>
+              <Text style={styles.heroTagMutedText}>JWT attivo</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.quickActions}>
-          <Text style={styles.quickActionsTitle}>Azioni Rapide</Text>
-          <View style={styles.actionButtons}>
-            <View style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>Continua Corso</Text>
+        <Text style={styles.sectionTitle}>Azioni rapide</Text>
+        <View style={styles.quickGrid}>
+          <Pressable
+            style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
+            onPress={() => navigation.navigate('StudioVisits' as never)}
+          >
+            <View style={styles.quickIconWrap}>
+              <Ionicons name="calendar-outline" size={24} color={theme.colors.secondary} />
             </View>
-            <View style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>Nuovi Corsi</Text>
+            <Text style={styles.quickCardTitle}>Visite</Text>
+            <Text style={styles.quickCardHint}>Agenda, slot giornalieri e acquisti collegati.</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
+            onPress={() => navigation.navigate('Courses' as never)}
+          >
+            <View style={styles.quickIconWrap}>
+              <Ionicons name="library-outline" size={24} color={theme.colors.secondary} />
             </View>
+            <Text style={styles.quickCardTitle}>Corsi</Text>
+            <Text style={styles.quickCardHint}>Riprendi la formazione e guarda i video.</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
+            onPress={() => navigation.navigate('Profile' as never)}
+          >
+            <View style={styles.quickIconWrap}>
+              <Ionicons name="person-circle-outline" size={24} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.quickCardTitle}>Profilo</Text>
+            <Text style={styles.quickCardHint}>Controlla dati account, ruolo e sessione.</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.sectionTitle}>Novità operative</Text>
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>Prenotazione su giorno singolo con disponibilità chiare.</Text>
           </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>
+              Acquisti paziente: selezione prenotabili e creazione rapida dal form visita.
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>
+              Nuovo acquisto con servizio attivo, metodo pagamento, sconto e note.
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>
+              Menu a tendina ottimizzati con riquadri per migliorare leggibilità.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.footerHint}>
+          <Ionicons name="information-circle-outline" size={18} color={theme.colors.secondary} />
+          <Text style={styles.footerHintText}>
+            Vai su Visite per usare subito le nuove funzionalità di prenotazione e acquisti.
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -57,131 +113,137 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary, // Blu scuro dal tema
+    backgroundColor: theme.colors.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
-  },
-  header: {
     paddingHorizontal: 20,
-    paddingTop: 32,
-    paddingBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 28,
+    gap: 14,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary, // Verde dal tema
+  heroCard: {
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(114, 250, 147, 0.28)',
+    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+  },
+  heroOverline: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: theme.colors.secondary,
+    opacity: 0.9,
+    marginBottom: 6,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: theme.colors.secondary,
+  },
+  heroSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.94)',
+  },
+  heroTags: {
+    marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  heroTag: {
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(114, 250, 147, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(114, 250, 147, 0.38)',
+  },
+  heroTagText: {
+    color: theme.colors.secondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroTagMuted: {
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  heroTagMutedText: {
+    color: 'rgba(255,255,255,0.94)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    marginTop: 4,
+    fontSize: 17,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+  },
+  quickGrid: {
+    gap: 10,
+  },
+  quickCard: {
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(114, 250, 147, 0.25)',
+    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+  },
+  quickCardPressed: {
+    opacity: 0.88,
+  },
+  quickIconWrap: {
     marginBottom: 8,
   },
-  subtitle: {
+  quickCardTitle: {
     fontSize: 16,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary, // Bianco dal tema
-    opacity: 0.9,
+    fontWeight: '700',
+    color: theme.colors.secondary,
   },
-  welcomeCard: {
-    backgroundColor: theme.colors.background.white,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  quickCardHint: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(255,255,255,0.92)',
   },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    marginBottom: 12,
+  infoCard: {
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(114, 250, 147, 0.25)',
+    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    gap: 10,
   },
-  welcomeText: {
-    fontSize: 16,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    lineHeight: 24,
-    opacity: 0.8,
-  },
-  statsContainer: {
+  infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    backgroundColor: theme.colors.text.primary, // Verde
-    marginHorizontal: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    alignItems: 'flex-start',
+    gap: 8,
   },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary, // Blu
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary, // Blu
-    opacity: 0.7,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  quickActions: {
-    paddingHorizontal: 20,
-  },
-  quickActionsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary,
-    marginBottom: 16,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    backgroundColor: theme.colors.background.white,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
+  infoText: {
     flex: 1,
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(255,255,255,0.94)',
   },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    textAlign: 'center',
+  footerHint: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 2,
+  },
+  footerHintText: {
+    flex: 1,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.86)',
   },
 });
 
