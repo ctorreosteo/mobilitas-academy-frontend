@@ -11,7 +11,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
+import { cleanAndRefreshCaches } from '../services/appCacheService';
 import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
 import { fetchCurrentUser } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
@@ -30,8 +34,10 @@ function initialsFromProfile(p: StoredUserProfile | null): string {
 
 const ProfileScreen: React.FC = () => {
   const { signOut } = useAuth();
+  const queryClient = useQueryClient();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
 
   const loadProfile = useCallback(async () => {
     const local = await getStoredUserProfile();
@@ -63,8 +69,33 @@ const ProfileScreen: React.FC = () => {
       ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
       : '—';
 
+  const handleCleanAndRefresh = () => {
+    Alert.alert(
+      'Pulisci cache e aggiorna',
+      'Vengono svuotate la cache dei dati (es. corsi), il token YouTube salvato sul dispositivo e la cache delle durate video. La sessione Mobilitas resta attiva.',
+      [
+        { text: 'Annulla', style: 'cancel' },
+        {
+          text: 'Pulisci',
+          onPress: async () => {
+            setCleaning(true);
+            try {
+              await cleanAndRefreshCaches(queryClient);
+              await loadProfile();
+              Alert.alert('Fatto', 'Cache pulita. Riapri una sezione per ricaricare i contenuti.');
+            } catch (e) {
+              Alert.alert('Errore', e instanceof Error ? e.message : 'Operazione non riuscita');
+            } finally {
+              setCleaning(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleLogout = () => {
-    Alert.alert('Esci', 'Vuoi terminare la sessione su questo dispositivo?', [
+    Alert.alert('Logout', 'Vuoi uscire e terminare la sessione su questo dispositivo?', [
       { text: 'Annulla', style: 'cancel' },
       {
         text: 'Esci',
@@ -146,20 +177,59 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Sessione e dati</Text>
+
+          <TouchableOpacity
+            style={[styles.menuItem, styles.actionRow]}
+            onPress={handleCleanAndRefresh}
+            disabled={cleaning}
+            activeOpacity={0.75}
+          >
+            <View style={styles.actionRowLeft}>
+              <Ionicons name="refresh-circle-outline" size={22} color={theme.colors.accent} />
+              <View style={styles.actionTexts}>
+                <Text style={styles.menuItemText}>Pulisci cache e aggiorna</Text>
+                <Text style={styles.actionSubtitle}>
+                  Cache app, token YouTube locale, durate HLS in memoria
+                </Text>
+              </View>
+            </View>
+            {cleaning ? (
+              <ActivityIndicator size="small" color={theme.colors.accent} />
+            ) : (
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} style={styles.menuItemArrow} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, styles.logoutItem, styles.actionRow]}
+            onPress={handleLogout}
+            activeOpacity={0.75}
+          >
+            <View style={styles.actionRowLeft}>
+              <Ionicons name="log-out-outline" size={22} color={theme.colors.error} />
+              <View style={styles.actionTexts}>
+                <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
+                <Text style={[styles.actionSubtitle, styles.logoutSubtitle]}>
+                  Disconnetti e torna alla schermata di accesso
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.error} style={{ opacity: 0.5 }} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuItemText}>Cambia Password</Text>
             <Text style={styles.menuItemArrow}>›</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuItemText}>Esporta Dati</Text>
             <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[styles.menuItem, styles.logoutItem]} onPress={handleLogout}>
-            <Text style={[styles.menuItemText, styles.logoutText]}>Esci</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -334,6 +404,31 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     opacity: 0.5,
   },
+  actionRow: {
+    alignItems: 'flex-start',
+    paddingVertical: 14,
+  },
+  actionRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+    gap: 12,
+  },
+  actionTexts: {
+    flex: 1,
+  },
+  actionSubtitle: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.primary,
+    opacity: 0.55,
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  logoutSubtitle: {
+    color: theme.colors.error,
+    opacity: 0.75,
+  },
   logoutItem: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -341,6 +436,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: theme.colors.error,
+    fontWeight: '600',
   },
 });
 

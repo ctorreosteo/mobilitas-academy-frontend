@@ -57,6 +57,11 @@ export async function getDurationFromHlsManifest(manifestUrl: string): Promise<n
 
 const durationCache = new Map<string, number>();
 
+/** Svuota la cache in-memory delle durate HLS (es. dopo “Pulisci cache” in profilo). */
+export function clearHlsDurationCache(): void {
+  durationCache.clear();
+}
+
 /**
  * Come getDurationFromHlsManifest ma con cache per URL (evita richieste ripetute).
  */

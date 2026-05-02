@@ -56,129 +56,131 @@ const LoginScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.formBlock}>
+            <Text style={styles.title}>Benvenuto in Mobilitas</Text>
+            <Text style={styles.subtitle}>Accedi al tuo account Mobilitas HQ</Text>
+
+            <View style={styles.fieldBlock}>
+              <Text style={styles.label}>Username</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Email o username"
+                placeholderTextColor="rgba(0,37,82,0.45)"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="username"
+                editable={!submitting}
+              />
+            </View>
+
+            <View style={styles.fieldBlock}>
+              <View style={styles.passwordRow}>
+                <Text style={styles.passwordLabel}>Password</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      'Password dimenticata?',
+                      'Contatta l’amministratore di Mobilitas HQ per reimpostare l’accesso.'
+                    )
+                  }
+                  hitSlop={12}
+                >
+                  <Text style={styles.linkMuted}>Password dimenticata?</Text>
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="rgba(0,37,82,0.45)"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                textContentType="password"
+                editable={!submitting}
+              />
+            </View>
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
+              onPress={onSubmit}
+              disabled={submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color={theme.colors.secondary} />
+              ) : (
+                <Text style={styles.primaryBtnText}>Accedi</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.separatorRow}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>O continua con</Text>
+              <View style={styles.separatorLine} />
+            </View>
+
+            <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialBtn}
+                onPress={() => Alert.alert('Apple', 'Accesso con Apple sarà disponibile a breve.')}
+                accessibilityLabel="Continua con Apple"
+              >
+                <Ionicons name="logo-apple" size={24} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.socialBtn}
+                onPress={() => Alert.alert('Google', 'Accesso con Google sarà disponibile a breve.')}
+                accessibilityLabel="Continua con Google"
+              >
+                <Ionicons name="logo-google" size={22} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.socialBtn}
+                onPress={() => Alert.alert('Meta', 'Accesso con Meta sarà disponibile a breve.')}
+                accessibilityLabel="Continua con Meta"
+              >
+                <Ionicons name="infinite" size={26} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.footerRegister}>
+              <Text style={styles.footerMuted}>Non hai un account? </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Registrazione',
+                    'La registrazione dall’app sarà disponibile a breve. Usa il portale Mobilitas HQ se previsto.'
+                  )
+                }
+              >
+                <Text style={styles.footerLink}>Registrati</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.legal}>
+              Cliccando su Accedi, accetti i nostri{' '}
+              <Text
+                style={styles.legalAccent}
+                onPress={() => Alert.alert('Termini', 'Documento legale in aggiornamento.')}
+              >
+                Termini d’uso
+              </Text>
+              .
+            </Text>
+          </View>
+
           <View style={styles.logoWrap}>
             <Image
-              source={require('../../assets/logo_verde.png')}
+              source={require('../../assets/favicon.png')}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-
-          <Text style={styles.title}>Benvenuto in Mobilitas</Text>
-          <Text style={styles.subtitle}>Accedi al tuo account Mobilitas HQ</Text>
-
-          <View style={styles.fieldBlock}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Email o username"
-              placeholderTextColor="rgba(0,37,82,0.45)"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              textContentType="username"
-              editable={!submitting}
-            />
-          </View>
-
-          <View style={styles.fieldBlock}>
-            <View style={styles.passwordRow}>
-              <Text style={styles.passwordLabel}>Password</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'Password dimenticata?',
-                    'Contatta l’amministratore di Mobilitas HQ per reimpostare l’accesso.'
-                  )
-                }
-                hitSlop={12}
-              >
-                <Text style={styles.linkMuted}>Password dimenticata?</Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="rgba(0,37,82,0.45)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              textContentType="password"
-              editable={!submitting}
-            />
-          </View>
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <TouchableOpacity
-            style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
-            onPress={onSubmit}
-            disabled={submitting}
-            activeOpacity={0.85}
-          >
-            {submitting ? (
-              <ActivityIndicator color={theme.colors.secondary} />
-            ) : (
-              <Text style={styles.primaryBtnText}>Accedi</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.separatorRow}>
-            <View style={styles.separatorLine} />
-            <Text style={styles.separatorText}>O continua con</Text>
-            <View style={styles.separatorLine} />
-          </View>
-
-          <View style={styles.socialRow}>
-            <TouchableOpacity
-              style={styles.socialBtn}
-              onPress={() => Alert.alert('Apple', 'Accesso con Apple sarà disponibile a breve.')}
-              accessibilityLabel="Continua con Apple"
-            >
-              <Ionicons name="logo-apple" size={24} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.socialBtn}
-              onPress={() => Alert.alert('Google', 'Accesso con Google sarà disponibile a breve.')}
-              accessibilityLabel="Continua con Google"
-            >
-              <Ionicons name="logo-google" size={22} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.socialBtn}
-              onPress={() => Alert.alert('Meta', 'Accesso con Meta sarà disponibile a breve.')}
-              accessibilityLabel="Continua con Meta"
-            >
-              <Ionicons name="infinite" size={26} color={theme.colors.text.secondary} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.footerRegister}>
-            <Text style={styles.footerMuted}>Non hai un account? </Text>
-            <TouchableOpacity
-              onPress={() =>
-                Alert.alert(
-                  'Registrazione',
-                  'La registrazione dall’app sarà disponibile a breve. Usa il portale Mobilitas HQ se previsto.'
-                )
-              }
-            >
-              <Text style={styles.footerLink}>Registrati</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.legal}>
-            Cliccando su Accedi, accetti i nostri{' '}
-            <Text
-              style={styles.legalAccent}
-              onPress={() => Alert.alert('Termini', 'Documento legale in aggiornamento.')}
-            >
-              Termini d’uso
-            </Text>
-            .
-          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -194,17 +196,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scroll: {
+    flexGrow: 1,
     paddingHorizontal: 28,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 32,
+  },
+  /** Form centrato nello spazio sopra il pittogramma (pittogramma in basso). */
+  formBlock: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   logoWrap: {
     alignItems: 'center',
-    marginBottom: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
   logo: {
-    width: 48,
-    height: 48,
+    width: 73,
+    height: 73,
+    maxWidth: '40%',
   },
   title: {
     fontSize: 26,
