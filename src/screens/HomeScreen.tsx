@@ -11,9 +11,7 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { userProfile } = useAuth();
 
-  const nome = userProfile?.nome?.trim() || 'Professionista';
-  const cognome = userProfile?.cognome?.trim() || '';
-  const fullName = [nome, cognome].filter(Boolean).join(' ');
+  const firstName = userProfile?.nome?.trim() || 'Professionista';
   const isOsteopata = (userProfile?.ruoli ?? []).some(
     (r) => r.toUpperCase().includes('OSTEOPATA') || r.toUpperCase().includes('ADMIN')
   );
@@ -23,16 +21,13 @@ const HomeScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.heroCard}>
           <Text style={styles.heroOverline}>Mobilitas Academy</Text>
-          <Text style={styles.heroTitle}>Ciao {fullName}</Text>
+          <Text style={styles.heroTitle}>Ciao {firstName}</Text>
           <Text style={styles.heroSubtitle}>
             Dashboard aggiornata per formazione, prenotazioni visite e gestione acquisti.
           </Text>
           <View style={styles.heroTags}>
             <View style={styles.heroTag}>
               <Text style={styles.heroTagText}>{isOsteopata ? 'Modalità osteopata' : 'Modalità paziente'}</Text>
-            </View>
-            <View style={styles.heroTagMuted}>
-              <Text style={styles.heroTagMutedText}>JWT attivo</Text>
             </View>
           </View>
         </View>
@@ -167,19 +162,6 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
     fontSize: 12,
     fontWeight: '700',
-  },
-  heroTagMuted: {
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-  },
-  heroTagMutedText: {
-    color: 'rgba(255,255,255,0.94)',
-    fontSize: 12,
-    fontWeight: '600',
   },
   sectionTitle: {
     marginTop: 4,
