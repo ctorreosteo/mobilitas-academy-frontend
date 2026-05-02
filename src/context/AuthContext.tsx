@@ -7,13 +7,23 @@ import React, {
   useState,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { clearAllAuth } from '../services/authTokenStorage';
-import { loginMobilitas, logoutMobilitas, persistLoginSession } from '../services/authApi';
+import { getAuthToken, setRememberUsernamePreference } from '../services/authTokenStorage';
+import {
+  loginMobilitas,
+  logoutMobilitas,
+  persistLoginSession,
+  restorePersistedSession,
+} from '../services/authApi';
+
+export type SignInOptions = {
+  /** Se true, salva solo username/email in locale (mai la password). */
+  rememberUsername?: boolean;
+};
 
 type AuthContextValue = {
   isReady: boolean;
   isSignedIn: boolean;
-  signIn: (username: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string, options?: SignInOptions) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -24,14 +34,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  /** Nessun ripristino sessione all’avvio: prima schermata sempre il login (niente utente predefinito). */
+  /** Ripristina JWT e profilo da storage; valida con /auth/me quando c’è rete. */
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await clearAllAuth();
-      if (!cancelled) {
-        setToken(null);
-        setHydrated(true);
+      try {
+        const ok = await restorePersistedSession();
+        if (cancelled) return;
+        if (ok) {
+          const t = await getAuthToken();
+          setToken(t);
+        } else {
+          setToken(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setHydrated(true);
+        }
       }
     })();
     return () => {
@@ -40,9 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = useCallback(
-    async (username: string, password: string) => {
+    async (username: string, password: string, options?: SignInOptions) => {
       const session = await loginMobilitas(username.trim(), password);
       await persistLoginSession(session);
+      await setRememberUsernamePreference(!!options?.rememberUsername, username.trim());
       setToken(session.token);
       queryClient.invalidateQueries();
     },

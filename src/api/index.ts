@@ -1,6 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import {
   getAuthToken,
+  getStoredUserProfile,
   setAuthToken,
   setStoredUserProfile,
   clearAllAuth,
@@ -33,6 +34,7 @@ interface RefreshPayload {
   cognome?: string;
   email?: string;
   ruoli?: string[];
+  pazienteId?: number | null;
 }
 
 apiClient.interceptors.request.use(
@@ -53,7 +55,6 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     if (status !== 401 || !original || original.__isRetry) {
-      console.error('API Error:', error);
       return Promise.reject(error);
     }
 
@@ -63,7 +64,6 @@ apiClient.interceptors.response.use(
       path.includes('/auth/register') ||
       path.includes('/auth/refresh')
     ) {
-      console.error('API Error:', error);
       return Promise.reject(error);
     }
 
@@ -90,12 +90,14 @@ apiClient.interceptors.response.use(
       const d = envelope.data;
       await setAuthToken(d.token);
       if (d.username != null && d.email != null) {
+        const prev = await getStoredUserProfile();
         await setStoredUserProfile({
           username: d.username,
           nome: d.nome ?? '',
           cognome: d.cognome ?? '',
           email: d.email,
           ruoli: d.ruoli ?? [],
+          pazienteId: d.pazienteId !== undefined ? d.pazienteId : prev?.pazienteId,
         });
       }
 
@@ -105,7 +107,6 @@ apiClient.interceptors.response.use(
       return apiClient.request(original);
     } catch {
       await clearAllAuth();
-      console.error('API Error:', error);
       return Promise.reject(error);
     }
   }

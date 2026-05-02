@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import {
+  getRememberedLoginUsername,
+  getRememberUsernamePreference,
+} from '../services/authTokenStorage';
 
 const inputBg = '#E2E8F0';
 
@@ -25,8 +29,27 @@ const LoginScreen: React.FC = () => {
   const { signIn } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberUsername, setRememberUsername] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const [pref, saved] = await Promise.all([
+        getRememberUsernamePreference(),
+        getRememberedLoginUsername(),
+      ]);
+      if (!active) return;
+      setRememberUsername(pref);
+      if (pref && saved) {
+        setUsername(saved);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const onSubmit = async () => {
     setError(null);
@@ -36,7 +59,7 @@ const LoginScreen: React.FC = () => {
     }
     setSubmitting(true);
     try {
-      await signIn(username.trim(), password);
+      await signIn(username.trim(), password, { rememberUsername });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Accesso non riuscito');
     } finally {
@@ -102,6 +125,25 @@ const LoginScreen: React.FC = () => {
                 editable={!submitting}
               />
             </View>
+
+            <TouchableOpacity
+              style={styles.rememberRow}
+              onPress={() => setRememberUsername((v) => !v)}
+              activeOpacity={0.75}
+              disabled={submitting}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: rememberUsername }}
+            >
+              <Ionicons
+                name={rememberUsername ? 'checkbox' : 'square-outline'}
+                size={24}
+                color={theme.colors.secondary}
+              />
+              <Text style={styles.rememberLabel}>
+                Salva email o username per i prossimi accessi. La password non viene mai memorizzata sul
+                dispositivo.
+              </Text>
+            </TouchableOpacity>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -268,6 +310,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.primary,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 14,
+    paddingVertical: 4,
+  },
+  rememberLabel: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(255,255,255,0.78)',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   errorText: {
     color: theme.colors.error,

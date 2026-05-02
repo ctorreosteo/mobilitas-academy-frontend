@@ -14,8 +14,7 @@ import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
-import AdvancedCoursesScreen from './src/screens/AdvancedCoursesScreen';
-import AdvancedCourseVideosScreen from './src/screens/AdvancedCourseVideosScreen';
+import VisiteStack from './src/screens/visite/VisiteStack';
 import LoginScreen from './src/screens/LoginScreen';
 import { theme } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -138,50 +137,6 @@ const CoursesStack = () => {
   );
 };
 
-const AdvancedCoursesStack = () => {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.background.primary,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: theme.colors.secondary,
-        headerTitleStyle: {
-          fontWeight: '600',
-          color: theme.colors.secondary,
-        },
-      }}
-    >
-      <Stack.Screen
-        name="AdvancedCoursesList"
-        component={AdvancedCoursesScreen}
-        options={{
-          title: 'Corsi Avanzati',
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="AdvancedCourseVideos"
-        component={AdvancedCourseVideosScreen}
-        options={{
-          title: 'Moduli del Corso',
-          headerBackTitle: '',
-        }}
-      />
-      <Stack.Screen
-        name="VideoPlayer"
-        component={VideoPlayerScreen}
-        options={{
-          title: 'Video',
-          headerBackTitle: '',
-        }}
-      />
-    </Stack.Navigator>
-  );
-};
-
 function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -252,14 +207,14 @@ function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="AdvancedCourses"
-        component={AdvancedCoursesStack}
+        name="StudioVisits"
+        component={VisiteStack}
         options={{
-          title: 'Corsi Avanzati',
-          tabBarLabel: 'Avanzati',
+          title: 'Visite',
+          tabBarLabel: 'Visite',
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'school' : 'school-outline'} size={26} color={color} />
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={26} color={color} />
           ),
         }}
       />

@@ -2,6 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import { apiClient } from '../api';
 import { ApiResponseDto } from './formazioneService';
 import {
+  getAuthToken,
   setAuthToken,
   setStoredUserProfile,
   clearAllAuth,
@@ -19,6 +20,7 @@ export interface LoginResponseData {
   cognome: string;
   email: string;
   ruoli: string[];
+  pazienteId?: number | null;
 }
 
 export interface UserInfoResponseDto {
@@ -30,16 +32,21 @@ export interface UserInfoResponseDto {
   ruoli: string[];
   attivo: boolean;
   osteopataId?: number | null;
+  pazienteId?: number | null;
 }
 
 function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUserProfile {
-  return {
+  const profile: StoredUserProfile = {
     username: d.username,
     nome: d.nome ?? '',
     cognome: d.cognome ?? '',
     email: d.email ?? '',
     ruoli: Array.isArray(d.ruoli) ? d.ruoli : [],
   };
+  if ('pazienteId' in d) {
+    profile.pazienteId = d.pazienteId ?? null;
+  }
+  return profile;
 }
 
 /**
@@ -105,5 +112,25 @@ export async function fetchCurrentUser(): Promise<StoredUserProfile> {
   const profile = toStoredProfile(data.data);
   await setStoredUserProfile(profile);
   return profile;
+}
+
+/**
+ * All’avvio: se esiste un JWT salvato, lo convalida con /auth/me.
+ * - 401 → sessione invalida, storage pulito.
+ * - Rete o altro errore → si mantiene il token e il profilo in cache (resti collegato offline).
+ */
+export async function restorePersistedSession(): Promise<boolean> {
+  const token = await getAuthToken();
+  if (!token) return false;
+  try {
+    await fetchCurrentUser();
+    return true;
+  } catch (e) {
+    if (isAxiosError(e) && e.response?.status === 401) {
+      await clearAllAuth();
+      return false;
+    }
+    return true;
+  }
 }
 
