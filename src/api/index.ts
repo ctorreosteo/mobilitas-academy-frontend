@@ -98,6 +98,10 @@ apiClient.interceptors.response.use(
           email: d.email,
           ruoli: d.ruoli ?? [],
           pazienteId: d.pazienteId !== undefined ? d.pazienteId : prev?.pazienteId,
+          utenteId: prev?.utenteId,
+          attivo: prev?.attivo,
+          osteopataId: prev?.osteopataId,
+          osteopata: prev?.osteopata,
         });
       }
 

@@ -142,6 +142,15 @@ export async function fetchStudiAttivi(): Promise<StudioDto[]> {
   return data.data;
 }
 
+/** GET /api/osteopati/{id} — scheda singola (autenticato). */
+export async function fetchOsteopataById(osteopataId: number): Promise<OsteopataDto> {
+  const { data } = await apiClient.get<ApiResponseDto<OsteopataDto>>(`/osteopati/${osteopataId}`);
+  if (!data.success || !data.data) {
+    throw new Error(data.message || data.error || 'Impossibile caricare i dati dell’osteopata');
+  }
+  return data.data;
+}
+
 /** GET /api/osteopati/studio/{studioId} */
 export async function fetchOsteopatiPerStudio(studioId: number): Promise<OsteopataDto[]> {
   const { data } = await apiClient.get<ApiResponseDto<OsteopataDto[]>>(

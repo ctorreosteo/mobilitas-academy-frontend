@@ -6,8 +6,10 @@ import {
   setAuthToken,
   setStoredUserProfile,
   clearAllAuth,
+  StoredOsteopataProfile,
   StoredUserProfile,
 } from './authTokenStorage';
+import { fetchOsteopataById, type OsteopataDto } from './studioVisitsService';
 export interface LoginRequestBody {
   username: string;
   password: string;
@@ -35,6 +37,21 @@ export interface UserInfoResponseDto {
   pazienteId?: number | null;
 }
 
+function osteopataDtoToStored(d: OsteopataDto): StoredOsteopataProfile {
+  return {
+    id: d.id,
+    nome: d.nome,
+    cognome: d.cognome,
+    email: d.email ?? null,
+    telefono: d.telefono ?? null,
+    immagineProfiloUrl: d.immagineProfiloUrl ?? null,
+    colore: d.colore ?? null,
+    isTirocinante: d.isTirocinante,
+    genere: d.genere ?? null,
+    specializzazioni: d.specializzazioni ?? null,
+  };
+}
+
 function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUserProfile {
   const profile: StoredUserProfile = {
     username: d.username,
@@ -45,6 +62,15 @@ function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUser
   };
   if ('pazienteId' in d) {
     profile.pazienteId = d.pazienteId ?? null;
+  }
+  if ('id' in d && typeof d.id === 'number') {
+    profile.utenteId = d.id;
+  }
+  if ('attivo' in d && typeof d.attivo === 'boolean') {
+    profile.attivo = d.attivo;
+  }
+  if ('osteopataId' in d) {
+    profile.osteopataId = d.osteopataId ?? null;
   }
   return profile;
 }
@@ -103,13 +129,26 @@ export async function persistLoginSession(session: LoginResponseData): Promise<v
   await setStoredUserProfile(toStoredProfile(session));
 }
 
-/** GET /api/auth/me — profilo corrente; aggiorna lo snapshot locale. */
+/** GET /api/auth/me — profilo corrente; se c’è `osteopataId`, GET /osteopati/{id}. Aggiorna storage. */
 export async function fetchCurrentUser(): Promise<StoredUserProfile> {
   const { data } = await apiClient.get<ApiResponseDto<UserInfoResponseDto>>('/auth/me');
   if (!data.success || !data.data) {
     throw new Error(data.message || data.error || 'Impossibile caricare il profilo');
   }
-  const profile = toStoredProfile(data.data);
+  const me = data.data;
+  let profile = toStoredProfile(me);
+
+  if (me.osteopataId != null) {
+    try {
+      const o = await fetchOsteopataById(me.osteopataId);
+      profile = { ...profile, osteopata: osteopataDtoToStored(o) };
+    } catch {
+      profile = { ...profile, osteopata: null };
+    }
+  } else {
+    profile = { ...profile, osteopata: null, osteopataId: null };
+  }
+
   await setStoredUserProfile(profile);
   return profile;
 }

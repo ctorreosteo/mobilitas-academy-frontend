@@ -24,6 +24,20 @@ export async function clearAuthToken(): Promise<void> {
   await AsyncStorage.removeItem(STORAGE_KEY);
 }
 
+/** Dati osteopata da GET /api/osteopati/{id} (senza `utente` annidato, evita duplicati in storage). */
+export interface StoredOsteopataProfile {
+  id: number;
+  nome: string;
+  cognome: string;
+  email?: string | null;
+  telefono?: string | null;
+  immagineProfiloUrl?: string | null;
+  colore?: string | null;
+  isTirocinante?: boolean;
+  genere?: string | null;
+  specializzazioni?: string | null;
+}
+
 /** Snapshot profilo dopo login (stesso shape utile lato UI dei campi in `data`). */
 export interface StoredUserProfile {
   username: string;
@@ -31,6 +45,13 @@ export interface StoredUserProfile {
   cognome: string;
   email: string;
   ruoli: string[];
+  /** ID utente anagrafica (GET /auth/me → `id`). */
+  utenteId?: number;
+  attivo?: boolean;
+  /** Presente in /me se l’utente ha ruolo osteopata. */
+  osteopataId?: number | null;
+  /** Dettaglio da GET /osteopati/{osteopataId} quando applicabile. */
+  osteopata?: StoredOsteopataProfile | null;
   /** ID paziente in anagrafica; necessario per GET /visite/by-paziente/{id} */
   pazienteId?: number | null;
 }

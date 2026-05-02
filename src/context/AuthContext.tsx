@@ -7,13 +7,20 @@ import React, {
   useState,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { getAuthToken, setRememberUsernamePreference } from '../services/authTokenStorage';
 import {
+  getAuthToken,
+  getStoredUserProfile,
+  setRememberUsernamePreference,
+  type StoredUserProfile,
+} from '../services/authTokenStorage';
+import {
+  fetchCurrentUser,
   loginMobilitas,
   logoutMobilitas,
   persistLoginSession,
   restorePersistedSession,
 } from '../services/authApi';
+import { isAxiosError } from 'axios';
 
 export type SignInOptions = {
   /** Se true, salva solo username/email in locale (mai la password). */
@@ -23,6 +30,8 @@ export type SignInOptions = {
 type AuthContextValue = {
   isReady: boolean;
   isSignedIn: boolean;
+  /** Snapshot dopo login / restore / GET /auth/me (+ osteopata se applicabile). */
+  userProfile: StoredUserProfile | null;
   signIn: (username: string, password: string, options?: SignInOptions) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -32,6 +41,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<StoredUserProfile | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   /** Ripristina JWT e profilo da storage; valida con /auth/me quando c’è rete. */
@@ -43,9 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         if (ok) {
           const t = await getAuthToken();
+          const p = await getStoredUserProfile();
           setToken(t);
+          setUserProfile(p);
         } else {
           setToken(null);
+          setUserProfile(null);
         }
       } finally {
         if (!cancelled) {
@@ -62,8 +75,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (username: string, password: string, options?: SignInOptions) => {
       const session = await loginMobilitas(username.trim(), password);
       await persistLoginSession(session);
-      await setRememberUsernamePreference(!!options?.rememberUsername, username.trim());
       setToken(session.token);
+      try {
+        const profile = await fetchCurrentUser();
+        setUserProfile(profile);
+      } catch (e) {
+        if (isAxiosError(e) && e.response?.status === 401) {
+          await logoutMobilitas();
+          setToken(null);
+          setUserProfile(null);
+          const msg =
+            typeof e.response?.data === 'object' &&
+            e.response.data &&
+            'message' in e.response.data &&
+            typeof (e.response.data as { message?: unknown }).message === 'string'
+              ? (e.response.data as { message: string }).message
+              : 'Sessione non valida';
+          throw new Error(msg);
+        }
+        const fallback = await getStoredUserProfile();
+        setUserProfile(fallback);
+      }
+      await setRememberUsernamePreference(!!options?.rememberUsername, username.trim());
       queryClient.invalidateQueries();
     },
     [queryClient]
@@ -72,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     await logoutMobilitas();
     setToken(null);
+    setUserProfile(null);
     queryClient.clear();
   }, [queryClient]);
 
@@ -79,10 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isReady: hydrated,
       isSignedIn: !!token,
+      userProfile,
       signIn,
       signOut,
     }),
-    [hydrated, token, signIn, signOut]
+    [hydrated, token, userProfile, signIn, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
