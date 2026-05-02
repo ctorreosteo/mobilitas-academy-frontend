@@ -23,6 +23,13 @@ export interface VisitaMinimaleDto {
   prezzoVisita?: number | null;
 }
 
+/** Risposta GET /api/visite: campi annidati opzionali oltre al minimo. */
+export type VisitaAgendaDto = VisitaMinimaleDto & {
+  paziente?: { nome?: string | null; cognome?: string | null } | null;
+  studio?: { id?: number; nome?: string | null } | null;
+  oraFine?: string | null;
+};
+
 /** Riferimenti per-id nel body POST /api/visite (allineato a VisitaDto lato Java). */
 export interface VisitaIdRefDto {
   id: number;
@@ -50,6 +57,34 @@ export interface CreateVisitaRequestDto {
 export type VisitaCreataDto = VisitaMinimaleDto & {
   oraFine?: string | null;
 };
+
+/**
+ * GET /api/visite — agenda osteopata per un singolo giorno (stessa data su inizio/fine).
+ */
+export async function fetchVisiteOsteopataGiorno(params: {
+  osteopataId: number;
+  dataInizio: string;
+  dataFine: string;
+  page?: number;
+  size?: number;
+}): Promise<VisitaAgendaDto[]> {
+  const { osteopataId, dataInizio, dataFine, page = 0, size = 200 } = params;
+  const { data } = await apiClient.get<ApiResponseDto<VisitaAgendaDto[]>>('/visite', {
+    params: {
+      osteopataId,
+      dataInizio,
+      dataFine,
+      sortBy: 'oraInizio',
+      sortDir: 'asc',
+      page,
+      size,
+    },
+  });
+  if (!data.success || !Array.isArray(data.data)) {
+    throw new Error(data.message || data.error || 'Impossibile caricare le visite');
+  }
+  return data.data;
+}
 
 export async function fetchVisiteByPaziente(
   pazienteId: number,

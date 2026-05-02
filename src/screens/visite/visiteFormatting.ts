@@ -35,6 +35,12 @@ export function toYmd(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Data locale `YYYY-MM-DD` (evita shift UTC di {@link toYmd} verso mezzanotte). */
+export function toLocalYmd(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function addDays(d: Date, n: number): Date {
   const x = new Date(d);
   x.setDate(x.getDate() + n);

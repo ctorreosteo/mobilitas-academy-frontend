@@ -171,6 +171,7 @@ const BookVisitScreen: React.FC = () => {
     onSuccess: () => {
       setSlotSelezionato(null);
       queryClient.invalidateQueries({ queryKey: ['visite-by-paziente'] });
+      queryClient.invalidateQueries({ queryKey: ['visite-osteopata-giorno'] });
       queryClient.invalidateQueries({ queryKey: ['visite-disponibilita'] });
       Alert.alert('Prenotazione registrata', 'Riceverai conferma secondo le procedure dello studio.');
     },
