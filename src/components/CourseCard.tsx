@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { Course } from '../types';
 
 type CoursesStackParamList = {
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.secondary,
     borderRadius: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   lockBadge: {
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: withOpacity(theme.colors.black, 0.06),
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,

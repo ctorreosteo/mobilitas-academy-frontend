@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { theme, withOpacity } from '../theme';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -305,7 +306,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
   return (
     <LinearGradient
-      colors={['#0A3D62', '#1E88E5', '#42A5F5']}
+      colors={theme.colors.gradients.splash}
       style={styles.container}
     >
       <View style={styles.content}>
@@ -442,16 +443,16 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 140,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    borderColor: withOpacity(theme.colors.text.secondary, 0.6),
   },
   innerCircle: {
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#F4F4F4',
+    backgroundColor: theme.colors.background.secondary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -469,8 +470,8 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#72fa93',
-    shadowColor: '#72fa93',
+    backgroundColor: theme.colors.secondary,
+    shadowColor: theme.colors.secondary,
     shadowOffset: {
       width: 0,
       height: 0,
@@ -498,7 +499,7 @@ const styles = StyleSheet.create({
   subtitleText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 28,
     letterSpacing: 0.5,
@@ -513,8 +514,8 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#72fa93',
-    shadowColor: '#72fa93',
+    backgroundColor: theme.colors.secondary,
+    shadowColor: theme.colors.secondary,
     shadowOffset: {
       width: 0,
       height: 0,

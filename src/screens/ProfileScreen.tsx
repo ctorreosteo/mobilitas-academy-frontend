@@ -14,7 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { cleanAndRefreshCaches } from '../services/appCacheService';
 import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
 import { fetchCurrentUser } from '../services/authApi';
@@ -288,8 +288,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(114,250,147,0.35)',
-    backgroundColor: 'rgba(114,250,147,0.12)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -309,8 +309,8 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,37,82,0.08)',
-    shadowColor: '#000',
+    borderColor: withOpacity(theme.colors.primary, 0.08),
+    shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     backgroundColor: theme.colors.primary,
     borderWidth: 3,
-    borderColor: 'rgba(114,250,147,0.22)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,37,82,0.07)',
-    shadowColor: '#000',
+    borderColor: withOpacity(theme.colors.primary, 0.07),
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -423,8 +423,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.secondary,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0,37,82,0.06)',
-    shadowColor: '#000',
+    borderColor: withOpacity(theme.colors.primary, 0.06),
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 5,
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   menuDivider: {
     marginHorizontal: 18,
     height: 1,
-    backgroundColor: 'rgba(0,37,82,0.08)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.08),
   },
   menuItemText: {
     fontSize: 16,

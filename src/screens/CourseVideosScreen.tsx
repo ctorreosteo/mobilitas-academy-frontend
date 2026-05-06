@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { Course, Video, Chapter } from '../types';
 import ChapterSection from '../components/ChapterSection';
 import { getCachedDurationFromHls } from '../utils/hlsDuration';
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 99, 99, 0.12)',
+    backgroundColor: withOpacity(theme.colors.error, 0.12),
   },
   errorText: {
     fontSize: 14,
@@ -270,10 +270,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 24,
     padding: 16,
-    backgroundColor: 'rgba(114, 250, 147, 0.05)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.05),
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.1)',
+    borderColor: withOpacity(theme.colors.secondary, 0.1),
   },
   descriptionText: {
     fontSize: 15,
@@ -290,10 +290,10 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     marginHorizontal: 20,
     marginBottom: 24,
-    backgroundColor: 'rgba(114, 250, 147, 0.08)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.15)',
+    borderColor: withOpacity(theme.colors.secondary, 0.15),
   },
   statItem: {
     flex: 1,
@@ -320,17 +320,17 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: 'rgba(114, 250, 147, 0.2)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.2),
     marginHorizontal: 16,
   },
   progressContainer: {
     marginHorizontal: 20,
     marginBottom: 32,
     padding: 20,
-    backgroundColor: 'rgba(114, 250, 147, 0.05)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.05),
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.1)',
+    borderColor: withOpacity(theme.colors.secondary, 0.1),
   },
   progressHeader: {
     flexDirection: 'row',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: 'rgba(114, 250, 147, 0.15)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,

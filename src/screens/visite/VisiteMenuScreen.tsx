@@ -5,7 +5,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore — Expo
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 import type { VisiteStackParamList } from './types';
 
 type Nav = StackNavigationProp<VisiteStackParamList, 'VisiteMenu'>;
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(114, 250, 147, 0.15)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.15),
   },
   headerSubtitle: {
     marginTop: 0,
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
   cardPressed: {
     opacity: 0.88,

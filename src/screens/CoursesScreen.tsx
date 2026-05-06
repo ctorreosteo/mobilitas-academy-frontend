@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
 import { useFormazioneCourses } from '../hooks/useFormazioneCourses';
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     lineHeight: 20,
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
   },
   centered: {
     flex: 1,
@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   errorBanner: {
-    backgroundColor: 'rgba(255, 99, 99, 0.12)',
+    backgroundColor: withOpacity(theme.colors.error, 0.12),
     borderWidth: 1,
-    borderColor: 'rgba(255, 99, 99, 0.35)',
+    borderColor: withOpacity(theme.colors.error, 0.35),
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 16,
     marginBottom: 14,
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 37, 82, 0.14)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.14),
     marginBottom: 4,
   },
   statNumber: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   sectionHeaderHint: {
     marginTop: 2,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.84)',
+    color: withOpacity(theme.colors.text.secondary, 0.84),
   },
   coursesList: {
     paddingHorizontal: 20,

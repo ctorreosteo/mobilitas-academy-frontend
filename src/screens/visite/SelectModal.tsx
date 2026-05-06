@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, FlatList } from 'react-native';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 
 type SelectModalProps<T extends { id: number }> = {
   visible: boolean;
@@ -93,7 +93,7 @@ export function SelectModal<T extends { id: number }>({
 const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: withOpacity(theme.colors.black, 0.55),
     justifyContent: 'flex-end',
   },
   modalSheet: {
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     maxHeight: '72%',
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.2)',
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
   },
   modalTitle: {
     fontSize: 18,
@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.28)',
-    backgroundColor: 'rgba(0, 37, 82, 0.42)',
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: withOpacity(theme.colors.primary, 0.42),
   },
   modalRowSelected: {
     borderColor: theme.colors.secondary,
-    backgroundColor: 'rgba(114, 250, 147, 0.14)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.14),
   },
   modalRowText: {
     fontSize: 16,
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
   },
   modalRowDisabled: {
     opacity: 0.48,
-    borderColor: 'rgba(114, 250, 147, 0.14)',
-    backgroundColor: 'rgba(0, 37, 82, 0.28)',
+    borderColor: withOpacity(theme.colors.secondary, 0.14),
+    backgroundColor: withOpacity(theme.colors.primary, 0.28),
   },
   modalRowTextDisabled: {
     opacity: 0.85,

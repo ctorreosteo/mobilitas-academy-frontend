@@ -14,7 +14,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 import {
   createAcquisto,
   type AcquistoDto,
@@ -287,7 +287,7 @@ export function CreaAcquistoModal({
                     value={scontoInput}
                     onChangeText={setScontoInput}
                     placeholder={tipoSconto === 'PERCENTUALE' ? 'Es. 10' : 'Es. 20'}
-                    placeholderTextColor="rgba(255,255,255,0.38)"
+                    placeholderTextColor={withOpacity(theme.colors.text.secondary, 0.38)}
                     keyboardType="decimal-pad"
                   />
                 ) : null}
@@ -298,7 +298,7 @@ export function CreaAcquistoModal({
                   value={note}
                   onChangeText={setNote}
                   placeholder="Es. promo, accordi con il paziente..."
-                  placeholderTextColor="rgba(255,255,255,0.38)"
+                  placeholderTextColor={withOpacity(theme.colors.text.secondary, 0.38)}
                   multiline
                   maxLength={500}
                 />
@@ -341,7 +341,7 @@ export function CreaAcquistoModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: withOpacity(theme.colors.black, 0.55),
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     maxHeight: '88%',
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.2)',
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
   },
   pickerHeaderRow: {
     flexDirection: 'row',
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingHorizontal: 20,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    color: withOpacity(theme.colors.text.secondary, 0.8),
     lineHeight: 16,
   },
   pickerLoading: {
@@ -407,12 +407,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.28)',
-    backgroundColor: 'rgba(0, 37, 82, 0.42)',
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: withOpacity(theme.colors.primary, 0.42),
   },
   pickerRowSelected: {
     borderColor: theme.colors.secondary,
-    backgroundColor: 'rgba(114, 250, 147, 0.14)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.14),
   },
   pickerRowContent: {
     flexDirection: 'row',
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: theme.colors.secondary,
     borderWidth: 1,
-    borderColor: 'rgba(0, 37, 82, 0.35)',
+    borderColor: withOpacity(theme.colors.primary, 0.35),
   },
   servizioNomePillText: {
     fontSize: 15,
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   pickerRowRestSelected: {
-    color: 'rgba(255,255,255,0.96)',
+    color: withOpacity(theme.colors.text.secondary, 0.96),
   },
   title: {
     fontSize: 18,
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 20,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
+    color: withOpacity(theme.colors.text.secondary, 0.85),
     lineHeight: 18,
   },
   scroll: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   muted: {
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
     fontSize: 14,
   },
   inlineLoading: {
@@ -486,22 +486,22 @@ const styles = StyleSheet.create({
   },
   select: {
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
   },
   selectDisabled: {
     opacity: 0.72,
   },
   selectValue: {
-    color: 'rgba(255,255,255,0.98)',
+    color: withOpacity(theme.colors.text.secondary, 0.98),
     fontSize: 16,
     fontWeight: '500',
   },
   selectPlaceholder: {
-    color: 'rgba(255,255,255,0.45)',
+    color: withOpacity(theme.colors.text.secondary, 0.45),
     fontSize: 16,
   },
   metodoRow: {
@@ -514,12 +514,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
   metodoChipSelected: {
     borderColor: theme.colors.secondary,
-    backgroundColor: 'rgba(114, 250, 147, 0.15)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
   },
   metodoChipText: {
     fontSize: 13,
@@ -532,24 +532,24 @@ const styles = StyleSheet.create({
   scontoInput: {
     marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.98)',
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    color: withOpacity(theme.colors.text.secondary, 0.98),
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
   },
   noteInput: {
     minHeight: 80,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.98)',
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    color: withOpacity(theme.colors.text.secondary, 0.98),
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
     textAlignVertical: 'top',
   },
   actions: {
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.4)',
+    borderColor: withOpacity(theme.colors.secondary, 0.4),
     alignItems: 'center',
   },
   secondaryBtnText: {

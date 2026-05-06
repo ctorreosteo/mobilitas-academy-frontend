@@ -6,7 +6,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video as ExpoVideo, ResizeMode, Audio } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { Video, Course } from '../types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -370,19 +370,19 @@ const styles = StyleSheet.create({
   videoContainer: {
     width: screenWidth,
     height: screenWidth * 0.5625,
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.black,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullscreenContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.black,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullscreenVideo: {
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.black,
   },
   fullscreenCloseButton: {
     position: 'absolute',
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: withOpacity(theme.colors.black, 0.6),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: withOpacity(theme.colors.black, 0.6),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     height: 40,
     paddingHorizontal: 14,
     borderRadius: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: withOpacity(theme.colors.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     left: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: withOpacity(theme.colors.black, 0.7),
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -439,14 +439,14 @@ const styles = StyleSheet.create({
   thumbnailPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: withOpacity(theme.colors.black, 0.5),
     justifyContent: 'center',
     alignItems: 'center',
   },
   hlsVideo: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.black,
   },
   playButtonContainer: {
     position: 'absolute',
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     left: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: withOpacity(theme.colors.black, 0.7),
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: 12,
     borderRadius: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: withOpacity(theme.colors.black, 0.7),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: withOpacity(theme.colors.black, 0.6),
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(114, 250, 147, 0.1)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.1),
   },
   infoIcon: {
     marginRight: 8,
@@ -571,10 +571,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 24,
     padding: 20,
-    backgroundColor: 'rgba(114, 250, 147, 0.05)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.05),
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.1)',
+    borderColor: withOpacity(theme.colors.secondary, 0.1),
   },
   descriptionTitle: {
     fontSize: 18,

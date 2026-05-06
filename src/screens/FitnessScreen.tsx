@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import {
   creaPrenotazioneSessioneFitness,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(114, 250, 147, 0.24)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
   },
   dividerIconWrap: {
     width: 28,
@@ -276,8 +276,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.32)',
-    backgroundColor: 'rgba(114, 250, 147, 0.08)',
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   heroTitle: {
     fontSize: 26,
@@ -289,21 +289,21 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     lineHeight: 20,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   manageCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.34)',
-    backgroundColor: 'rgba(0, 37, 82, 0.72)',
+    borderColor: withOpacity(theme.colors.secondary, 0.34),
+    backgroundColor: withOpacity(theme.colors.primary, 0.72),
     paddingVertical: 13,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.14,
     shadowRadius: 8,
@@ -325,9 +325,9 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(114, 250, 147, 0.18)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.18),
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.4)',
+    borderColor: withOpacity(theme.colors.secondary, 0.4),
   },
   manageCardTexts: {
     flex: 1,
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   manageCardSubtitle: {
     marginTop: 3,
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
     fontSize: 12,
     lineHeight: 17,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
   stateCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.22)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -399,8 +399,8 @@ const styles = StyleSheet.create({
   sessionCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
     gap: 8,
   },
@@ -419,12 +419,12 @@ const styles = StyleSheet.create({
   },
   sessionHour: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   sessionMeta: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.88)',
+    color: withOpacity(theme.colors.text.secondary, 0.88),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   bookButton: {
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.4)',
+    borderColor: withOpacity(theme.colors.secondary, 0.4),
     backgroundColor: theme.colors.secondary,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   bookButtonDisabled: {
-    backgroundColor: 'rgba(114, 250, 147, 0.15)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
   },
   bookButtonText: {
     color: theme.colors.background.primary,

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import {
   annullaPrenotazioneSessioneFitness,
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.3)',
-    backgroundColor: 'rgba(0, 37, 82, 0.5)',
+    borderColor: withOpacity(theme.colors.secondary, 0.3),
+    backgroundColor: withOpacity(theme.colors.primary, 0.5),
   },
   heroTitle: {
     fontSize: 24,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   centerBox: {
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
   stateCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.22)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -215,8 +215,8 @@ const styles = StyleSheet.create({
   bookingCard: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
     gap: 8,
   },
@@ -235,14 +235,14 @@ const styles = StyleSheet.create({
   },
   bookingMeta: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.88)',
+    color: withOpacity(theme.colors.text.secondary, 0.88),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   badge: {
     borderRadius: 999,
-    backgroundColor: 'rgba(114, 250, 147, 0.16)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.16),
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.36)',
+    borderColor: withOpacity(theme.colors.secondary, 0.36),
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
@@ -256,14 +256,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(255, 104, 105, 0.45)',
+    borderColor: withOpacity(theme.colors.error, 0.45),
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255, 104, 105, 0.08)',
+    backgroundColor: withOpacity(theme.colors.error, 0.08),
   },
   cancelButtonPressed: {
     opacity: 0.88,

@@ -13,7 +13,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 import {
   fetchVisiteByPaziente,
   fetchVisiteOsteopataGiorno,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(114, 250, 147, 0.15)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.15),
   },
   leadText: {
     fontSize: 14,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(114, 250, 147, 0.12)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.12),
   },
   dateNavBtn: {
     width: 44,
@@ -422,8 +422,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
   dateNavBtnText: {
     fontSize: 22,
@@ -436,8 +436,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.4)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.4),
     justifyContent: 'center',
   },
   datePickLabel: {
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mono: {
-    fontFamily: 'monospace',
+    fontFamily: theme.fonts.primary,
     fontSize: 13,
     color: theme.colors.secondary,
   },
@@ -483,8 +483,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.2)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
   bookingWhen: {
     fontSize: 16,
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
   },
   dateModalBackdropDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 8, 24, 0.68)',
+    backgroundColor: withOpacity(theme.colors.black, 0.68),
   },
   dateModalSheetWrap: {
     ...StyleSheet.absoluteFillObject,
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.22)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
   },
   dateModalToolbar: {
     flexDirection: 'row',
@@ -553,12 +553,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(114, 250, 147, 0.2)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.2),
     backgroundColor: theme.colors.background.primary,
   },
   dateModalToolbarBtn: {
     fontSize: 17,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
     fontWeight: '500',
   },
   dateModalToolbarBtnPrimary: {

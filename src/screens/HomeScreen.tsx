@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
 
 const HomeScreen: React.FC = () => {
@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.28)',
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
   },
   heroOverline: {
     fontSize: 11,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     lineHeight: 20,
-    color: 'rgba(255,255,255,0.94)',
+    color: withOpacity(theme.colors.text.secondary, 0.94),
   },
   heroTags: {
     marginTop: 12,
@@ -154,9 +154,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(114, 250, 147, 0.16)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.16),
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.38)',
+    borderColor: withOpacity(theme.colors.secondary, 0.38),
   },
   heroTagText: {
     color: theme.colors.secondary,
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
   quickCardPressed: {
     opacity: 0.88,
@@ -194,14 +194,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 13,
     lineHeight: 18,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
   },
   infoCard: {
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.25)',
-    backgroundColor: 'rgba(0, 37, 82, 0.45)',
+    borderColor: withOpacity(theme.colors.secondary, 0.25),
+    backgroundColor: withOpacity(theme.colors.primary, 0.45),
     gap: 10,
   },
   infoRow: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 19,
-    color: 'rgba(255,255,255,0.94)',
+    color: withOpacity(theme.colors.text.secondary, 0.94),
   },
   footerHint: {
     marginTop: 6,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   footerHintText: {
     flex: 1,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.86)',
+    color: withOpacity(theme.colors.text.secondary, 0.86),
   },
 });
 

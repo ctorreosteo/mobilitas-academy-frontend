@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { Chapter, Video } from '../types';
 import VideoItem from './VideoItem';
 
@@ -68,10 +68,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(114, 250, 147, 0.05)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.05),
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.1)',
+    borderColor: withOpacity(theme.colors.secondary, 0.1),
   },
   headerLeft: {
     flexDirection: 'row',

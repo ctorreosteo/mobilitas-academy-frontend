@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../theme';
+import { theme, withOpacity } from '../../theme';
 import type { VisiteStackParamList } from './types';
 import {
   fetchDisponibilitaVisite,
@@ -522,7 +522,7 @@ const BookVisitScreen: React.FC = () => {
                             value={pazienteSearchInput}
                             onChangeText={setPazienteSearchInput}
                             placeholder="Nome, cognome o entrambi…"
-                            placeholderTextColor="rgba(255,255,255,0.38)"
+                            placeholderTextColor={withOpacity(theme.colors.text.secondary, 0.38)}
                             autoCapitalize="words"
                             autoCorrect={false}
                             accessibilityLabel="Cerca paziente per nome o cognome"
@@ -929,16 +929,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   muted: {
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
     fontSize: 14,
   },
   errorBox: {
     margin: 16,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 104, 105, 0.12)',
+    backgroundColor: withOpacity(theme.colors.error, 0.12),
     borderWidth: 1,
-    borderColor: 'rgba(255, 104, 105, 0.35)',
+    borderColor: withOpacity(theme.colors.error, 0.35),
   },
   errorText: {
     color: theme.colors.error,
@@ -979,8 +979,8 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.45)',
-    backgroundColor: 'rgba(114, 250, 147, 0.12)',
+    borderColor: withOpacity(theme.colors.secondary, 0.45),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1000,28 +1000,28 @@ const styles = StyleSheet.create({
   fieldHint: {
     marginTop: 6,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
+    color: withOpacity(theme.colors.text.secondary, 0.85),
     lineHeight: 16,
   },
   select: {
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
   },
   selectValue: {
-    color: 'rgba(255,255,255,0.98)',
+    color: withOpacity(theme.colors.text.secondary, 0.98),
     fontSize: 16,
     fontWeight: '500',
   },
   selectPlaceholder: {
-    color: 'rgba(255,255,255,0.45)',
+    color: withOpacity(theme.colors.text.secondary, 0.45),
     fontSize: 16,
   },
   selectPlaceholderDisabled: {
-    color: 'rgba(255,255,255,0.28)',
+    color: withOpacity(theme.colors.text.secondary, 0.28),
     fontSize: 16,
   },
   selectDisabled: {
@@ -1041,7 +1041,7 @@ const styles = StyleSheet.create({
   },
   emptySlots: {
     marginTop: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: withOpacity(theme.colors.text.secondary, 0.9),
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 2,
     borderRadius: 1,
-    backgroundColor: 'rgba(114, 250, 147, 0.4)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.4),
   },
   availabilitySeparatorLabel: {
     fontSize: 11,
@@ -1071,7 +1071,7 @@ const styles = StyleSheet.create({
     marginTop: -14,
     marginBottom: 20,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
     lineHeight: 20,
   },
   sectionHeader: {
@@ -1092,12 +1092,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.2)',
-    backgroundColor: 'rgba(0, 37, 82, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
+    backgroundColor: withOpacity(theme.colors.primary, 0.35),
   },
   slotRowSelected: {
     borderColor: theme.colors.secondary,
-    backgroundColor: 'rgba(114, 250, 147, 0.15)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
   },
   slotText: {
     color: theme.colors.text.secondary,
@@ -1126,9 +1126,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(114, 250, 147, 0.12)',
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
   },
   selectedBannerLabel: {
     fontSize: 12,
@@ -1161,8 +1161,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
-    backgroundColor: 'rgba(114, 250, 147, 0.08)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
     marginBottom: 12,
   },
   pazienteSelectedMain: {
@@ -1187,27 +1187,27 @@ const styles = StyleSheet.create({
   },
   pazienteSearchInput: {
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 16,
-    color: 'rgba(255,255,255,0.98)',
-    backgroundColor: 'rgba(0, 37, 82, 0.55)',
+    color: withOpacity(theme.colors.text.secondary, 0.98),
+    backgroundColor: withOpacity(theme.colors.primary, 0.55),
   },
   pazienteResultsScroll: {
     maxHeight: 220,
     marginTop: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.22)',
-    backgroundColor: 'rgba(0, 37, 82, 0.35)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
+    backgroundColor: withOpacity(theme.colors.primary, 0.35),
   },
   pazienteResultRow: {
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(114, 250, 147, 0.15)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.15),
   },
   pazienteResultName: {
     fontSize: 15,
@@ -1244,7 +1244,7 @@ const styles = StyleSheet.create({
   /** Simula “sfuocato” con velo scuro (blur nativo richiede dev client con expo-blur linkato). */
   dateModalBackdropDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 8, 24, 0.68)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.68),
   },
   dateModalSheetWrap: {
     ...StyleSheet.absoluteFillObject,
@@ -1256,7 +1256,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderColor: 'rgba(114, 250, 147, 0.22)',
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
   },
   dateModalToolbar: {
     flexDirection: 'row',
@@ -1265,12 +1265,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(114, 250, 147, 0.2)',
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.2),
     backgroundColor: theme.colors.background.primary,
   },
   dateModalToolbarBtn: {
     fontSize: 17,
-    color: 'rgba(255,255,255,0.92)',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
     fontWeight: '500',
   },
   dateModalToolbarBtnPrimary: {

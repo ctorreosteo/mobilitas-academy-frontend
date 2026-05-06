@@ -16,14 +16,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme } from '../theme';
+import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import {
   getRememberedLoginUsername,
   getRememberUsernamePreference,
 } from '../services/authTokenStorage';
 
-const inputBg = '#E2E8F0';
+const inputBg = theme.colors.background.secondary;
 
 const LoginScreen: React.FC = () => {
   const { signIn } = useAuth();
@@ -88,7 +88,7 @@ const LoginScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Email o username"
-                placeholderTextColor="rgba(0,37,82,0.45)"
+                placeholderTextColor={withOpacity(theme.colors.primary, 0.45)}
                 value={username}
                 onChangeText={setUsername}
                 autoCapitalize="none"
@@ -117,7 +117,7 @@ const LoginScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="rgba(0,37,82,0.45)"
+                placeholderTextColor={withOpacity(theme.colors.primary, 0.45)}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: 'rgba(255,255,255,0.72)',
+    color: withOpacity(theme.colors.text.secondary, 0.72),
     textAlign: 'center',
     marginBottom: 28,
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 19,
-    color: 'rgba(255,255,255,0.78)',
+    color: withOpacity(theme.colors.text.secondary, 0.78),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   errorText: {
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: withOpacity(theme.colors.text.secondary, 0.25),
   },
   separatorText: {
     marginHorizontal: 14,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
+    color: withOpacity(theme.colors.text.secondary, 0.55),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   socialRow: {
@@ -375,9 +375,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 12,
-    backgroundColor: 'rgba(0,37,82,0.85)',
+    backgroundColor: withOpacity(theme.colors.primary, 0.85),
     borderWidth: 1,
-    borderColor: 'rgba(114,250,147,0.2)',
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
   footerMuted: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
+    color: withOpacity(theme.colors.text.secondary, 0.85),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   footerLink: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
-    color: 'rgba(255,255,255,0.5)',
+    color: withOpacity(theme.colors.text.secondary, 0.5),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   legalAccent: {
