@@ -68,6 +68,11 @@ const ProfileScreen: React.FC = () => {
     profile?.ruoli?.length && profile.ruoli.length > 0
       ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
       : '—';
+  const stats = [
+    { key: 'completed', value: '2', label: 'Corsi completati', icon: 'checkmark-done-circle-outline' as const },
+    { key: 'ongoing', value: '6', label: 'In corso', icon: 'play-circle-outline' as const },
+    { key: 'progress', value: '53%', label: 'Progresso', icon: 'trending-up-outline' as const },
+  ];
 
   const handleCleanAndRefresh = () => {
     Alert.alert(
@@ -110,7 +115,7 @@ const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Profilo</Text>
@@ -120,6 +125,15 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.headerBadge}>
             <Ionicons name="sparkles-outline" size={14} color={theme.colors.text.primary} />
             <Text style={styles.headerBadgeText}>Area personale</Text>
+          </View>
+        </View>
+        <View style={styles.dividerWrap}>
+          <View style={[styles.dividerLine, styles.dividerLineLeft]} />
+          <View style={[styles.dividerLine, styles.dividerLineRight]} />
+          <View style={styles.dividerIconWrap}>
+            <View style={styles.dividerIconInner}>
+              <Ionicons name="person-outline" size={14} color={theme.colors.secondary} />
+            </View>
           </View>
         </View>
         
@@ -142,46 +156,63 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>2</Text>
-            <Text style={styles.statLabel}>Corsi Completati</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>6</Text>
-            <Text style={styles.statLabel}>In Corso</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>53%</Text>
-            <Text style={styles.statLabel}>Progresso</Text>
-          </View>
+          {stats.map((stat) => (
+            <View key={stat.key} style={styles.statCard}>
+              <View style={styles.statHeader}>
+                <Ionicons name={stat.icon} size={15} color={withOpacity(theme.colors.secondary, 0.85)} />
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </View>
+              <Text style={styles.statNumber}>{stat.value}</Text>
+            </View>
+          ))}
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Impostazioni</Text>
           <View style={styles.sectionCard}>
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Modifica Profilo</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="person-circle-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Modifica Profilo</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
 
             <View style={styles.menuDivider} />
 
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Notifiche</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="notifications-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Notifiche</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
 
             <View style={styles.menuDivider} />
 
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Privacy</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="shield-checkmark-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Privacy</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
 
             <View style={styles.menuDivider} />
 
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Aiuto e Supporto</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="help-buoy-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Aiuto e Supporto</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
           </View>
@@ -201,7 +232,7 @@ const ProfileScreen: React.FC = () => {
                 <View style={styles.actionTexts}>
                   <Text style={styles.menuItemText}>Pulisci cache e aggiorna</Text>
                   <Text style={styles.actionSubtitle}>
-                    Cache app, token YouTube locale, durate HLS in memoria
+                    Risolve piccoli problemi e ricarica i contenuti dell'app.
                   </Text>
                 </View>
               </View>
@@ -237,14 +268,24 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionCard}>
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Cambia Password</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="key-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Cambia Password</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
 
             <View style={styles.menuDivider} />
 
             <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>Esporta Dati</Text>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemIconWrap}>
+                  <Ionicons name="download-outline" size={17} color={theme.colors.secondary} />
+                </View>
+                <Text style={styles.menuItemText}>Esporta Dati</Text>
+              </View>
               <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} style={styles.menuItemArrow} />
             </TouchableOpacity>
           </View>
@@ -257,7 +298,7 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary, // Blu scuro dal tema
+    backgroundColor: theme.colors.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -265,21 +306,20 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 32,
-    paddingBottom: 18,
+    paddingTop: 42,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary, // Verde dal tema
+    color: theme.colors.secondary, // Verde secondario per titolo principale
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary, // Bianco dal tema
-    opacity: 0.9,
+    color: withOpacity(theme.colors.text.secondary, 0.76),
   },
   headerBadge: {
     alignSelf: 'flex-start',
@@ -301,23 +341,60 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
     letterSpacing: 0.2,
   },
+  dividerWrap: {
+    position: 'relative',
+    height: 28,
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginBottom: 12,
+  },
+  dividerLine: {
+    position: 'absolute',
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerLineLeft: {
+    left: 0,
+    right: '58%',
+  },
+  dividerLineRight: {
+    left: '58%',
+    right: 0,
+  },
+  dividerIconWrap: {
+    alignSelf: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
+  },
+  dividerIconInner: {
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   profileCard: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: withOpacity(theme.colors.black, 0.26),
     marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: withOpacity(theme.colors.primary, 0.08),
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
     shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    elevation: 8,
   },
   avatarContainer: {
     marginBottom: 16,
@@ -326,9 +403,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.16),
     borderWidth: 3,
-    borderColor: withOpacity(theme.colors.secondary, 0.22),
+    borderColor: withOpacity(theme.colors.secondary, 0.34),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -336,7 +413,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.background.white,
+    color: theme.colors.secondary,
   },
   profileTitleRow: {
     flexDirection: 'row',
@@ -352,20 +429,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
+    color: theme.colors.text.secondary,
   },
   userEmail: {
     fontSize: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    opacity: 0.7,
+    color: withOpacity(theme.colors.text.secondary, 0.72),
     marginBottom: 8,
   },
   userRole: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary,
-    backgroundColor: theme.colors.primary,
+    color: theme.colors.secondary,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -375,37 +451,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginHorizontal: 20,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 24,
   },
   statCard: {
     flex: 1,
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
+    backgroundColor: withOpacity(theme.colors.black, 0.34),
+    borderRadius: 18,
+    minHeight: 108,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: withOpacity(theme.colors.primary, 0.07),
+    borderColor: withOpacity(theme.colors.secondary, 0.24),
     shadowColor: theme.colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-    marginHorizontal: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.26,
+    shadowRadius: 14,
+    elevation: 7,
+  },
+  statHeader: {
+    alignItems: 'center',
+    gap: 8,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 38,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary, // Blu
-    marginBottom: 4,
+    color: theme.colors.secondary,
+    lineHeight: 42,
+    textAlign: 'center',
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
+    fontWeight: '600',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary, // Blu
-    opacity: 0.72,
+    color: withOpacity(theme.colors.text.secondary, 0.76),
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
+    textAlign: 'center',
   },
   menuSection: {
     marginHorizontal: 20,
@@ -415,20 +499,20 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary,
+    color: theme.colors.titlePrimary,
     marginBottom: 10,
     marginLeft: 2,
   },
   sectionCard: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: withOpacity(theme.colors.black, 0.24),
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: withOpacity(theme.colors.primary, 0.06),
+    borderColor: withOpacity(theme.colors.secondary, 0.15),
     shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 5,
   },
   menuItem: {
     backgroundColor: 'transparent',
@@ -441,17 +525,31 @@ const styles = StyleSheet.create({
   menuDivider: {
     marginHorizontal: 18,
     height: 1,
-    backgroundColor: withOpacity(theme.colors.primary, 0.08),
+    backgroundColor: withOpacity(theme.colors.text.secondary, 0.1),
+  },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuItemIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuItemText: {
     fontSize: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
+    color: theme.colors.text.secondary,
   },
   menuItemArrow: {
     fontSize: 20,
-    color: theme.colors.primary,
-    opacity: 0.5,
+    color: withOpacity(theme.colors.text.secondary, 0.56),
   },
   actionRow: {
     alignItems: 'flex-start',
@@ -469,8 +567,7 @@ const styles = StyleSheet.create({
   actionSubtitle: {
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    opacity: 0.55,
+    color: withOpacity(theme.colors.text.secondary, 0.62),
     marginTop: 4,
     lineHeight: 16,
   },

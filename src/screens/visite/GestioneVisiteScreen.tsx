@@ -13,6 +13,8 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
 import {
   fetchVisiteByPaziente,
@@ -163,13 +165,24 @@ const GestioneVisiteScreen: React.FC = () => {
     !osteopathMissingId;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.lead}>
         <Text style={styles.leadText}>
           {osteopathAgenda
             ? 'Agenda del giorno: visite in ordine di orario. Scegli la data per caricare l’elenco.'
             : 'Prenotate, effettuate, disdette e altri stati — ordine dalla più recente.'}
         </Text>
+      </View>
+      <View style={styles.headerBadge}>
+        <Ionicons name="list-outline" size={14} color={theme.colors.text.primary} />
+        <Text style={styles.headerBadgeText}>Gestione visite</Text>
+      </View>
+      <View style={styles.dividerWrap}>
+        <View style={styles.dividerLine} />
+        <View style={styles.dividerIconWrap}>
+          <Ionicons name="calendar-outline" size={15} color={theme.colors.secondary} />
+        </View>
+        <View style={styles.dividerLine} />
       </View>
 
       {osteopathAgenda && (
@@ -396,7 +409,7 @@ const styles = StyleSheet.create({
   },
   lead: {
     paddingHorizontal: 20,
-    paddingTop: 4,
+    paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: withOpacity(theme.colors.secondary, 0.15),
@@ -406,6 +419,48 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     lineHeight: 20,
     opacity: 0.9,
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    marginLeft: 20,
+    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   dateToolbar: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import CoursesScreen from './src/screens/CoursesScreen';
@@ -20,10 +20,25 @@ import LoginScreen from './src/screens/LoginScreen';
 import { theme } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
+const tabBarColors = {
+  background: '#07294A',
+  border: 'rgba(114, 250, 147, 0.24)',
+  shadow: '#001022',
+  inactive: 'rgba(114, 250, 147, 0.45)',
+};
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const RootStack = createStackNavigator();
 const queryClient = new QueryClient();
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: theme.colors.background.primary,
+    card: theme.colors.background.primary,
+  },
+};
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -87,26 +102,26 @@ const errorBoundaryStyles = StyleSheet.create({
   },
 });
 
-const headerLogoStyles = StyleSheet.create({
-  headerLogo: {
-    width: 120,
-    height: 40,
-  },
-});
-
 const CoursesStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{
+        contentStyle: {
+          paddingTop: 12,
+        },
         headerStyle: {
           backgroundColor: theme.colors.background.primary,
           elevation: 0,
           shadowOpacity: 0,
+          height: 58,
         },
         headerTintColor: theme.colors.secondary,
         headerTitleStyle: {
           fontWeight: '600',
           color: theme.colors.secondary,
+        },
+        headerTitleContainerStyle: {
+          paddingVertical: 0,
         },
       }}
     >
@@ -142,28 +157,36 @@ function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
+        sceneStyle: {
+          paddingTop: 12,
+        },
         tabBarActiveTintColor: theme.colors.secondary,
-        tabBarInactiveTintColor: theme.colors.secondary,
+        tabBarInactiveTintColor: tabBarColors.inactive,
         tabBarStyle: {
-          backgroundColor: theme.colors.background.primary,
+          position: 'absolute',
+          left: 14,
+          right: 14,
+          bottom: 0,
+          borderRadius: 24,
+          backgroundColor: tabBarColors.background,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(114, 250, 147, 0.15)',
-          elevation: 8,
-          shadowColor: '#000',
+          borderTopColor: tabBarColors.border,
+          elevation: 14,
+          shadowColor: tabBarColors.shadow,
           shadowOffset: {
             width: 0,
-            height: -2,
+            height: 8,
           },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          height: 80,
-          paddingBottom: 28,
+          shadowOpacity: 0.35,
+          shadowRadius: 16,
+          height: 84,
+          paddingBottom: 20,
           paddingTop: 12,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
-          color: theme.colors.secondary,
+          fontWeight: '600',
+          letterSpacing: 0.2,
         },
         headerStyle: {
           backgroundColor: theme.colors.background.primary,
@@ -183,13 +206,7 @@ function MainTabNavigator() {
         options={{
           title: 'Home',
           tabBarLabel: 'Home',
-          headerTitle: () => (
-            <Image
-              source={require('./assets/logo_verde.png')}
-              style={headerLogoStyles.headerLogo}
-              resizeMode="contain"
-            />
-          ),
+          headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={26} color={color} />
           ),
@@ -237,6 +254,7 @@ function MainTabNavigator() {
         options={{
           title: 'Profilo',
           tabBarLabel: 'Profilo',
+          headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={26} color={color} />
           ),
@@ -267,8 +285,15 @@ function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer theme={navigationTheme}>
+      <RootStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            paddingTop: 12,
+          },
+        }}
+      >
         {!isSignedIn ? (
           <RootStack.Screen name="Login" component={LoginScreen} />
         ) : (

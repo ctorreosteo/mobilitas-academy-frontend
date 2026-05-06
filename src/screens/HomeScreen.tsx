@@ -12,24 +12,27 @@ const HomeScreen: React.FC = () => {
   const { userProfile } = useAuth();
 
   const firstName = userProfile?.nome?.trim() || 'Professionista';
-  const isOsteopata = (userProfile?.ruoli ?? []).some(
-    (r) => r.toUpperCase().includes('OSTEOPATA') || r.toUpperCase().includes('ADMIN')
-  );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.heroCard}>
+        <View style={styles.heroIntro}>
           <Text style={styles.heroOverline}>Mobilitas Academy</Text>
           <Text style={styles.heroTitle}>Ciao {firstName}</Text>
           <Text style={styles.heroSubtitle}>
             Dashboard aggiornata per formazione, prenotazioni visite e gestione acquisti.
           </Text>
-          <View style={styles.heroTags}>
-            <View style={styles.heroTag}>
-              <Text style={styles.heroTagText}>{isOsteopata ? 'Modalità osteopata' : 'Modalità paziente'}</Text>
-            </View>
+        </View>
+        <View style={styles.sectionBadge}>
+          <Ionicons name="grid-outline" size={14} color={theme.colors.text.primary} />
+          <Text style={styles.sectionBadgeText}>Panoramica</Text>
+        </View>
+        <View style={styles.dividerWrap}>
+          <View style={styles.dividerLine} />
+          <View style={styles.dividerIconWrap}>
+            <Ionicons name="sparkles-outline" size={15} color={theme.colors.secondary} />
           </View>
+          <View style={styles.dividerLine} />
         </View>
 
         <Text style={styles.sectionTitle}>Azioni rapide</Text>
@@ -92,12 +95,18 @@ const HomeScreen: React.FC = () => {
               Menu a tendina ottimizzati con riquadri per migliorare leggibilità.
             </Text>
           </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>
+              Sezione Fitness aggiornata: calendario sessioni, prenotazione rapida e gestione iscrizioni.
+            </Text>
+          </View>
         </View>
 
         <View style={styles.footerHint}>
           <Ionicons name="information-circle-outline" size={18} color={theme.colors.secondary} />
           <Text style={styles.footerHintText}>
-            Vai su Visite per usare subito le nuove funzionalità di prenotazione e acquisti.
+            Vai su Visite e Fitness per usare subito prenotazioni studio, sessioni e gestione acquisti.
           </Text>
         </View>
       </ScrollView>
@@ -113,16 +122,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 24,
     paddingBottom: 28,
     gap: 14,
   },
-  heroCard: {
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.28),
-    backgroundColor: withOpacity(theme.colors.primary, 0.55),
+  heroIntro: {
+    marginTop: 0,
   },
   heroOverline: {
     fontSize: 11,
@@ -144,30 +149,50 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: withOpacity(theme.colors.text.secondary, 0.94),
   },
-  heroTags: {
-    marginTop: 12,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  heroTag: {
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.16),
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.38),
-  },
-  heroTagText: {
-    color: theme.colors.secondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
   sectionTitle: {
     marginTop: 4,
     fontSize: 17,
     fontWeight: '700',
-    color: theme.colors.secondary,
+    color: theme.colors.titlePrimary,
+  },
+  sectionBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  sectionBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 2,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   quickGrid: {
     gap: 10,

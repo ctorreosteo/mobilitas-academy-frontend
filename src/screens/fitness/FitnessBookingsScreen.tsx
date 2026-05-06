@@ -92,11 +92,22 @@ const FitnessBookingsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.heroCard}>
           <Text style={styles.heroTitle}>Le tue prenotazioni</Text>
           <Text style={styles.heroSubtitle}>{titleSubtitle}</Text>
+        </View>
+        <View style={styles.headerBadge}>
+          <Ionicons name="checkmark-done-outline" size={14} color={theme.colors.text.primary} />
+          <Text style={styles.headerBadgeText}>Prenotazioni fitness</Text>
+        </View>
+        <View style={styles.dividerWrap}>
+          <View style={styles.dividerLine} />
+          <View style={styles.dividerIconWrap}>
+            <Ionicons name="barbell-outline" size={15} color={theme.colors.secondary} />
+          </View>
+          <View style={styles.dividerLine} />
         </View>
 
         {loading ? (
@@ -162,7 +173,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 24,
     paddingBottom: 30,
     gap: 12,
   },
@@ -184,6 +195,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: withOpacity(theme.colors.text.secondary, 0.92),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 2,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   centerBox: {
     paddingVertical: 26,

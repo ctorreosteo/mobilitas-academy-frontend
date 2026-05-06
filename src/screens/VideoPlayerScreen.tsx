@@ -192,7 +192,7 @@ const VideoPlayerScreen: React.FC = () => {
         </View>
       </Modal>
 
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -514,14 +514,14 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 28,
     paddingBottom: 16,
   },
   videoTitle: {
     fontSize: 24,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
+    color: theme.colors.secondary,
     marginBottom: 12,
     lineHeight: 32,
   },
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
+    color: theme.colors.titlePrimary,
     marginBottom: 12,
   },
   descriptionText: {

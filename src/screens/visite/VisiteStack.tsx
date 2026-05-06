@@ -26,7 +26,11 @@ const VisiteStack: React.FC = () => {
         headerBackTitle: '',
       }}
     >
-      <Stack.Screen name="VisiteMenu" component={VisiteMenuScreen} options={{ title: 'Visite' }} />
+      <Stack.Screen
+        name="VisiteMenu"
+        component={VisiteMenuScreen}
+        options={{ title: 'Visite', headerShown: false }}
+      />
       <Stack.Screen
         name="BookVisit"
         component={BookVisitScreen}

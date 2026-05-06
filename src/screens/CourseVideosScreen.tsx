@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+// @ts-ignore - @expo/vector-icons è parte di Expo SDK
+import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
 import { Course, Video, Chapter } from '../types';
 import ChapterSection from '../components/ChapterSection';
@@ -120,7 +122,7 @@ const CourseVideosScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
           <Text style={styles.loadingText}>Caricamento moduli e lezioni…</Text>
@@ -130,7 +132,7 @@ const CourseVideosScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -142,6 +144,17 @@ const CourseVideosScreen: React.FC = () => {
 
         <View style={styles.descriptionContainer}>
           <Text style={styles.descriptionText}>{course.description}</Text>
+        </View>
+        <View style={styles.headerBadge}>
+          <Ionicons name="bookmarks-outline" size={14} color={theme.colors.text.primary} />
+          <Text style={styles.headerBadgeText}>Dettaglio corso</Text>
+        </View>
+        <View style={styles.dividerWrap}>
+          <View style={styles.dividerLine} />
+          <View style={styles.dividerIconWrap}>
+            <Ionicons name="play-circle-outline" size={15} color={theme.colors.secondary} />
+          </View>
+          <View style={styles.dividerLine} />
         </View>
 
         {loadError ? (
@@ -249,14 +262,14 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 28,
     paddingBottom: 24,
   },
   courseTitle: {
     fontSize: 28,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
+    color: theme.colors.secondary,
     marginBottom: 8,
     lineHeight: 36,
   },
@@ -281,6 +294,48 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     opacity: 0.85,
     lineHeight: 22,
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    marginLeft: 20,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 22,
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   statsContainer: {
     flexDirection: 'row',

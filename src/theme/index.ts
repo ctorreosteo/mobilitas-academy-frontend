@@ -29,6 +29,7 @@ export const colors = {
   // Colori principali
   primary: activePalette.primary, // Blu scuro - colore principale per sfondi
   secondary: activePalette.secondary, // Verde - colore principale per scritte
+  titlePrimary: '#D7FFE2', // Verde piu acceso per titoli principali
 
   // Colori di supporto
   accent: '#0ea5e9', // Azzurro - per enfatizzare parole chiave
@@ -45,7 +46,7 @@ export const colors = {
 
   // Colori per sfondi
   background: {
-    primary: activePalette.primary, // Blu scuro principale
+    primary: '#001831', // Blu profondo condiviso per sfondi pagina
     secondary: '#F4F4F4', // Panna per sfondi secondari
     white: '#FFFFFF',
   },

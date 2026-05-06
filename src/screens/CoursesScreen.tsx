@@ -99,25 +99,40 @@ const CoursesScreen: React.FC = () => {
           Catalogo aggiornato con stato accesso, progresso e ripresa rapida.
         </Text>
       </View>
+      <View style={styles.headerBadge}>
+        <Ionicons name="book-outline" size={14} color={theme.colors.text.primary} />
+        <Text style={styles.headerBadgeText}>Area formazione</Text>
+      </View>
+      <View style={styles.dividerWrap}>
+        <View style={styles.dividerLine} />
+        <View style={styles.dividerIconWrap}>
+          <Ionicons name="library-outline" size={15} color={theme.colors.secondary} />
+        </View>
+        <View style={styles.dividerLine} />
+      </View>
 
       <View style={styles.statsCard}>
         <View style={styles.statItem}>
           <View style={styles.statIconWrap}>
-            <Ionicons name="library-outline" size={16} color={theme.colors.primary} />
+            <Ionicons name="library-outline" size={16} color={withOpacity(theme.colors.secondary, 0.95)} />
           </View>
           <Text style={styles.statNumber}>{stats.totalCourses}</Text>
           <Text style={styles.statLabel}>Totali</Text>
         </View>
         <View style={styles.statItem}>
           <View style={styles.statIconWrap}>
-            <Ionicons name="checkmark-circle-outline" size={16} color={theme.colors.primary} />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color={withOpacity(theme.colors.secondary, 0.95)}
+            />
           </View>
           <Text style={styles.statNumber}>{stats.completedCourses}</Text>
           <Text style={styles.statLabel}>Completati</Text>
         </View>
         <View style={styles.statItem}>
           <View style={styles.statIconWrap}>
-            <Ionicons name="trending-up-outline" size={16} color={theme.colors.primary} />
+            <Ionicons name="trending-up-outline" size={16} color={withOpacity(theme.colors.secondary, 0.95)} />
           </View>
           <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
           <Text style={styles.statLabel}>Media</Text>
@@ -158,23 +173,69 @@ const CoursesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: '#001831',
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 14,
+    paddingTop: 24,
     paddingBottom: 10,
   },
   headerTitle: {
     fontSize: 30,
     fontWeight: '800',
     color: theme.colors.secondary,
+    letterSpacing: 0.3,
+    textShadowColor: withOpacity(theme.colors.black, 0.25),
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   headerSubtitle: {
     marginTop: 6,
     fontSize: 14,
     lineHeight: 20,
-    color: withOpacity(theme.colors.text.secondary, 0.9),
+    color: withOpacity(theme.colors.text.secondary, 0.78),
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    marginLeft: 20,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.3),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.09),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: withOpacity(theme.colors.text.primary, 0.94),
+    letterSpacing: 0.35,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 22,
+    marginBottom: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.16),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.26),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.06),
   },
   centered: {
     flex: 1,
@@ -191,7 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: withOpacity(theme.colors.error, 0.12),
     borderWidth: 1,
     borderColor: withOpacity(theme.colors.error, 0.35),
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     marginBottom: 16,
   },
@@ -203,21 +264,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'stretch',
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    backgroundColor: theme.colors.text.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    backgroundColor: '#07284A',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.22),
     marginHorizontal: 20,
     marginTop: 8,
-    borderRadius: 16,
+    borderRadius: 18,
     marginBottom: 14,
     shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 5,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 7,
   },
   statItem: {
     alignItems: 'center',
@@ -225,40 +288,43 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   statIconWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: withOpacity(theme.colors.primary, 0.14),
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.26),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
     marginBottom: 4,
   },
   statNumber: {
-    fontSize: 25,
+    fontSize: 24,
     fontWeight: '800',
-    color: theme.colors.primary,
+    color: '#D7FFE2',
     marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
-    color: theme.colors.primary,
-    opacity: 0.7,
+    color: withOpacity(theme.colors.secondary, 0.72),
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   sectionHeader: {
     paddingHorizontal: 20,
+    marginTop: 20,
     marginBottom: 8,
   },
   sectionHeaderTitle: {
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: '700',
-    color: theme.colors.secondary,
+    color: theme.colors.titlePrimary,
+    letterSpacing: 0.25,
   },
   sectionHeaderHint: {
     marginTop: 2,
     fontSize: 13,
-    color: withOpacity(theme.colors.text.secondary, 0.84),
+    color: withOpacity(theme.colors.text.secondary, 0.72),
   },
   coursesList: {
     paddingHorizontal: 20,

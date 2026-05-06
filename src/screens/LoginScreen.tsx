@@ -82,6 +82,17 @@ const LoginScreen: React.FC = () => {
           <View style={styles.formBlock}>
             <Text style={styles.title}>Benvenuto in Mobilitas</Text>
             <Text style={styles.subtitle}>Accedi al tuo account Mobilitas HQ</Text>
+            <View style={styles.headerBadge}>
+              <Ionicons name="lock-closed-outline" size={14} color={theme.colors.text.primary} />
+              <Text style={styles.headerBadgeText}>Area accesso</Text>
+            </View>
+            <View style={styles.dividerWrap}>
+              <View style={styles.dividerLine} />
+              <View style={styles.dividerIconWrap}>
+                <Ionicons name="log-in-outline" size={15} color={theme.colors.secondary} />
+              </View>
+              <View style={styles.dividerLine} />
+            </View>
 
             <View style={styles.fieldBlock}>
               <Text style={styles.label}>Username</Text>
@@ -240,7 +251,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 28,
-    paddingTop: 12,
+    paddingTop: 24,
     paddingBottom: 32,
   },
   /** Form centrato nello spazio sopra il pittogramma (pittogramma in basso). */
@@ -272,6 +283,46 @@ const styles = StyleSheet.create({
     color: withOpacity(theme.colors.text.secondary, 0.72),
     textAlign: 'center',
     marginBottom: 28,
+  },
+  headerBadge: {
+    alignSelf: 'center',
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
   },
   fieldBlock: {
     marginBottom: 18,

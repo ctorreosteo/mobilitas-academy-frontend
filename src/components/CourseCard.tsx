@@ -47,12 +47,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
   return (
     <View style={[styles.card, isLocked && styles.cardLocked]}>
       {coverImage && (
-        <Image 
-          source={{ uri: coverImage }} 
-          style={styles.coverImage}
-          resizeMode="cover"
-          onError={() => console.log('Errore caricamento immagine:', coverImage)}
-        />
+        <View style={styles.coverImageContainer}>
+          <Image
+            source={{ uri: coverImage }}
+            style={styles.coverImage}
+            resizeMode="cover"
+            onError={() => console.log('Errore caricamento immagine:', coverImage)}
+          />
+        </View>
       )}
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
@@ -62,8 +64,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </View>
         ) : null}
       </View>
-      
-      <Text style={styles.instructor}>di {instructor}</Text>
       
       <View style={styles.progressContainer}>
         <View style={styles.progressInfo}>
@@ -99,27 +99,37 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: '#0A2B4D',
     borderRadius: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
     shadowColor: theme.colors.black,
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
     elevation: 8,
     overflow: 'hidden',
   },
-  coverImage: {
+  coverImageContainer: {
     width: '100%',
-    height: 120,
+    height: 190,
+    backgroundColor: '#06213D',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
   },
   cardLocked: {
-    opacity: 0.92,
+    opacity: 0.82,
   },
   header: {
     flexDirection: 'row',
@@ -131,7 +141,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   lockBadge: {
-    backgroundColor: withOpacity(theme.colors.black, 0.06),
+    backgroundColor: withOpacity(theme.colors.black, 0.24),
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.text.secondary, 0.2),
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -140,22 +152,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    opacity: 0.75,
+    color: withOpacity(theme.colors.text.secondary, 0.76),
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-  },
-  instructor: {
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    opacity: 0.7,
-    marginBottom: 16,
-    paddingHorizontal: 20,
+    color: '#D8FFE3',
   },
   progressContainer: {
     marginBottom: 16,
@@ -170,24 +173,24 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
+    color: withOpacity(theme.colors.text.secondary, 0.82),
     fontWeight: '500',
   },
   progressPercentage: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
+    color: '#CCFFD9',
     fontWeight: '600',
   },
   progressBar: {
     height: 6,
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: withOpacity(theme.colors.text.secondary, 0.12),
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: theme.colors.primary, // Blu
+    backgroundColor: theme.colors.secondary,
     borderRadius: 3,
   },
   footer: {
@@ -200,26 +203,28 @@ const styles = StyleSheet.create({
   duration: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.primary,
-    opacity: 0.6,
+    color: withOpacity(theme.colors.text.secondary, 0.66),
   },
   continueButton: {
-    backgroundColor: theme.colors.primary, // Blu
+    backgroundColor: withOpacity(theme.colors.secondary, 0.14),
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.38),
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   continueButtonDisabled: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: withOpacity(theme.colors.text.secondary, 0.1),
+    borderColor: withOpacity(theme.colors.text.secondary, 0.2),
   },
   continueText: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.primary, // Verde
+    color: '#D3FFE0',
     fontWeight: '600',
   },
   continueTextDisabled: {
-    color: theme.colors.text.secondary,
+    color: withOpacity(theme.colors.text.secondary, 0.64),
   },
 });
 

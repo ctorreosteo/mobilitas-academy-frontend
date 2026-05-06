@@ -136,6 +136,10 @@ const FitnessScreen: React.FC = () => {
             Visualizza le sessioni disponibili e gestisci le tue prenotazioni in un tap.
           </Text>
         </View>
+        <View style={styles.headerBadge}>
+          <Ionicons name="barbell-outline" size={14} color={theme.colors.text.primary} />
+          <Text style={styles.headerBadgeText}>Area fitness</Text>
+        </View>
         <View style={styles.dividerWrap}>
           <View style={styles.dividerLine} />
           <View style={styles.dividerIconWrap}>
@@ -250,13 +254,32 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 22,
     paddingBottom: 30,
     gap: 12,
   },
   heroHeader: {
-    paddingTop: 4,
+    paddingTop: 0,
     paddingHorizontal: 2,
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   dividerWrap: {
     flexDirection: 'row',

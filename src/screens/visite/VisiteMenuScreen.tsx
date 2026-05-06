@@ -14,11 +14,23 @@ const VisiteMenuScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>
-          Consulta le visite già registrate sul tuo profilo oppure prenota un nuovo appuntamento.
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+      <View style={styles.heroHeader}>
+        <Text style={styles.heroTitle}>Visite</Text>
+        <Text style={styles.heroSubtitle}>
+          Consulta le visite registrate oppure prenota un nuovo appuntamento in pochi passaggi.
         </Text>
+      </View>
+      <View style={styles.headerBadge}>
+        <Ionicons name="medkit-outline" size={14} color={theme.colors.text.primary} />
+        <Text style={styles.headerBadgeText}>Area visite</Text>
+      </View>
+      <View style={styles.dividerWrap}>
+        <View style={styles.dividerLine} />
+        <View style={styles.dividerIconWrap}>
+          <Ionicons name="calendar-outline" size={15} color={theme.colors.secondary} />
+        </View>
+        <View style={styles.dividerLine} />
       </View>
 
       <View style={styles.cards}>
@@ -57,22 +69,68 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background.primary,
   },
-  header: {
+  heroHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 12,
+  },
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: theme.colors.secondary,
+  },
+  heroSubtitle: {
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
+    color: withOpacity(theme.colors.text.secondary, 0.92),
+  },
+  headerBadge: {
+    alignSelf: 'flex-start',
+    marginLeft: 20,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  headerBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    letterSpacing: 0.2,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 22,
+    marginBottom: 8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.24),
+  },
+  dividerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
+  },
+  cards: {
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: withOpacity(theme.colors.secondary, 0.15),
-  },
-  headerSubtitle: {
-    marginTop: 0,
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-    lineHeight: 20,
-    opacity: 0.9,
-  },
-  cards: {
-    padding: 20,
     gap: 16,
   },
   card: {
@@ -91,7 +149,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: theme.colors.secondary,
+    color: theme.colors.titlePrimary,
     marginBottom: 6,
   },
   cardHint: {

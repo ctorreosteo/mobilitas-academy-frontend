@@ -442,7 +442,7 @@ const BookVisitScreen: React.FC = () => {
     daySections.length > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       {studiQuery.isLoading && (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
@@ -953,7 +953,7 @@ const styles = StyleSheet.create({
   },
   formBlock: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 24,
     paddingBottom: 8,
   },
   acquistoBlock: {
