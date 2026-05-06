@@ -219,6 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 2,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,

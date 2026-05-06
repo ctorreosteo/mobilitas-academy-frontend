@@ -446,6 +446,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 22,
     paddingVertical: 10,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,

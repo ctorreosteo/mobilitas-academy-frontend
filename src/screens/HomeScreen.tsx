@@ -20,7 +20,8 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.heroOverline}>Mobilitas Academy</Text>
           <Text style={styles.heroTitle}>Ciao {firstName}</Text>
           <Text style={styles.heroSubtitle}>
-            Dashboard aggiornata per formazione, prenotazioni visite e gestione acquisti.
+            Questa pagina ti guida tra tutte le azioni disponibili: formazione, visite, fitness, profilo
+            e gestione acquisti.
           </Text>
         </View>
         <View style={styles.sectionBadge}>
@@ -61,17 +62,18 @@ const HomeScreen: React.FC = () => {
 
           <Pressable
             style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
-            onPress={() => navigation.navigate('Profile' as never)}
+            onPress={() => navigation.navigate('Fitness' as never)}
           >
             <View style={styles.quickIconWrap}>
-              <Ionicons name="person-circle-outline" size={24} color={theme.colors.secondary} />
+              <Ionicons name="barbell-outline" size={24} color={theme.colors.secondary} />
             </View>
-            <Text style={styles.quickCardTitle}>Profilo</Text>
-            <Text style={styles.quickCardHint}>Controlla dati account, ruolo e sessione.</Text>
+            <Text style={styles.quickCardTitle}>Fitness</Text>
+            <Text style={styles.quickCardHint}>Calendario sessioni e prenotazioni attive.</Text>
           </Pressable>
+
         </View>
 
-        <Text style={styles.sectionTitle}>Novità operative</Text>
+        <Text style={[styles.sectionTitle, styles.operationalNewsTitle]}>Novità operative</Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
@@ -155,6 +157,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.titlePrimary,
   },
+  operationalNewsTitle: {
+    marginTop: 48,
+  },
   sectionBadge: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -178,6 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 2,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,

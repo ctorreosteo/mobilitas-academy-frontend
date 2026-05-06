@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     height: 28,
     justifyContent: 'center',
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 24,
   },
   dividerLine: {
     position: 'absolute',

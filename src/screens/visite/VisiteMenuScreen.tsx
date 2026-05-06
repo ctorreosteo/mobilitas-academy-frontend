@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 22,
-    marginBottom: 8,
+    marginBottom: 24,
   },
   dividerLine: {
     flex: 1,
