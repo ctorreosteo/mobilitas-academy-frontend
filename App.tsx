@@ -15,6 +15,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import CourseVideosScreen from './src/screens/CourseVideosScreen';
 import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
 import VisiteStack from './src/screens/visite/VisiteStack';
+import FitnessStack from './src/screens/fitness/FitnessStack';
 import LoginScreen from './src/screens/LoginScreen';
 import { theme } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -215,6 +216,18 @@ function MainTabNavigator() {
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={26} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Fitness"
+        component={FitnessStack}
+        options={{
+          title: 'Fitness',
+          tabBarLabel: 'Fitness',
+          headerShown: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'barbell' : 'barbell-outline'} size={26} color={color} />
           ),
         }}
       />
