@@ -8,9 +8,10 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
-  Image,
   Alert,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -32,6 +33,10 @@ const LoginScreen: React.FC = () => {
   const [rememberUsername, setRememberUsername] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [specialLoginProvider, setSpecialLoginProvider] = useState<'Apple' | 'Google' | 'Meta' | null>(
+    null
+  );
 
   useEffect(() => {
     let active = true;
@@ -180,21 +185,21 @@ const LoginScreen: React.FC = () => {
             <View style={styles.socialRow}>
               <TouchableOpacity
                 style={styles.socialBtn}
-                onPress={() => Alert.alert('Apple', 'Accesso con Apple sarà disponibile a breve.')}
+                onPress={() => setSpecialLoginProvider('Apple')}
                 accessibilityLabel="Continua con Apple"
               >
                 <Ionicons name="logo-apple" size={24} color={theme.colors.text.secondary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.socialBtn}
-                onPress={() => Alert.alert('Google', 'Accesso con Google sarà disponibile a breve.')}
+                onPress={() => setSpecialLoginProvider('Google')}
                 accessibilityLabel="Continua con Google"
               >
                 <Ionicons name="logo-google" size={22} color={theme.colors.text.secondary} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.socialBtn}
-                onPress={() => Alert.alert('Meta', 'Accesso con Meta sarà disponibile a breve.')}
+                onPress={() => setSpecialLoginProvider('Meta')}
                 accessibilityLabel="Continua con Meta"
               >
                 <Ionicons name="infinite" size={26} color={theme.colors.text.secondary} />
@@ -204,12 +209,7 @@ const LoginScreen: React.FC = () => {
             <View style={styles.footerRegister}>
               <Text style={styles.footerMuted}>Non hai un account? </Text>
               <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'Registrazione',
-                    'La registrazione dall’app sarà disponibile a breve. Usa il portale Mobilitas HQ se previsto.'
-                  )
-                }
+                onPress={() => setShowRegisterModal(true)}
               >
                 <Text style={styles.footerLink}>Registrati</Text>
               </TouchableOpacity>
@@ -227,15 +227,58 @@ const LoginScreen: React.FC = () => {
             </Text>
           </View>
 
-          <View style={styles.logoWrap}>
-            <Image
-              source={require('../../assets/favicon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showRegisterModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowRegisterModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="person-add-outline" size={20} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>Registrazione</Text>
+            <Text style={styles.modalText}>
+              La registrazione deve essere effettuata presso la segreteria dello studio o chiamando.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+              onPress={() => setShowRegisterModal(false)}
+            >
+              <Text style={styles.modalPrimaryBtnText}>Ho capito</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={specialLoginProvider !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSpecialLoginProvider(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="log-in-outline" size={20} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>Accesso con {specialLoginProvider}</Text>
+            <Text style={styles.modalText}>
+              La registrazione deve essere effettuata presso la segreteria dello studio o chiamando.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+              onPress={() => setSpecialLoginProvider(null)}
+            >
+              <Text style={styles.modalPrimaryBtnText}>Ho capito</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -258,16 +301,6 @@ const styles = StyleSheet.create({
   formBlock: {
     flexGrow: 1,
     justifyContent: 'center',
-  },
-  logoWrap: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 12,
-  },
-  logo: {
-    width: 73,
-    height: 73,
-    maxWidth: '40%',
   },
   title: {
     fontSize: 26,
@@ -460,6 +493,63 @@ const styles = StyleSheet.create({
   legalAccent: {
     color: theme.colors.accent,
     fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: withOpacity(theme.colors.black, 0.45),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: theme.colors.background.primary,
+    padding: 18,
+    gap: 12,
+  },
+  modalIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: withOpacity(theme.colors.text.secondary, 0.92),
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalPrimaryBtn: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.45),
+    backgroundColor: theme.colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalPrimaryBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.background.primary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalBtnPressed: {
+    opacity: 0.9,
   },
 });
 

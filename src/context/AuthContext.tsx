@@ -49,13 +49,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
+        const [storedToken, storedProfile] = await Promise.all([getAuthToken(), getStoredUserProfile()]);
+        if (cancelled) return;
+        if (storedToken) {
+          // Hydration immediata da storage: evita di mostrare il login a ogni riavvio.
+          setToken(storedToken);
+          setUserProfile(storedProfile);
+        }
+
+        if (!storedToken) {
+          setToken(null);
+          setUserProfile(null);
+          return;
+        }
+
         const ok = await restorePersistedSession();
         if (cancelled) return;
         if (ok) {
-          const t = await getAuthToken();
-          const p = await getStoredUserProfile();
-          setToken(t);
-          setUserProfile(p);
+          const [validatedToken, validatedProfile] = await Promise.all([
+            getAuthToken(),
+            getStoredUserProfile(),
+          ]);
+          setToken(validatedToken);
+          setUserProfile(validatedProfile);
         } else {
           setToken(null);
           setUserProfile(null);
