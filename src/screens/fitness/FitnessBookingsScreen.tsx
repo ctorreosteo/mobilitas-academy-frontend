@@ -55,10 +55,11 @@ const FitnessBookingsScreen: React.FC = () => {
     }, [loadBookings])
   );
 
-  const titleSubtitle = useMemo(() => {
-    const display = userProfile?.nome?.trim() || userProfile?.username || 'utente';
-    return `Prenotazioni attive per ${display}`;
-  }, [userProfile?.nome, userProfile?.username]);
+  const titleSubtitle = useMemo(
+    () =>
+      'In questa sezione puoi gestire le tue prenotazioni fitness attive, controllarle rapidamente e annullarle quando necessario.',
+    []
+  );
 
   const onCancelBooking = useCallback(
     (item: PartecipanteSessioneFitnessDto) => {
@@ -92,15 +93,15 @@ const FitnessBookingsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.heroCard}>
           <Text style={styles.heroTitle}>Le tue prenotazioni</Text>
           <Text style={styles.heroSubtitle}>{titleSubtitle}</Text>
-        </View>
-        <View style={styles.headerBadge}>
-          <Ionicons name="checkmark-done-outline" size={14} color={theme.colors.text.primary} />
-          <Text style={styles.headerBadgeText}>Prenotazioni fitness</Text>
+          <View style={styles.headerBadge}>
+            <Ionicons name="checkmark-done-outline" size={14} color={theme.colors.text.primary} />
+            <Text style={styles.headerBadgeText}>Prenotazioni fitness</Text>
+          </View>
         </View>
         <View style={styles.dividerWrap}>
           <View style={styles.dividerLine} />
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 8,
     paddingBottom: 30,
     gap: 12,
   },
@@ -183,6 +184,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: withOpacity(theme.colors.secondary, 0.3),
     backgroundColor: withOpacity(theme.colors.primary, 0.5),
+    gap: 4,
   },
   heroTitle: {
     fontSize: 24,
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 12,
+    marginTop: 8,
   },
   headerBadgeText: {
     fontSize: 12,
