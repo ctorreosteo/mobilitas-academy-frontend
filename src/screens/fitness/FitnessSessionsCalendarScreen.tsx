@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -51,6 +52,8 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
   const [mySessionIds, setMySessionIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [bookingSessionId, setBookingSessionId] = useState<number | null>(null);
+  const [confirmSession, setConfirmSession] = useState<CalendarioSessioneFitnessDto | null>(null);
+  const [bookedSessionName, setBookedSessionName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const utenteId = userProfile?.utenteId ?? null;
 
@@ -124,7 +127,7 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
     setVisibleMonth((prev) => startOfMonth(new Date(prev.getFullYear(), prev.getMonth() + delta, 1)));
   }, []);
 
-  const onBook = useCallback(
+  const onConfirmBook = useCallback(
     async (row: CalendarioSessioneFitnessDto) => {
       if (!utenteId) {
         Alert.alert('Utente non disponibile', 'Impossibile prenotare: utente non identificato.');
@@ -137,11 +140,12 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
           sessioneId: row.sessioneId,
         });
         await loadCalendar();
-        Alert.alert('Prenotazione confermata', `Ti sei prenotato a "${row.sessioneNome}".`);
+        setBookedSessionName(row.sessioneNome);
       } catch (e) {
         Alert.alert('Prenotazione non riuscita', e instanceof Error ? e.message : 'Riprova più tardi');
       } finally {
         setBookingSessionId(null);
+        setConfirmSession(null);
       }
     },
     [loadCalendar, utenteId]
@@ -244,7 +248,7 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
                       alreadyBooked && styles.bookButtonDisabled,
                       pressed && !alreadyBooked && styles.bookButtonPressed,
                     ]}
-                    onPress={() => onBook(row)}
+                    onPress={() => setConfirmSession(row)}
                     disabled={alreadyBooked || bookingThis}
                   >
                     {bookingThis ? (
@@ -269,6 +273,71 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
             })
           : null}
       </ScrollView>
+
+      <Modal
+        visible={Boolean(confirmSession)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmSession(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="help-circle-outline" size={20} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>Conferma prenotazione</Text>
+            <Text style={styles.modalText}>
+              Vuoi prenotare la sessione "{confirmSession?.sessioneNome}" delle{' '}
+              {confirmSession ? toHour(confirmSession.oraInizio) : '--:--'}?
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable
+                style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => setConfirmSession(null)}
+                disabled={bookingSessionId !== null}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => {
+                  if (confirmSession) onConfirmBook(confirmSession);
+                }}
+                disabled={bookingSessionId !== null || !confirmSession}
+              >
+                {bookingSessionId !== null ? (
+                  <ActivityIndicator size="small" color={theme.colors.background.primary} />
+                ) : (
+                  <Text style={styles.modalPrimaryBtnText}>Conferma</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={Boolean(bookedSessionName)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBookedSessionName(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.successIconWrap}>
+              <Ionicons name="checkmark-circle-outline" size={20} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>Prenotazione confermata</Text>
+            <Text style={styles.modalText}>Ti sei prenotato a "{bookedSessionName}".</Text>
+            <Pressable
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+              onPress={() => setBookedSessionName(null)}
+            >
+              <Text style={styles.modalPrimaryBtnText}>Perfetto</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -454,6 +523,96 @@ const styles = StyleSheet.create({
   },
   bookButtonTextDisabled: {
     color: theme.colors.secondary,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: withOpacity(theme.colors.black, 0.45),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: theme.colors.background.primary,
+    padding: 18,
+    gap: 12,
+  },
+  modalIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+  },
+  successIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: withOpacity(theme.colors.text.secondary, 0.92),
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalActions: {
+    marginTop: 4,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalSecondaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalSecondaryBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalPrimaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.45),
+    backgroundColor: theme.colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalPrimaryBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.background.primary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalBtnPressed: {
+    opacity: 0.9,
   },
 });
 
