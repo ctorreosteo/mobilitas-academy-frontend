@@ -106,22 +106,15 @@ const CoursesStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        contentStyle: {
-          paddingTop: 12,
-        },
         headerStyle: {
           backgroundColor: theme.colors.background.primary,
           elevation: 0,
           shadowOpacity: 0,
-          height: 58,
         },
         headerTintColor: theme.colors.secondary,
         headerTitleStyle: {
           fontWeight: '600',
           color: theme.colors.secondary,
-        },
-        headerTitleContainerStyle: {
-          paddingVertical: 0,
         },
       }}
     >

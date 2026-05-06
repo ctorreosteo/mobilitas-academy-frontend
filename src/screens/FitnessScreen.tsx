@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -15,62 +14,25 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
-import {
-  creaPrenotazioneSessioneFitness,
-  fetchCalendarioSessioniFitness,
-  fetchPartecipazioniSessioniFitness,
-  type CalendarioSessioneFitnessDto,
-} from '../services/fitnessService';
+import { fetchPartecipazioniSessioniFitness } from '../services/fitnessService';
 import type { FitnessStackParamList } from './fitness/types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 type FitnessNav = StackNavigationProp<FitnessStackParamList, 'FitnessCalendar'>;
 
-type CalendarGroup = {
-  label: string;
-  events: CalendarioSessioneFitnessDto[];
-};
-
-function toDateLabel(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return new Intl.DateTimeFormat('it-IT', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-  }).format(d);
-}
-
-function toHour(time: string): string {
-  return time.slice(0, 5);
-}
-
 const FitnessScreen: React.FC = () => {
   const navigation = useNavigation<FitnessNav>();
   const { userProfile } = useAuth();
-  const [calendarRows, setCalendarRows] = useState<CalendarioSessioneFitnessDto[]>([]);
   const [mySessionIds, setMySessionIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
-  const [bookingSessionId, setBookingSessionId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const utenteId = userProfile?.utenteId ?? null;
 
-  const loadCalendar = useCallback(async () => {
+  const loadMyBookings = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [calendar, bookings] = await Promise.all([
-        fetchCalendarioSessioniFitness(),
-        fetchPartecipazioniSessioniFitness(),
-      ]);
-      setCalendarRows(
-        [...calendar].sort((a, b) => {
-          const aa = Date.parse(`${a.data}T${a.oraInizio}`);
-          const bb = Date.parse(`${b.data}T${b.oraInizio}`);
-          return aa - bb;
-        })
-      );
+      const bookings = await fetchPartecipazioniSessioniFitness();
       if (utenteId) {
         const mine = bookings.filter((item) => item.utenteId === utenteId).map((item) => item.sessioneId);
         setMySessionIds(new Set(mine));
@@ -78,7 +40,7 @@ const FitnessScreen: React.FC = () => {
         setMySessionIds(new Set());
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossibile caricare il calendario fitness');
+      setError(e instanceof Error ? e.message : 'Impossibile caricare le prenotazioni fitness');
     } finally {
       setLoading(false);
     }
@@ -86,46 +48,11 @@ const FitnessScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      loadCalendar();
-    }, [loadCalendar])
+      loadMyBookings();
+    }, [loadMyBookings])
   );
 
-  const grouped = useMemo<CalendarGroup[]>(() => {
-    const map = new Map<string, CalendarioSessioneFitnessDto[]>();
-    for (const row of calendarRows) {
-      const key = row.data;
-      const prev = map.get(key) ?? [];
-      prev.push(row);
-      map.set(key, prev);
-    }
-    return [...map.entries()].map(([date, events]) => ({
-      label: toDateLabel(date),
-      events,
-    }));
-  }, [calendarRows]);
-
-  const onBook = useCallback(
-    async (row: CalendarioSessioneFitnessDto) => {
-      if (!utenteId) {
-        Alert.alert('Utente non disponibile', 'Impossibile prenotare: utente non identificato.');
-        return;
-      }
-      setBookingSessionId(row.sessioneId);
-      try {
-        await creaPrenotazioneSessioneFitness({
-          utenteId,
-          sessioneId: row.sessioneId,
-        });
-        await loadCalendar();
-        Alert.alert('Prenotazione confermata', `Ti sei prenotato a "${row.sessioneNome}".`);
-      } catch (e) {
-        Alert.alert('Prenotazione non riuscita', e instanceof Error ? e.message : 'Riprova più tardi');
-      } finally {
-        setBookingSessionId(null);
-      }
-    },
-    [loadCalendar, utenteId]
-  );
+  const bookingLabel = useMemo(() => `${mySessionIds.size}`, [mySessionIds.size]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -133,7 +60,7 @@ const FitnessScreen: React.FC = () => {
         <View style={styles.heroHeader}>
           <Text style={styles.heroTitle}>Calendario Fitness</Text>
           <Text style={styles.heroSubtitle}>
-            Visualizza le sessioni disponibili e gestisci le tue prenotazioni in un tap.
+            Gestisci le tue prenotazioni e consulta le sessioni disponibili.
           </Text>
         </View>
         <View style={styles.headerBadge}>
@@ -166,7 +93,29 @@ const FitnessScreen: React.FC = () => {
             </View>
           </View>
           <View style={styles.manageCardRight}>
-            <Text style={styles.manageCount}>{mySessionIds.size}</Text>
+            <Text style={styles.manageCount}>{bookingLabel}</Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.secondary} />
+          </View>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.manageCard, pressed && styles.manageCardPressed]}
+          onPress={() => navigation.navigate('FitnessSessionsCalendar')}
+          accessibilityRole="button"
+          accessibilityLabel="Apri calendario sessioni fitness prenotabili"
+        >
+          <View style={styles.manageCardLeft}>
+            <View style={styles.manageIconWrap}>
+              <Ionicons name="calendar-clear-outline" size={22} color={theme.colors.secondary} />
+            </View>
+            <View style={styles.manageCardTexts}>
+              <Text style={styles.manageCardTitle}>Calendario Fitness</Text>
+              <Text style={styles.manageCardSubtitle}>
+                Tocca qui per vedere l'elenco completo e prenotare.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.manageCardRight}>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.secondary} />
           </View>
         </Pressable>
@@ -183,65 +132,6 @@ const FitnessScreen: React.FC = () => {
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
-
-        {!loading && !error && grouped.length === 0 ? (
-          <View style={styles.stateCard}>
-            <Ionicons name="calendar-outline" size={20} color={theme.colors.secondary} />
-            <Text style={styles.stateText}>Nessuna sessione presente in calendario.</Text>
-          </View>
-        ) : null}
-
-        {!loading && !error
-          ? grouped.map((group) => (
-              <View key={group.label} style={styles.dayGroup}>
-                <Text style={styles.dayTitle}>{group.label}</Text>
-                {group.events.map((row) => {
-                  const alreadyBooked = mySessionIds.has(row.sessioneId);
-                  const bookingThis = bookingSessionId === row.sessioneId;
-                  return (
-                    <View key={row.id} style={styles.sessionCard}>
-                      <View style={styles.sessionTop}>
-                        <Text style={styles.sessionTitle}>{row.sessioneNome}</Text>
-                        <Text style={styles.sessionHour}>
-                          {toHour(row.oraInizio)} - {toHour(row.oraFine)}
-                        </Text>
-                      </View>
-                      <Text style={styles.sessionMeta}>Istruttore: {row.istruttoreNomeCompleto}</Text>
-                      <Pressable
-                        style={({ pressed }) => [
-                          styles.bookButton,
-                          alreadyBooked && styles.bookButtonDisabled,
-                          pressed && !alreadyBooked && styles.bookButtonPressed,
-                        ]}
-                        onPress={() => onBook(row)}
-                        disabled={alreadyBooked || bookingThis}
-                      >
-                        {bookingThis ? (
-                          <ActivityIndicator size="small" color={theme.colors.background.primary} />
-                        ) : (
-                          <>
-                            <Ionicons
-                              name={alreadyBooked ? 'checkmark-circle' : 'add-circle-outline'}
-                              size={18}
-                              color={alreadyBooked ? theme.colors.secondary : theme.colors.background.primary}
-                            />
-                            <Text
-                              style={[
-                                styles.bookButtonText,
-                                alreadyBooked && styles.bookButtonTextDisabled,
-                              ]}
-                            >
-                              {alreadyBooked ? 'Prenotato' : 'Prenota sessione'}
-                            </Text>
-                          </>
-                        )}
-                      </Pressable>
-                    </View>
-                  );
-                })}
-              </View>
-            ))
-          : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -397,87 +287,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  stateText: {
-    flex: 1,
-    color: theme.colors.text.secondary,
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
   errorText: {
     flex: 1,
     color: theme.colors.error,
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  dayGroup: {
-    gap: 8,
-  },
-  dayTitle: {
-    marginTop: 4,
-    fontSize: 16,
-    fontWeight: '700',
-    color: theme.colors.secondary,
-    textTransform: 'capitalize',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  sessionCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.25),
-    backgroundColor: withOpacity(theme.colors.primary, 0.45),
-    padding: 14,
-    gap: 8,
-  },
-  sessionTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  sessionTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
-    color: theme.colors.secondary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  sessionHour: {
-    fontSize: 13,
-    color: withOpacity(theme.colors.text.secondary, 0.9),
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  sessionMeta: {
-    fontSize: 13,
-    color: withOpacity(theme.colors.text.secondary, 0.88),
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  bookButton: {
-    marginTop: 4,
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.4),
-    backgroundColor: theme.colors.secondary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bookButtonPressed: {
-    opacity: 0.9,
-  },
-  bookButtonDisabled: {
-    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
-  },
-  bookButtonText: {
-    color: theme.colors.background.primary,
-    fontSize: 13,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  bookButtonTextDisabled: {
-    color: theme.colors.secondary,
   },
 });
 

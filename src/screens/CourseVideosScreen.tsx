@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 28,
+    paddingTop: 12,
     paddingBottom: 24,
   },
   courseTitle: {

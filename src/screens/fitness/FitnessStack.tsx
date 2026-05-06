@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from '../../theme';
 import FitnessScreen from '../FitnessScreen';
 import FitnessBookingsScreen from './FitnessBookingsScreen';
+import FitnessSessionsCalendarScreen from './FitnessSessionsCalendarScreen';
 import type { FitnessStackParamList } from './types';
 
 const Stack = createStackNavigator<FitnessStackParamList>();
@@ -34,6 +35,11 @@ const FitnessStack: React.FC = () => {
         name="FitnessBookings"
         component={FitnessBookingsScreen}
         options={{ title: 'Prenotazioni attive' }}
+      />
+      <Stack.Screen
+        name="FitnessSessionsCalendar"
+        component={FitnessSessionsCalendarScreen}
+        options={{ title: 'Calendario Fitness' }}
       />
     </Stack.Navigator>
   );
