@@ -23,7 +23,7 @@ function coursesErrorMessage(error: unknown): string {
       return 'Accesso negato: effettua il login e assicurati che il token JWT sia salvato nell’app.';
     }
     if (!error.response) {
-      return 'Impossibile raggiungere il server. Controlla la rete e EXPO_PUBLIC_BACKEND_URL.';
+      return 'Impossibile raggiungere il server. Controlla la rete o verifica che il backend sia avviato.';
     }
   }
   if (error instanceof Error && error.message) {

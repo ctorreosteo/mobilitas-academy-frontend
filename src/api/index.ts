@@ -1,4 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
+import { NativeModules } from 'react-native';
 import {
   getAuthToken,
   getStoredUserProfile,
@@ -7,7 +8,22 @@ import {
   clearAllAuth,
 } from '../services/authTokenStorage';
 
-const backendOrigin = process.env.EXPO_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
+function getDevServerHost(): string | null {
+  const scriptURL: string | undefined = NativeModules?.SourceCode?.scriptURL;
+  if (!scriptURL) return null;
+
+  try {
+    const host = new URL(scriptURL).hostname;
+    return host || null;
+  } catch {
+    return null;
+  }
+}
+
+const envBackendOrigin = process.env.EXPO_PUBLIC_BACKEND_URL?.trim().replace(/\/$/, '');
+const devServerHost = getDevServerHost();
+const inferredDevBackendOrigin = devServerHost ? `http://${devServerHost}:8080` : null;
+const backendOrigin = envBackendOrigin || inferredDevBackendOrigin;
 export const API_BASE_URL = backendOrigin ? `${backendOrigin}/api` : 'http://localhost:8080/api';
 
 export const apiClient = axios.create({
