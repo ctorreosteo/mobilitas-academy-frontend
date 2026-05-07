@@ -20,11 +20,27 @@ function getDevServerHost(): string | null {
   }
 }
 
+function isLocalHost(host: string): boolean {
+  const lowerHost = host.toLowerCase();
+  return (
+    lowerHost === 'localhost' ||
+    lowerHost === '127.0.0.1' ||
+    lowerHost === '10.0.2.2' ||
+    lowerHost === '::1' ||
+    lowerHost.endsWith('.local') ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(lowerHost) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(lowerHost) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(lowerHost)
+  );
+}
+
 const envBackendOrigin = process.env.EXPO_PUBLIC_BACKEND_URL?.trim().replace(/\/$/, '');
 const devServerHost = getDevServerHost();
-const inferredDevBackendOrigin = devServerHost ? `http://${devServerHost}:8080` : null;
-const backendOrigin = envBackendOrigin || inferredDevBackendOrigin;
-export const API_BASE_URL = backendOrigin ? `${backendOrigin}/api` : 'http://localhost:8080/api';
+const inferredDevBackendOrigin =
+  devServerHost && isLocalHost(devServerHost) ? `http://${devServerHost}:8080` : null;
+const cloudBackendOrigin = 'https://mobilitas-backend-990845221858.europe-west8.run.app';
+const backendOrigin = envBackendOrigin || inferredDevBackendOrigin || cloudBackendOrigin;
+export const API_BASE_URL = `${backendOrigin}/api`;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
