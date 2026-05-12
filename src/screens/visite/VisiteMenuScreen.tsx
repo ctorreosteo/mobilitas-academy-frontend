@@ -7,10 +7,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
 import type { VisiteStackParamList } from './types';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 type Nav = StackNavigationProp<VisiteStackParamList, 'VisiteMenu'>;
 
 const VisiteMenuScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const navigation = useNavigation<Nav>();
 
   return (
@@ -33,7 +35,7 @@ const VisiteMenuScreen: React.FC = () => {
         <View style={styles.dividerLine} />
       </View>
 
-      <View style={styles.cards}>
+      <View style={[styles.cards, { paddingBottom: 20 + tabBarPad }]}>
         <Pressable
           style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           onPress={() => navigation.navigate('GestioneVisite')}
@@ -130,7 +132,6 @@ const styles = StyleSheet.create({
   cards: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 20,
     gap: 16,
   },
   card: {

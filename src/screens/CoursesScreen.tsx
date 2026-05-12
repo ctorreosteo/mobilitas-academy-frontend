@@ -16,6 +16,7 @@ import { Course } from '../types';
 import { useFormazioneCourses } from '../hooks/useFormazioneCourses';
 import { getUserFacingApiErrorMessage } from '../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const COURSES_ERROR_WHATSAPP =
   "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare l'elenco dei corsi di formazione. Potete aiutarmi? Grazie.";
@@ -28,6 +29,7 @@ function coursesErrorMessage(error: unknown): string {
 }
 
 const CoursesScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const { data: courses = [], isPending, isError, error, refetch, isRefetching } =
     useFormazioneCourses();
 
@@ -152,7 +154,7 @@ const CoursesScreen: React.FC = () => {
         data={courses}
         renderItem={renderCourse}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.coursesList}
+        contentContainerStyle={[styles.coursesList, { paddingBottom: 24 + tabBarPad }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={listHeader}
         refreshControl={
@@ -367,7 +369,6 @@ const styles = StyleSheet.create({
   },
   coursesList: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
   },
   emptyContainer: {
     paddingVertical: 40,

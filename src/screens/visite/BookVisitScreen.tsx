@@ -19,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme, withOpacity } from '../../theme';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 import type { VisiteStackParamList } from './types';
 import {
   fetchDisponibilitaVisite,
@@ -112,6 +113,7 @@ function selfOsteopataDtoFromProfile(
 }
 
 const BookVisitScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const queryClient = useQueryClient();
   const navigation = useNavigation<StackNavigationProp<VisiteStackParamList, 'BookVisit'>>();
   const [dataVisitaYmd, setDataVisitaYmd] = useState(initialVisitYmdTomorrow);
@@ -529,6 +531,7 @@ const BookVisitScreen: React.FC = () => {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.secondary} />
           }
+          contentContainerStyle={{ paddingBottom: 28 + tabBarPad }}
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => {
             if (section.title === '__form') return null;

@@ -27,6 +27,7 @@ import {
   fetchStudiAttivi,
 } from '../services/studioVisitsService';
 import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const DELETE_ACCOUNT_WHATSAPP_PREFILL =
   'Buongiorno, vorrei richiedere la cancellazione definitiva del mio account Mobilitas Academy.';
@@ -44,6 +45,7 @@ function initialsFromProfile(p: StoredUserProfile | null): string {
 }
 
 const ProfileScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const { signOut } = useAuth();
   const queryClient = useQueryClient();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
@@ -235,7 +237,7 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 36 + tabBarPad }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Profilo</Text>
           <Text style={styles.subtitle}>
@@ -758,7 +760,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 36,
   },
   header: {
     paddingHorizontal: 20,

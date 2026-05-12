@@ -24,11 +24,13 @@ import {
 } from '../../services/fitnessService';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const FITNESS_BOOKINGS_WHATSAPP =
   "Buongiorno, utilizzo l'app Mobilitas Academy e ho problemi con le prenotazioni fitness nell'app. Potete aiutarmi? Grazie.";
 
 const FitnessBookingsScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const { userProfile } = useAuth();
   const [bookings, setBookings] = useState<PartecipanteSessioneFitnessDto[]>([]);
   const [sessionDetailsBySessionId, setSessionDetailsBySessionId] = useState<
@@ -114,7 +116,7 @@ const FitnessBookingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 30 + tabBarPad }]}>
         <View style={styles.heroCard}>
           <Text style={styles.heroTitle}>Le tue prenotazioni</Text>
           <Text style={styles.heroSubtitle}>{titleSubtitle}</Text>
@@ -278,7 +280,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 30,
     gap: 12,
   },
   heroCard: {

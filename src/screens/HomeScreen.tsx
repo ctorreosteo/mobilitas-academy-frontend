@@ -6,16 +6,20 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { userProfile } = useAuth();
+  const tabBarPad = useTabBarBottomPadding();
 
   const firstName = userProfile?.nome?.trim() || 'Professionista';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 28 + tabBarPad }]}
+      >
         <View style={styles.heroIntro}>
           <Text style={styles.heroOverline}>Mobilitas Academy</Text>
           <Text style={styles.heroTitle}>Ciao {firstName}</Text>
@@ -125,7 +129,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 28,
     gap: 14,
   },
   heroIntro: {

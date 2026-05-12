@@ -10,6 +10,7 @@ import { Course, Video, Chapter } from '../types';
 import ChapterSection from '../components/ChapterSection';
 import { getCachedDurationFromHls } from '../utils/hlsDuration';
 import { loadFormazioneCourseContent } from '../services/formazioneCourseContent';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 type CoursesStackParamList = {
   CoursesList: undefined;
@@ -21,6 +22,7 @@ type CourseVideosScreenRouteProp = RouteProp<CoursesStackParamList, 'CourseVideo
 type NavigationProp = StackNavigationProp<CoursesStackParamList, 'VideoPlayer'>;
 
 const CourseVideosScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const route = useRoute<CourseVideosScreenRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
@@ -134,7 +136,7 @@ const CourseVideosScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + tabBarPad }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -257,9 +259,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
-  scrollContent: {
-    paddingBottom: 32,
-  },
+  scrollContent: {},
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,

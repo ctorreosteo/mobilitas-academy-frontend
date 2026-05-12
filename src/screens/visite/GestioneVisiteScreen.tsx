@@ -31,6 +31,7 @@ import {
   toLocalYmd,
 } from './visiteFormatting';
 import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 function isOsteopathRole(ruoli: string[] | undefined): boolean {
   if (!ruoli?.length) return false;
@@ -46,6 +47,7 @@ function patientName(v: VisitaAgendaDto): string {
 }
 
 const GestioneVisiteScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const [giornoYmd, setGiornoYmd] = useState(() => toLocalYmd(new Date()));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
@@ -232,7 +234,7 @@ const GestioneVisiteScreen: React.FC = () => {
       )}
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + tabBarPad }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.secondary} />
         }
@@ -543,7 +545,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 32,
   },
   centered: {
     paddingVertical: 24,

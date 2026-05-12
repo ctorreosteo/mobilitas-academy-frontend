@@ -24,6 +24,7 @@ import {
 } from '../../services/fitnessService';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const FITNESS_CALENDAR_WHATSAPP =
   "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a usare il calendario fitness / le sessioni. Potete aiutarmi? Grazie.";
@@ -49,6 +50,7 @@ function startOfMonth(value: Date): Date {
 }
 
 const FitnessSessionsCalendarScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const { userProfile } = useAuth();
   const todayIso = useMemo(() => toIsoDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(todayIso);
@@ -169,7 +171,7 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 30 + tabBarPad }]}>
         <View style={styles.calendarCard}>
           <View style={styles.monthHeader}>
             <Pressable style={styles.monthArrow} onPress={() => goMonth(-1)}>
@@ -374,7 +376,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 30,
     gap: 10,
   },
   calendarCard: {

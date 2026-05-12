@@ -8,6 +8,7 @@ import { Video as ExpoVideo, ResizeMode, Audio } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { theme, withOpacity } from '../theme';
 import { Video, Course } from '../types';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ type VideoPlayerScreenRouteProp = RouteProp<
 >;
 
 const VideoPlayerScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const route = useRoute<VideoPlayerScreenRouteProp>();
   const { video, course } = route.params;
   const [isPlaying, setIsPlaying] = useState(false);
@@ -194,7 +196,7 @@ const VideoPlayerScreen: React.FC = () => {
 
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + tabBarPad }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.videoContainer}>
@@ -364,9 +366,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background.primary,
   },
-  scrollContent: {
-    paddingBottom: 32,
-  },
+  scrollContent: {},
   videoContainer: {
     width: screenWidth,
     height: screenWidth * 0.5625,

@@ -19,6 +19,7 @@ import type { FitnessStackParamList } from './fitness/types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { getUserFacingApiErrorMessage } from '../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const FITNESS_ERROR_WHATSAPP =
   "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare le prenotazioni fitness / il calendario. Potete aiutarmi? Grazie.";
@@ -26,6 +27,7 @@ const FITNESS_ERROR_WHATSAPP =
 type FitnessNav = StackNavigationProp<FitnessStackParamList, 'FitnessCalendar'>;
 
 const FitnessScreen: React.FC = () => {
+  const tabBarPad = useTabBarBottomPadding();
   const navigation = useNavigation<FitnessNav>();
   const { userProfile } = useAuth();
   const [mySessionIds, setMySessionIds] = useState<Set<number>>(new Set());
@@ -67,7 +69,7 @@ const FitnessScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 30 + tabBarPad }]}>
         <View style={styles.heroHeader}>
           <Text style={styles.heroTitle}>Calendario Fitness</Text>
           <Text style={styles.heroSubtitle}>
@@ -162,7 +164,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 30,
     gap: 12,
   },
   heroHeader: {
