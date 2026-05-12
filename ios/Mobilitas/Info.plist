@@ -28,12 +28,14 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>mobilitas-academy</string>
-          <string>com.anonymous.studio-osteopatico-frontend</string>
+          <string>com.mobilitas.academy</string>
         </array>
       </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
@@ -46,7 +48,7 @@
       <true/>
     </dict>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <string>Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito.</string>
     <key>RCTNewArchEnabled</key>
     <true/>
     <key>UILaunchStoryboardName</key>

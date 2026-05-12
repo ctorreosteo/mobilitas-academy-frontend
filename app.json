@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Mobilitas",
-    "slug": "studio-osteopatico-frontend",
+    "name": "Mobilitas Academy",
+    "slug": "mobilitas-academy",
     "version": "1.0.0",
     "scheme": "mobilitas-academy",
     "orientation": "default",
-    "icon": "./assets/favicon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -15,19 +15,34 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.studio-osteopatico-frontend"
+      "bundleIdentifier": "com.mobilitas.academy",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/favicon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.studioosteopaticofrontend"
+      "package": "com.mobilitas.academy",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
+        }
+      ],
+      "expo-screen-orientation"
+    ]
   }
 }

@@ -12,6 +12,13 @@
     "ios:lan": "EXPO_PUBLIC_BACKEND_URL=http://$(ipconfig getifaddr en0):8080 expo run:ios",
     "android:dev": "EXPO_PUBLIC_BACKEND_URL=http://10.0.2.2:8080 expo run:android",
     "web": "expo start --web",
+    "prebuild": "expo prebuild --clean",
+    "prebuild:ios": "expo prebuild --clean --platform ios",
+    "build:ios:preview": "eas build --platform ios --profile preview",
+    "build:ios:production": "eas build --platform ios --profile production",
+    "build:android:production": "eas build --platform android --profile production",
+    "submit:ios": "eas submit --platform ios --latest",
+    "submit:android": "eas submit --platform android --latest",
     "fill-video-durations": "node scripts/fill-video-durations.js"
   },
   "dependencies": {

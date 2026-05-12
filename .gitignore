@@ -1,2 +1,53 @@
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment
 .env
+.env.*
+!.env.example
+
+# Expo / EAS
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+
+# iOS
+ios/Pods/
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/captures/
+android/local.properties
+*.keystore
+!debug.keystore
+
+# macOS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# Native
+*.orig.*
