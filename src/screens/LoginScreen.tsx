@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -186,7 +187,9 @@ const LoginScreen: React.FC = () => {
               Cliccando su Accedi, accetti i nostri{' '}
               <Text
                 style={styles.legalAccent}
-                onPress={() => Alert.alert('Termini', 'Documento legale in aggiornamento.')}
+                onPress={() =>
+                  Linking.openURL('https://www.studiomobilitas.it/privacy-policy-applicazione')
+                }
               >
                 Termini d’uso
               </Text>
