@@ -28,6 +28,7 @@ export interface StudioDto {
   orariApertura?: unknown[] | null;
   note?: string | null;
   attivo?: boolean;
+  googleReviewLink?: string | null;
 }
 
 export interface OsteopataDto {

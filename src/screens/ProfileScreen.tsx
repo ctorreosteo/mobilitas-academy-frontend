@@ -9,10 +9,11 @@ import {
   Modal,
   Pressable,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
@@ -20,6 +21,11 @@ import { cleanAndRefreshCaches } from '../services/appCacheService';
 import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
 import { fetchCurrentUser } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
+import { fetchOsteopataRiferimentoPaziente } from '../services/pazientiService';
+import {
+  fetchOsteopatiPerStudio,
+  fetchStudiAttivi,
+} from '../services/studioVisitsService';
 
 function initialsFromProfile(p: StoredUserProfile | null): string {
   if (p?.nome?.trim() && p?.cognome?.trim()) {
@@ -42,6 +48,11 @@ const ProfileScreen: React.FC = () => {
   const [confirmLogoutVisible, setConfirmLogoutVisible] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [confirmCleanVisible, setConfirmCleanVisible] = useState(false);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [reviewStudioListVisible, setReviewStudioListVisible] = useState(false);
+  const [selectedReviewStudioId, setSelectedReviewStudioId] = useState<number | null>(null);
+  const [reviewActionError, setReviewActionError] = useState<string | null>(null);
+  const [openingReviewLink, setOpeningReviewLink] = useState(false);
   const [inactiveFeatureName, setInactiveFeatureName] = useState<string | null>(null);
   const [cleanResultModal, setCleanResultModal] = useState<{
     title: string;
@@ -68,6 +79,23 @@ const ProfileScreen: React.FC = () => {
       loadProfile();
     }, [loadProfile])
   );
+
+  const pazienteId = profile?.pazienteId ?? null;
+  const studiReviewQuery = useQuery({
+    queryKey: ['profile-review-studi'],
+    queryFn: fetchStudiAttivi,
+    staleTime: 60_000,
+    enabled: reviewModalVisible,
+  });
+  const osteopataRiferimentoQuery = useQuery({
+    queryKey: ['profile-review-osteopata-riferimento', pazienteId],
+    queryFn: () => fetchOsteopataRiferimentoPaziente(pazienteId!),
+    staleTime: 60_000,
+    enabled: reviewModalVisible && typeof pazienteId === 'number' && pazienteId > 0,
+  });
+  const reviewStudi = studiReviewQuery.data ?? [];
+  const selectedReviewStudio =
+    reviewStudi.find((studio) => studio.id === selectedReviewStudioId) ?? null;
 
   const displayName =
     profile?.nome && profile?.cognome
@@ -113,6 +141,80 @@ const ProfileScreen: React.FC = () => {
 
   const handleLogout = () => {
     setConfirmLogoutVisible(true);
+  };
+
+  const openReviewModal = () => {
+    setReviewActionError(null);
+    setSelectedReviewStudioId(null);
+    setReviewStudioListVisible(false);
+    setReviewModalVisible(true);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setReviewModalVisible(false);
+        setReviewStudioListVisible(false);
+      };
+    }, [])
+  );
+
+  React.useEffect(() => {
+    if (!reviewModalVisible || selectedReviewStudioId != null) return;
+    if (reviewStudi.length === 0) return;
+    const refOsteopataId = osteopataRiferimentoQuery.data?.id;
+    if (typeof refOsteopataId !== 'number' || refOsteopataId <= 0) {
+      setSelectedReviewStudioId(reviewStudi[0]?.id ?? null);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      for (const studio of reviewStudi) {
+        try {
+          const osteopatiStudio = await fetchOsteopatiPerStudio(studio.id);
+          if (cancelled) return;
+          if (osteopatiStudio.some((o) => o.id === refOsteopataId)) {
+            setSelectedReviewStudioId(studio.id);
+            return;
+          }
+        } catch {
+          // continua con gli altri studi disponibili
+        }
+      }
+      if (!cancelled) {
+        setSelectedReviewStudioId(reviewStudi[0]?.id ?? null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reviewModalVisible, selectedReviewStudioId, reviewStudi, osteopataRiferimentoQuery.data]);
+
+  const handleOpenReviewLink = async () => {
+    if (selectedReviewStudioId == null || !selectedReviewStudio) return;
+    setOpeningReviewLink(true);
+    setReviewActionError(null);
+    try {
+      const reviewLink = selectedReviewStudio.googleReviewLink?.trim() ?? '';
+      if (!reviewLink) {
+        throw new Error('Recensione non disponibile per questo studio');
+      }
+      if (!/^https?:\/\//i.test(reviewLink)) {
+        throw new Error('Link recensione non valido');
+      }
+      const canOpen = await Linking.canOpenURL(reviewLink);
+      if (!canOpen) {
+        throw new Error('Impossibile aprire il link recensione');
+      }
+      await Linking.openURL(reviewLink);
+      setReviewModalVisible(false);
+    } catch (e) {
+      setReviewActionError(e instanceof Error ? e.message : 'Operazione non riuscita');
+    } finally {
+      setOpeningReviewLink(false);
+    }
   };
 
   const confirmLogout = async () => {
@@ -247,6 +349,28 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Recensioni</Text>
+          <View style={styles.sectionCard}>
+            <TouchableOpacity
+              style={[styles.menuItem, styles.actionRow]}
+              onPress={openReviewModal}
+              activeOpacity={0.75}
+            >
+              <View style={styles.actionRowLeft}>
+                <Ionicons name="star-outline" size={22} color={theme.colors.accent} />
+                <View style={styles.actionTexts}>
+                  <Text style={styles.menuItemText}>Scrivi una recensione</Text>
+                  <Text style={styles.actionSubtitle}>
+                    Lascia una recensione Google per lo studio che preferisci.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} style={styles.menuItemArrow} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Sessione e dati</Text>
           <View style={styles.sectionCard}>
             <TouchableOpacity
@@ -327,6 +451,106 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={reviewModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!openingReviewLink) setReviewModalVisible(false);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={[styles.modalIconWrap, styles.modalIconWrapAccent]}>
+              <Ionicons name="star-outline" size={20} color={theme.colors.accent} />
+            </View>
+            <Text style={styles.modalTitle}>Scrivi una recensione</Text>
+            <Text style={styles.modalText}>
+              Seleziona lo studio per cui vuoi lasciare una recensione Google.
+            </Text>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.reviewSelectInput,
+                pressed && styles.modalBtnPressed,
+                (studiReviewQuery.isLoading || reviewStudi.length === 0) && styles.reviewSelectInputDisabled,
+              ]}
+              onPress={() => setReviewStudioListVisible((v) => !v)}
+              disabled={studiReviewQuery.isLoading || reviewStudi.length === 0}
+            >
+              <Text style={selectedReviewStudio ? styles.reviewSelectValue : styles.reviewSelectPlaceholder}>
+                {studiReviewQuery.isLoading
+                  ? 'Caricamento studi...'
+                  : selectedReviewStudio?.nome ?? 'Seleziona studio'}
+              </Text>
+              <Ionicons
+                name={reviewStudioListVisible ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={withOpacity(theme.colors.text.secondary, 0.7)}
+              />
+            </Pressable>
+
+            {reviewStudioListVisible ? (
+              <View style={styles.reviewOptionsCard}>
+                {reviewStudi.map((studio) => {
+                  const isSelected = studio.id === selectedReviewStudioId;
+                  return (
+                    <Pressable
+                      key={studio.id}
+                      style={({ pressed }) => [
+                        styles.reviewOptionRow,
+                        isSelected && styles.reviewOptionRowSelected,
+                        pressed && styles.modalBtnPressed,
+                      ]}
+                      onPress={() => {
+                        setSelectedReviewStudioId(studio.id);
+                        setReviewStudioListVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.reviewOptionText,
+                          isSelected && styles.reviewOptionTextSelected,
+                        ]}
+                      >
+                        {studio.nome}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+
+            {reviewActionError ? <Text style={styles.reviewErrorText}>{reviewActionError}</Text> : null}
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => setReviewModalVisible(false)}
+                disabled={openingReviewLink}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalPrimaryBtn,
+                  pressed && styles.modalBtnPressed,
+                  (openingReviewLink || selectedReviewStudioId == null) && styles.modalPrimaryBtnDisabled,
+                ]}
+                onPress={handleOpenReviewLink}
+                disabled={openingReviewLink || selectedReviewStudioId == null}
+              >
+                {openingReviewLink ? (
+                  <ActivityIndicator size="small" color={theme.colors.background.primary} />
+                ) : (
+                  <Text style={styles.modalPrimaryBtnText}>Scrivi recensione</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={confirmCleanVisible}
@@ -868,6 +1092,68 @@ const styles = StyleSheet.create({
     color: theme.colors.background.primary,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     textAlign: 'center',
+  },
+  modalPrimaryBtnDisabled: {
+    opacity: 0.5,
+  },
+  reviewSelectInput: {
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.3),
+    backgroundColor: withOpacity(theme.colors.primary, 0.42),
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reviewSelectInputDisabled: {
+    opacity: 0.6,
+  },
+  reviewSelectValue: {
+    flex: 1,
+    color: theme.colors.text.secondary,
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  reviewSelectPlaceholder: {
+    flex: 1,
+    color: withOpacity(theme.colors.text.secondary, 0.62),
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  reviewErrorText: {
+    fontSize: 13,
+    color: theme.colors.error,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    lineHeight: 18,
+  },
+  reviewOptionsCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
+    backgroundColor: withOpacity(theme.colors.primary, 0.35),
+    maxHeight: 220,
+    overflow: 'hidden',
+  },
+  reviewOptionRow: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: withOpacity(theme.colors.text.secondary, 0.1),
+  },
+  reviewOptionRowSelected: {
+    backgroundColor: withOpacity(theme.colors.secondary, 0.14),
+  },
+  reviewOptionText: {
+    color: theme.colors.text.secondary,
+    fontSize: 15,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  reviewOptionTextSelected: {
+    color: theme.colors.secondary,
+    fontWeight: '600',
   },
   modalBtnPressed: {
     opacity: 0.9,
