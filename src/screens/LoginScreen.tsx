@@ -34,9 +34,6 @@ const LoginScreen: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [specialLoginProvider, setSpecialLoginProvider] = useState<'Apple' | 'Google' | 'Meta' | null>(
-    null
-  );
 
   useEffect(() => {
     let active = true;
@@ -176,36 +173,6 @@ const LoginScreen: React.FC = () => {
               )}
             </TouchableOpacity>
 
-            <View style={styles.separatorRow}>
-              <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>O continua con</Text>
-              <View style={styles.separatorLine} />
-            </View>
-
-            <View style={styles.socialRow}>
-              <TouchableOpacity
-                style={styles.socialBtn}
-                onPress={() => setSpecialLoginProvider('Apple')}
-                accessibilityLabel="Continua con Apple"
-              >
-                <Ionicons name="logo-apple" size={24} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.socialBtn}
-                onPress={() => setSpecialLoginProvider('Google')}
-                accessibilityLabel="Continua con Google"
-              >
-                <Ionicons name="logo-google" size={22} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.socialBtn}
-                onPress={() => setSpecialLoginProvider('Meta')}
-                accessibilityLabel="Continua con Meta"
-              >
-                <Ionicons name="infinite" size={26} color={theme.colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.footerRegister}>
               <Text style={styles.footerMuted}>Non hai un account? </Text>
               <TouchableOpacity
@@ -255,30 +222,6 @@ const LoginScreen: React.FC = () => {
         </View>
       </Modal>
 
-      <Modal
-        visible={specialLoginProvider !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSpecialLoginProvider(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalIconWrap}>
-              <Ionicons name="log-in-outline" size={20} color={theme.colors.secondary} />
-            </View>
-            <Text style={styles.modalTitle}>Accesso con {specialLoginProvider}</Text>
-            <Text style={styles.modalText}>
-              La registrazione deve essere effettuata presso la segreteria dello studio o chiamando.
-            </Text>
-            <Pressable
-              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
-              onPress={() => setSpecialLoginProvider(null)}
-            >
-              <Text style={styles.modalPrimaryBtnText}>Ho capito</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -433,37 +376,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.secondary,
-  },
-  separatorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 28,
-  },
-  separatorLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: withOpacity(theme.colors.text.secondary, 0.25),
-  },
-  separatorText: {
-    marginHorizontal: 14,
-    fontSize: 13,
-    color: withOpacity(theme.colors.text.secondary, 0.55),
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  socialBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
-    backgroundColor: withOpacity(theme.colors.primary, 0.85),
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.2),
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   footerRegister: {
     flexDirection: 'row',
