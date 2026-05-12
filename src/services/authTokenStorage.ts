@@ -38,6 +38,23 @@ export interface StoredOsteopataProfile {
   specializzazioni?: string | null;
 }
 
+/** Dati paziente da GET /pazienti/by-utente/{utenteId}. */
+export interface StoredPazienteProfile {
+  id: number;
+  nome?: string | null;
+  cognome?: string | null;
+  prefissoCellulare?: string | null;
+  cellulare?: string | null;
+  email?: string | null;
+  dataNascita?: string | null;
+  eta?: string | null;
+  cittaNascita?: string | null;
+  codiceFiscale?: string | null;
+  linkWhatsapp?: string | null;
+  genere?: string | null;
+  note?: string | null;
+}
+
 /** Snapshot profilo dopo login (stesso shape utile lato UI dei campi in `data`). */
 export interface StoredUserProfile {
   username: string;
@@ -54,6 +71,8 @@ export interface StoredUserProfile {
   osteopata?: StoredOsteopataProfile | null;
   /** ID paziente in anagrafica; necessario per GET /visite/by-paziente/{id} */
   pazienteId?: number | null;
+  /** Dettaglio paziente da GET /pazienti/by-utente/{utenteId} quando applicabile. */
+  paziente?: StoredPazienteProfile | null;
 }
 
 export async function setStoredUserProfile(profile: StoredUserProfile): Promise<void> {

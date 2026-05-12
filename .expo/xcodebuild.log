@@ -982,17 +982,17 @@ CreateBuildDescription
 
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c -c /dev/null
 
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x objective-c -c /dev/null
-
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x objective-c++ -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x objective-c -c /dev/null
 
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c++ -c /dev/null
 
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c -c /dev/null
 
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
-
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/ibtool --version --output-format xml1
 
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/libtool -V
 
@@ -1002,8 +1002,8 @@ ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --
 
 ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
 
-Build description signature: 931904c691c13ad22674a58758ce87dd
-Build description path: /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/XCBuildData/931904c691c13ad22674a58758ce87dd.xcbuilddata
+Build description signature: 3d99b937c9406462f8897f515f575429
+Build description path: /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/XCBuildData/3d99b937c9406462f8897f515f575429.xcbuilddata
 note: Run script build phase '[CP-User] [RNDeps] Replace React Native Dependencies for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ReactNativeDependencies' from project 'Pods')
 PhaseScriptExecution [CP-User]\ [RNDeps]\ Replace\ React\ Native\ Dependencies\ for\ the\ right\ configuration,\ if\ needed /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/ReactNativeDependencies.build/Script-46EB2E0001A930.sh (in target 'ReactNativeDependencies' from project 'Pods')
     cd /Users/carlitos/mobilitas-academy-frontend/ios/Pods
@@ -1018,6 +1018,7 @@ PhaseScriptExecution [CP-User]\ [RNDeps]\ Replace\ React\ Native\ Dependencies\ 
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=NO
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -1536,6 +1537,7 @@ PhaseScriptExecution [CP-User]\ [Hermes]\ Replace\ Hermes\ for\ the\ right\ conf
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=NO
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -2055,6 +2057,7 @@ PhaseScriptExecution [CP-User]\ [RNDeps]\ Replace\ React\ Native\ Core\ for\ the
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=NO
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -2582,6 +2585,7 @@ PhaseScriptExecution [CP-User]\ [RN]Check\ FBReactNativeSpec /Users/carlitos/Lib
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=NO
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -3089,17 +3093,17 @@ ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefaul
     cd /Users/carlitos/mobilitas-academy-frontend/ios
     /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -o /Users/carlitos/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.1-23B77-90cf18a4295e390e64c810bc6bd7acbc.sdkstatcache
 
-ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem/ExpoFileSystem_privacy.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/ExpoFileSystem/ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist (in target 'ExpoFileSystem-ExpoFileSystem_privacy' from project 'Pods')
+ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage/RNCAsyncStorage_resources.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/RNCAsyncStorage/ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist (in target 'RNCAsyncStorage-RNCAsyncStorage_resources' from project 'Pods')
     cd /Users/carlitos/mobilitas-academy-frontend/ios/Pods
-    builtin-infoPlistUtility /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/ExpoFileSystem/ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem/ExpoFileSystem_privacy.bundle/Info.plist
+    builtin-infoPlistUtility /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/RNCAsyncStorage/ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage/RNCAsyncStorage_resources.bundle/Info.plist
 
 ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXApplication/ExpoApplication_privacy.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/EXApplication/ResourceBundle-ExpoApplication_privacy-EXApplication-Info.plist (in target 'EXApplication-ExpoApplication_privacy' from project 'Pods')
     cd /Users/carlitos/mobilitas-academy-frontend/ios/Pods
     builtin-infoPlistUtility /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/EXApplication/ResourceBundle-ExpoApplication_privacy-EXApplication-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXApplication/ExpoApplication_privacy.bundle/Info.plist
 
-ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage/RNCAsyncStorage_resources.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/RNCAsyncStorage/ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist (in target 'RNCAsyncStorage-RNCAsyncStorage_resources' from project 'Pods')
+ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem/ExpoFileSystem_privacy.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/ExpoFileSystem/ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist (in target 'ExpoFileSystem-ExpoFileSystem_privacy' from project 'Pods')
     cd /Users/carlitos/mobilitas-academy-frontend/ios/Pods
-    builtin-infoPlistUtility /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/RNCAsyncStorage/ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage/RNCAsyncStorage_resources.bundle/Info.plist
+    builtin-infoPlistUtility /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/ExpoFileSystem/ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphonesimulator -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem/ExpoFileSystem_privacy.bundle/Info.plist
 
 ProcessInfoPlistFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXConstants/EXConstants.bundle/Info.plist /Users/carlitos/mobilitas-academy-frontend/ios/Pods/Target\ Support\ Files/EXConstants/ResourceBundle-EXConstants-EXConstants-Info.plist (in target 'EXConstants-EXConstants' from project 'Pods')
     cd /Users/carlitos/mobilitas-academy-frontend/ios/Pods
@@ -3123,6 +3127,7 @@ PhaseScriptExecution [CP-User]\ Generate\ app.config\ for\ prebuilt\ Constants.m
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=NO
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -3470,7 +3475,7 @@ PhaseScriptExecution [CP-User]\ Generate\ app.config\ for\ prebuilt\ Constants.m
     export PODS_CONFIGURATION_BUILD_DIR\=/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator
     export PODS_DEVELOPMENT_LANGUAGE\=en
     export PODS_ROOT\=/Users/carlitos/mobilitas-academy-frontend/ios/Pods
-    export PODS_TARGET_SRCROOT\=/Users/carlitos/mobilitas-academy-frontend/ios/Pods/../../node_modules/expo/node_modules/expo-constants/ios
+    export PODS_TARGET_SRCROOT\=/Users/carlitos/mobilitas-academy-frontend/ios/Pods/../../node_modules/expo-constants/ios
     export PODS_XCFRAMEWORKS_BUILD_DIR\=/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates
     export PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR\=YES
     export PRECOMP_DESTINATION_DIR\=/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/EXConstants.build/PrefixHeaders
@@ -3650,6 +3655,35 @@ Node found at: /Users/carlitos/.nvm/versions/node/v22.17.1/bin/node
 
 note: Run script build phase '[Expo] Configure project' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Mobilitas' from project 'Mobilitas')
 note: Run script build phase 'Bundle React Native code and images' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Mobilitas' from project 'Mobilitas')
+ProcessProductPackaging /Users/carlitos/mobilitas-academy-frontend/ios/Mobilitas/Mobilitas.entitlements /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    
+    Entitlements:
+    
+    {
+}
+    
+    builtin-productPackagingUtility /Users/carlitos/mobilitas-academy-frontend/ios/Mobilitas/Mobilitas.entitlements -entitlements -format xml -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent
+
+ProcessProductPackaging /Users/carlitos/mobilitas-academy-frontend/ios/Mobilitas/Mobilitas.entitlements /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    
+    Entitlements:
+    
+    {
+    "application-identifier" = "FAKETEAMID.com.anonymous.studio-osteopatico-frontend";
+}
+    
+    builtin-productPackagingUtility /Users/carlitos/mobilitas-academy-frontend/ios/Mobilitas/Mobilitas.entitlements -entitlements -format xml -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent
+
+ProcessProductPackagingDER /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent.der (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /usr/bin/derq query -f xml -i /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent.der --raw
+
+ProcessProductPackagingDER /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent.der (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /usr/bin/derq query -f xml -i /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent.der --raw
+
 PhaseScriptExecution [Expo]\ Configure\ project /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Script-04710FF935D91B5820BBE961.sh (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
     export ACTION\=build
@@ -3664,6 +3698,7 @@ PhaseScriptExecution [Expo]\ Configure\ project /Users/carlitos/Library/Develope
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=YES
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -4300,6 +4335,19 @@ Copy /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsu
     cd /Users/carlitos/mobilitas-academy-frontend/ios
     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas.abi.json /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.swiftmodule/arm64-apple-ios-simulator.abi.json
 
+Ld /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib normal (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios15.1-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -O0 -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk/usr/lib/swift -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXAV -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXApplication -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXConstants -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Expo -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoAsset -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoCrypto -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFont -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoKeepAwake -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoLinearGradient -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoLinking -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoModulesCore -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoScreenOrientation -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoWebBrowser -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNDateTimePicker -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNGestureHandler -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNScreens -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNVectorIcons -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ReactAppDependencyProvider -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ReactCodegen -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/react-native-safe-area-context -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/react-native-webview -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk/usr/lib/swift -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/React-Core-prebuilt -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/ReactNativeDependencies/framework/packages/react-native -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/React-Core-prebuilt -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/ReactNativeDependencies -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/hermes-engine/Pre-built -filelist /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas.LinkFileList -install_name @rpath/Mobilitas.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas.swiftmodule -ObjC -lEXAV -lEXApplication -lEXConstants -lExpo -lExpoAsset -lExpoCrypto -lExpoFileSystem -lExpoFont -lExpoKeepAwake -lExpoLinearGradient -lExpoLinking -lExpoModulesCore -lExpoScreenOrientation -lExpoWebBrowser -lRNCAsyncStorage -lRNDateTimePicker -lRNGestureHandler -lRNScreens -lRNVectorIcons -lReactAppDependencyProvider -lReactCodegen -lreact-native-safe-area-context -lreact-native-webview -framework Accelerate -framework AudioToolbox -framework CoreGraphics -framework ImageIO -framework MobileCoreServices -framework QuartzCore -framework React -framework ReactNativeDependencies -framework UIKit -framework hermes -weak_framework JavaScriptCore -ObjC -lc++ -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -lPods-Mobilitas -Xlinker -no_adhoc_codesign -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas-ExecutorLinkFileList-normal-arm64.txt (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    construct-stub-executor-link-file-list /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'Mobilitas' from project 'Mobilitas')
+
+Ld /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas normal (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios15.1-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -O0 -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk/usr/lib/swift -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXAV -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXApplication -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/EXConstants -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Expo -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoAsset -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoCrypto -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFileSystem -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoFont -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoKeepAwake -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoLinearGradient -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoLinking -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoModulesCore -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoScreenOrientation -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ExpoWebBrowser -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNCAsyncStorage -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNDateTimePicker -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNGestureHandler -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNScreens -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/RNVectorIcons -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ReactAppDependencyProvider -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/ReactCodegen -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/react-native-safe-area-context -L/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/react-native-webview -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk/usr/lib/swift -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/React-Core-prebuilt -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/ReactNativeDependencies/framework/packages/react-native -F/Users/carlitos/mobilitas-academy-frontend/ios/Pods/hermes-engine/destroot/Library/Frameworks/universal -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/React-Core-prebuilt -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/ReactNativeDependencies -F/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/XCFrameworkIntermediates/hermes-engine/Pre-built -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app-Simulated.xcent.der /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas
+
 PhaseScriptExecution Bundle\ React\ Native\ code\ and\ images /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Script-00DD1BFF1BD5951E006B06BC.sh (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
     export ACTION\=build
@@ -4314,6 +4362,7 @@ PhaseScriptExecution Bundle\ React\ Native\ code\ and\ images /Users/carlitos/Li
     export ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES\=YES
     export ALWAYS_SEARCH_USER_PATHS\=NO
     export ALWAYS_USE_SEPARATE_HEADERMAPS\=NO
+    export ANDROID_DEPLOYMENT_TARGET\=21.0
     export APPLICATION_EXTENSION_API_ONLY\=NO
     export APPLY_RULES_IN_COPY_FILES\=NO
     export APPLY_RULES_IN_COPY_HEADERS\=NO
@@ -4938,8 +4987,8 @@ PhaseScriptExecution [CP]\ Copy\ Pods\ Resources /Users/carlitos/Library/Develop
 Transfer starting: 40 files
 EXConstants.bundle/app.config
 
-sent 2865 bytes  received 42 bytes  1384285 bytes/sec
-total size is 3900319  speedup is 1341.70
+sent 2917 bytes  received 42 bytes  1409047 bytes/sec
+total size is 3900371  speedup is 1318.14
 
 CopySwiftLibs /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
@@ -4948,8 +4997,16 @@ CopySwiftLibs /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavu
 ExtractAppIntentsMetadata (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
     /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name Mobilitas --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk --xcode-version 17B100 --platform-family iOS --deployment-target 15.1 --bundle-identifier com.anonymous.studio-osteopatico-frontend --output /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app --target-triple arm64-apple-ios15.1-simulator --binary-file /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas --dependency-file /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas_dependency_info.dat --stringsdata-file /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas.SwiftFileList --metadata-file-list /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.DependencyMetadataFileList --static-metadata-file-list /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.DependencyStaticMetadataFileList --swift-const-vals-list /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Objects-normal/arm64/Mobilitas.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
-2026-05-06 18:28:11.260 appintentsmetadataprocessor[57616:33821804] Starting appintentsmetadataprocessor export
-2026-05-06 18:28:11.262 appintentsmetadataprocessor[57616:33821804] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+2026-05-12 10:15:32.798 appintentsmetadataprocessor[54767:40047138] Starting appintentsmetadataprocessor export
+2026-05-12 10:15:32.799 appintentsmetadataprocessor[54767:40047138] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+GenerateDSYMFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app.dSYM /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil -q /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app.dSYM
+
+GenerateDSYMFile /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app.dSYM /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib (in target 'Mobilitas' from project 'Mobilitas')
+    cd /Users/carlitos/mobilitas-academy-frontend/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib -o /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app.dSYM
 
 CodeSign /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
@@ -4957,7 +5014,6 @@ CodeSign /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyyd
     Signing Identity:     "Sign to Run Locally"
     
     /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib
-/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/Mobilitas.debug.dylib: replacing existing signature
 
 CodeSign /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app/__preview.dylib (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios
@@ -4973,7 +5029,6 @@ CodeSign /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyyd
     Signing Identity:     "Sign to Run Locally"
     
     /usr/bin/codesign --force --sign - --entitlements /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Intermediates.noindex/Mobilitas.build/Debug-iphonesimulator/Mobilitas.build/Mobilitas.app.xcent --timestamp\=none --generate-entitlement-der /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app
-/Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app: replacing existing signature
 
 Validate /Users/carlitos/Library/Developer/Xcode/DerivedData/Mobilitas-eavusoyydbqsuaacqdcfqsqsloac/Build/Products/Debug-iphonesimulator/Mobilitas.app (in target 'Mobilitas' from project 'Mobilitas')
     cd /Users/carlitos/mobilitas-academy-frontend/ios

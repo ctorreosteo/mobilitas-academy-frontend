@@ -10,18 +10,18 @@ export interface ApiResponseDto<T> {
 export interface CorsoDto {
   id: number;
   titolo: string;
-  descrizione: string;
-  immagineCopertina: string;
+  descrizione: string | null;
+  immagineCopertina: string | null;
   ruoloRichiestoId: number | null;
   ruoloRichiestoTipo: string | null;
   attivo: boolean;
 }
 
 /**
- * Catalogo corsi attivi in DB; `attivo` sul singolo corso indica se l'utente corrente può accedervi.
+ * Restituisce solo i corsi attivi accessibili all'utente autenticato.
  */
 export async function fetchCorsi(): Promise<CorsoDto[]> {
-  const { data } = await apiClient.get<ApiResponseDto<CorsoDto[]>>('/formazione/corsi');
+  const { data } = await apiClient.get<ApiResponseDto<CorsoDto[]>>('/formazione/corsi/accessibili');
   if (!data.success || !Array.isArray(data.data)) {
     throw new Error(data.message || data.error || 'Impossibile caricare i corsi');
   }

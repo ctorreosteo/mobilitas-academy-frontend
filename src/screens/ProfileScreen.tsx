@@ -6,7 +6,8 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Modal,
+  Pressable,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +39,15 @@ const ProfileScreen: React.FC = () => {
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [cleaning, setCleaning] = useState(false);
+  const [confirmLogoutVisible, setConfirmLogoutVisible] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [confirmCleanVisible, setConfirmCleanVisible] = useState(false);
+  const [inactiveFeatureName, setInactiveFeatureName] = useState<string | null>(null);
+  const [cleanResultModal, setCleanResultModal] = useState<{
+    title: string;
+    message: string;
+    isError: boolean;
+  } | null>(null);
 
   const loadProfile = useCallback(async () => {
     const local = await getStoredUserProfile();
@@ -75,43 +85,45 @@ const ProfileScreen: React.FC = () => {
   ];
 
   const handleCleanAndRefresh = () => {
-    Alert.alert(
-      'Pulisci cache e aggiorna',
-      'Vengono svuotate la cache dei dati (es. corsi), il token YouTube salvato sul dispositivo e la cache delle durate video. La sessione Mobilitas resta attiva.',
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Pulisci',
-          onPress: async () => {
-            setCleaning(true);
-            try {
-              await cleanAndRefreshCaches(queryClient);
-              await loadProfile();
-              Alert.alert('Fatto', 'Cache pulita. Riapri una sezione per ricaricare i contenuti.');
-            } catch (e) {
-              Alert.alert('Errore', e instanceof Error ? e.message : 'Operazione non riuscita');
-            } finally {
-              setCleaning(false);
-            }
-          },
-        },
-      ]
-    );
+    setConfirmCleanVisible(true);
+  };
+
+  const confirmCleanAndRefresh = async () => {
+    setCleaning(true);
+    try {
+      await cleanAndRefreshCaches(queryClient);
+      await loadProfile();
+      setConfirmCleanVisible(false);
+      setCleanResultModal({
+        title: 'Cache pulita',
+        message: 'Riapri una sezione per ricaricare i contenuti.',
+        isError: false,
+      });
+    } catch (e) {
+      setConfirmCleanVisible(false);
+      setCleanResultModal({
+        title: 'Errore',
+        message: e instanceof Error ? e.message : 'Operazione non riuscita',
+        isError: true,
+      });
+    } finally {
+      setCleaning(false);
+    }
   };
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Vuoi uscire e terminare la sessione su questo dispositivo?', [
-      { text: 'Annulla', style: 'cancel' },
-      {
-        text: 'Esci',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-          setProfile(null);
-          Alert.alert('Sessione terminata', 'Effettua di nuovo l’accesso dalla schermata di login.');
-        },
-      },
-    ]);
+    setConfirmLogoutVisible(true);
+  };
+
+  const confirmLogout = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      setProfile(null);
+      setConfirmLogoutVisible(false);
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -170,7 +182,11 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Impostazioni</Text>
           <View style={styles.sectionCard}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Modifica Profilo')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="person-circle-outline" size={17} color={theme.colors.secondary} />
@@ -182,7 +198,11 @@ const ProfileScreen: React.FC = () => {
 
             <View style={styles.menuDivider} />
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Notifiche')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="notifications-outline" size={17} color={theme.colors.secondary} />
@@ -194,7 +214,11 @@ const ProfileScreen: React.FC = () => {
 
             <View style={styles.menuDivider} />
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Privacy')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="shield-checkmark-outline" size={17} color={theme.colors.secondary} />
@@ -206,7 +230,11 @@ const ProfileScreen: React.FC = () => {
 
             <View style={styles.menuDivider} />
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Aiuto e Supporto')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="help-buoy-outline" size={17} color={theme.colors.secondary} />
@@ -267,7 +295,11 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionCard}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Cambia Password')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="key-outline" size={17} color={theme.colors.secondary} />
@@ -279,7 +311,11 @@ const ProfileScreen: React.FC = () => {
 
             <View style={styles.menuDivider} />
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setInactiveFeatureName('Esporta Dati')}
+              activeOpacity={0.75}
+            >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemIconWrap}>
                   <Ionicons name="download-outline" size={17} color={theme.colors.secondary} />
@@ -291,6 +327,147 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={confirmCleanVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!cleaning) setConfirmCleanVisible(false);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={[styles.modalIconWrap, styles.modalIconWrapAccent]}>
+              <Ionicons name="refresh-circle-outline" size={20} color={theme.colors.accent} />
+            </View>
+            <Text style={styles.modalTitle}>Pulisci cache e aggiorna</Text>
+            <Text style={styles.modalText}>
+              Verranno svuotate la cache dei dati, il token YouTube locale e la cache delle durate video.
+              La sessione Mobilitas resta attiva.
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable
+                style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => setConfirmCleanVisible(false)}
+                disabled={cleaning}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={confirmCleanAndRefresh}
+                disabled={cleaning}
+              >
+                {cleaning ? (
+                  <ActivityIndicator size="small" color={theme.colors.background.primary} />
+                ) : (
+                  <Text style={styles.modalPrimaryBtnText}>Pulisci</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={confirmLogoutVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!isSigningOut) setConfirmLogoutVisible(false);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="log-out-outline" size={20} color={theme.colors.error} />
+            </View>
+            <Text style={styles.modalTitle}>Conferma logout</Text>
+            <Text style={styles.modalText}>
+              Vuoi uscire e terminare la sessione su questo dispositivo?
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable
+                style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => setConfirmLogoutVisible(false)}
+                disabled={isSigningOut}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.modalDangerBtn, pressed && styles.modalBtnPressed]}
+                onPress={confirmLogout}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? (
+                  <ActivityIndicator size="small" color={theme.colors.background.primary} />
+                ) : (
+                  <Text style={styles.modalDangerBtnText}>Esci</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={Boolean(cleanResultModal)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCleanResultModal(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View
+              style={[
+                styles.modalIconWrap,
+                cleanResultModal?.isError ? styles.modalIconWrapError : styles.modalIconWrapSuccess,
+              ]}
+            >
+              <Ionicons
+                name={cleanResultModal?.isError ? 'alert-circle-outline' : 'checkmark-circle-outline'}
+                size={20}
+                color={cleanResultModal?.isError ? theme.colors.error : theme.colors.secondary}
+              />
+            </View>
+            <Text style={styles.modalTitle}>{cleanResultModal?.title}</Text>
+            <Text style={styles.modalText}>{cleanResultModal?.message}</Text>
+            <Pressable
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+              onPress={() => setCleanResultModal(null)}
+            >
+              <Text style={styles.modalPrimaryBtnText}>Chiudi</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={Boolean(inactiveFeatureName)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInactiveFeatureName(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={[styles.modalIconWrap, styles.modalIconWrapAccent]}>
+              <Ionicons name="information-circle-outline" size={20} color={theme.colors.accent} />
+            </View>
+            <Text style={styles.modalTitle}>{inactiveFeatureName} non disponibile</Text>
+            <Text style={styles.modalText}>
+              Al momento questa funzionalita non e attiva in app. Per assistenza, contatta la
+              segreteria.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
+              onPress={() => setInactiveFeatureName(null)}
+            >
+              <Text style={styles.modalPrimaryBtnText}>Ho capito</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -582,6 +759,118 @@ const styles = StyleSheet.create({
   logoutText: {
     color: theme.colors.error,
     fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: withOpacity(theme.colors.black, 0.45),
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.28),
+    backgroundColor: theme.colors.background.primary,
+    padding: 18,
+    gap: 12,
+  },
+  modalIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.error, 0.35),
+    backgroundColor: withOpacity(theme.colors.error, 0.12),
+  },
+  modalIconWrapAccent: {
+    borderColor: withOpacity(theme.colors.accent, 0.35),
+    backgroundColor: withOpacity(theme.colors.accent, 0.12),
+  },
+  modalIconWrapSuccess: {
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+  },
+  modalIconWrapError: {
+    borderColor: withOpacity(theme.colors.error, 0.35),
+    backgroundColor: withOpacity(theme.colors.error, 0.12),
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: withOpacity(theme.colors.text.secondary, 0.92),
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalActions: {
+    marginTop: 4,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalSecondaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalSecondaryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.secondary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    textAlign: 'center',
+  },
+  modalDangerBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.error, 0.45),
+    backgroundColor: theme.colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalDangerBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.background.primary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    textAlign: 'center',
+  },
+  modalPrimaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.accent, 0.45),
+    backgroundColor: theme.colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+  },
+  modalPrimaryBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.background.primary,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    textAlign: 'center',
+  },
+  modalBtnPressed: {
+    opacity: 0.9,
   },
 });
 

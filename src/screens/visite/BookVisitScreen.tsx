@@ -32,6 +32,7 @@ import { createVisita } from '../../services/visiteService';
 import { fetchCurrentUser } from '../../services/authApi';
 import type { StoredUserProfile } from '../../services/authTokenStorage';
 import {
+  fetchOsteopataRiferimentoPaziente,
   PAZIENTI_SEARCH_MIN_QUERY_LEN,
   pazienteLabel,
   searchPazientiAdvanced,
@@ -227,7 +228,14 @@ const BookVisitScreen: React.FC = () => {
   const acquistiQuery = useQuery({
     queryKey: ['acquisti-paziente', effectivePazienteId],
     queryFn: () => fetchAcquistiByPaziente(effectivePazienteId!, { sortDir: 'DESC' }),
-    enabled: typeof effectivePazienteId === 'number' && effectivePazienteId > 0,
+    enabled: isOsteopathBooking && typeof effectivePazienteId === 'number' && effectivePazienteId > 0,
+  });
+
+  const osteopataRiferimentoQuery = useQuery({
+    queryKey: ['paziente-osteopata-riferimento', effectivePazienteId],
+    queryFn: () => fetchOsteopataRiferimentoPaziente(effectivePazienteId!),
+    enabled: !isOsteopathBooking && typeof effectivePazienteId === 'number' && effectivePazienteId > 0,
+    staleTime: 60_000,
   });
 
   const disponibilitaQuery = useQuery({
@@ -303,6 +311,51 @@ const BookVisitScreen: React.FC = () => {
     return selfDto ? [...list, selfDto] : list;
   }, [isOsteopathBooking, profileOsteopataId, osteopatiQuery.data, profileQuery.data]);
 
+  useEffect(() => {
+    if (isOsteopathBooking) return;
+    if (studioId != null) return;
+    const refOsteopataId = osteopataRiferimentoQuery.data?.id;
+    if (typeof refOsteopataId !== 'number' || refOsteopataId <= 0) return;
+    if (studi.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const studio of studi) {
+        try {
+          const osteopatiStudio = await fetchOsteopatiPerStudio(studio.id);
+          if (cancelled) return;
+          if (osteopatiStudio.some((o) => o.id === refOsteopataId)) {
+            setStudioId(studio.id);
+            return;
+          }
+        } catch {
+          // studio non interrogabile: continua sui successivi
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOsteopathBooking, studioId, osteopataRiferimentoQuery.data, studi]);
+
+  useEffect(() => {
+    if (isOsteopathBooking) return;
+    if (studioId == null) return;
+    const refOsteopataId = osteopataRiferimentoQuery.data?.id;
+    if (typeof refOsteopataId !== 'number' || refOsteopataId <= 0) return;
+    if (!osteopatiForSelect.some((o) => o.id === refOsteopataId)) return;
+    if (osteopataId === refOsteopataId) return;
+    setOsteopataId(refOsteopataId);
+    setSlotSelezionato(null);
+  }, [
+    isOsteopathBooking,
+    studioId,
+    osteopataRiferimentoQuery.data,
+    osteopatiForSelect,
+    osteopataId,
+  ]);
+
   const studi = studiQuery.data ?? [];
   const osteopataSelezionato = osteopatiForSelect.find((o) => o.id === osteopataId) ?? null;
   const studioSelezionato = studi.find((s) => s.id === studioId) ?? null;
@@ -336,7 +389,7 @@ const BookVisitScreen: React.FC = () => {
       : null;
 
   const showAcquistoField =
-    typeof effectivePazienteId === 'number' && effectivePazienteId > 0;
+    isOsteopathBooking && typeof effectivePazienteId === 'number' && effectivePazienteId > 0;
 
   const defaultPrenotabileAcquistoId = useMemo(
     () => leastRecentPrenotabileAcquistoId(acquistiAll),
@@ -368,7 +421,8 @@ const BookVisitScreen: React.FC = () => {
     studiQuery.isFetching ||
     osteopatiQuery.isFetching ||
     disponibilitaQuery.isFetching ||
-    acquistiQuery.isFetching;
+    acquistiQuery.isFetching ||
+    osteopataRiferimentoQuery.isFetching;
 
   const onRefresh = useCallback(() => {
     profileQuery.refetch();
@@ -383,6 +437,9 @@ const BookVisitScreen: React.FC = () => {
     if (typeof effectivePazienteId === 'number' && effectivePazienteId > 0) {
       acquistiQuery.refetch();
     }
+    if (!isOsteopathBooking && typeof effectivePazienteId === 'number' && effectivePazienteId > 0) {
+      osteopataRiferimentoQuery.refetch();
+    }
   }, [
     profileQuery,
     studiQuery,
@@ -394,6 +451,7 @@ const BookVisitScreen: React.FC = () => {
     pazientiSearchQuery,
     effectivePazienteId,
     acquistiQuery,
+    osteopataRiferimentoQuery,
   ]);
 
   const confermaPrenotazione = () => {
@@ -402,7 +460,7 @@ const BookVisitScreen: React.FC = () => {
       Alert.alert('Paziente mancante', 'Seleziona un paziente dall’elenco prima di confermare.');
       return;
     }
-    if (!acquistoOk) {
+    if (showAcquistoField && !acquistoOk) {
       Alert.alert(
         'Acquisto mancante',
         'Seleziona un acquisto di riferimento tra quelli prenotabili per questo paziente.'
@@ -423,7 +481,9 @@ const BookVisitScreen: React.FC = () => {
               studioId,
               pazienteId: effectivePazienteId,
               acquistoId:
-                selectedAcquistoId != null && selectedAcquistoId > 0 ? selectedAcquistoId : undefined,
+                showAcquistoField && selectedAcquistoId != null && selectedAcquistoId > 0
+                  ? selectedAcquistoId
+                  : undefined,
             }),
         },
       ]
@@ -442,7 +502,7 @@ const BookVisitScreen: React.FC = () => {
     daySections.length > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       {studiQuery.isLoading && (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
@@ -729,18 +789,27 @@ const BookVisitScreen: React.FC = () => {
             const slot = item as SlotDisponibilitaDto;
             const sel =
               slotSelezionato?.inizio === slot.inizio && slotSelezionato?.fine === slot.fine;
+            const slotMetaLabel =
+              osteopataSelezionato && studioSelezionato
+                ? `${osteopataLabel(osteopataSelezionato)} - ${studioSelezionato.nome}`
+                : null;
             return (
               <Pressable
                 style={[styles.slotRow, sel && styles.slotRowSelected]}
                 onPress={() => setSlotSelezionato(slot)}
               >
-                <View>
-                  <Text style={[styles.slotText, sel && styles.slotTextSelected]}>
-                    {formatSlotLabel(slot.inizio, slot.fine)}
-                  </Text>
-                  {slot.stanza?.nome ? (
-                    <Text style={styles.slotStanza}>{slot.stanza.nome}</Text>
-                  ) : null}
+                <View style={styles.slotRowContent}>
+                  <View style={styles.slotMainInfo}>
+                    <Text style={[styles.slotText, sel && styles.slotTextSelected]}>
+                      {formatSlotLabel(slot.inizio, slot.fine)}
+                    </Text>
+                    {slotMetaLabel ? <Text style={styles.slotStanza}>{slotMetaLabel}</Text> : null}
+                  </View>
+                  <View style={[styles.slotPrenotaBtn, sel && styles.slotPrenotaBtnSelected]}>
+                    <Text style={[styles.slotPrenotaBtnText, sel && styles.slotPrenotaBtnTextSelected]}>
+                      Prenota
+                    </Text>
+                  </View>
                 </View>
               </Pressable>
             );
@@ -776,7 +845,7 @@ const BookVisitScreen: React.FC = () => {
                       prenotaMutation.isPending ||
                       (isOsteopathBooking && !selectedPaziente) ||
                       (showAcquistoField && acquistiQuery.isPending) ||
-                      (needsAcquistoChoice && !acquistoOk)) &&
+                      (showAcquistoField && needsAcquistoChoice && !acquistoOk)) &&
                       styles.primaryBtnDisabled,
                   ]}
                   disabled={
@@ -784,7 +853,7 @@ const BookVisitScreen: React.FC = () => {
                     prenotaMutation.isPending ||
                     (isOsteopathBooking && !selectedPaziente) ||
                     (showAcquistoField && acquistiQuery.isPending) ||
-                    (needsAcquistoChoice && !acquistoOk)
+                    (showAcquistoField && needsAcquistoChoice && !acquistoOk)
                   }
                   onPress={confermaPrenotazione}
                 >
@@ -953,7 +1022,7 @@ const styles = StyleSheet.create({
   },
   formBlock: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 0,
     paddingBottom: 8,
   },
   acquistoBlock: {
@@ -1095,6 +1164,16 @@ const styles = StyleSheet.create({
     borderColor: withOpacity(theme.colors.secondary, 0.2),
     backgroundColor: withOpacity(theme.colors.primary, 0.35),
   },
+  slotRowContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  slotMainInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
   slotRowSelected: {
     borderColor: theme.colors.secondary,
     backgroundColor: withOpacity(theme.colors.secondary, 0.15),
@@ -1108,10 +1187,33 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
   },
   slotStanza: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '400',
     color: theme.colors.text.secondary,
     opacity: 0.85,
+    fontStyle: 'italic',
+  },
+  slotPrenotaBtn: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.35),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  slotPrenotaBtnSelected: {
+    borderColor: theme.colors.secondary,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.2),
+  },
+  slotPrenotaBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  slotPrenotaBtnTextSelected: {
+    color: theme.colors.secondary,
   },
   confirmFooter: {
     paddingHorizontal: 20,

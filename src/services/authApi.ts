@@ -7,9 +7,11 @@ import {
   setStoredUserProfile,
   clearAllAuth,
   StoredOsteopataProfile,
+  StoredPazienteProfile,
   StoredUserProfile,
 } from './authTokenStorage';
 import { fetchOsteopataById, type OsteopataDto } from './studioVisitsService';
+import { fetchPazienteByUtenteId, type PazienteDto } from './pazientiService';
 export interface LoginRequestBody {
   username: string;
   password: string;
@@ -52,6 +54,29 @@ function osteopataDtoToStored(d: OsteopataDto): StoredOsteopataProfile {
   };
 }
 
+function pazienteDtoToStored(d: PazienteDto): StoredPazienteProfile {
+  return {
+    id: d.id,
+    nome: d.nome ?? null,
+    cognome: d.cognome ?? null,
+    prefissoCellulare: d.prefissoCellulare ?? null,
+    cellulare: d.cellulare ?? null,
+    email: d.email ?? null,
+    dataNascita: d.dataNascita ?? null,
+    eta: d.eta ?? null,
+    cittaNascita: d.cittaNascita ?? null,
+    codiceFiscale: d.codiceFiscale ?? null,
+    linkWhatsapp: d.linkWhatsapp ?? null,
+    genere: d.genere ?? null,
+    note: d.note ?? null,
+  };
+}
+
+function hasPazienteRole(roles: string[] | null | undefined): boolean {
+  if (!Array.isArray(roles)) return false;
+  return roles.some((role) => role.toUpperCase().includes('PAZIENTE'));
+}
+
 function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUserProfile {
   const profile: StoredUserProfile = {
     username: d.username,
@@ -75,6 +100,25 @@ function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUser
   return profile;
 }
 
+function maskSecret(value: string | undefined | null, keep = 4): string {
+  if (!value) return '<empty>';
+  if (value.length <= keep * 2) return '*'.repeat(value.length);
+  return `${value.slice(0, keep)}…${value.slice(-keep)} (len=${value.length})`;
+}
+
+function headersToPlain(headers: unknown): Record<string, unknown> {
+  if (!headers || typeof headers !== 'object') return {};
+  const anyHeaders = headers as { toJSON?: () => Record<string, unknown> } & Record<string, unknown>;
+  if (typeof anyHeaders.toJSON === 'function') {
+    try {
+      return anyHeaders.toJSON();
+    } catch {
+      // fallthrough
+    }
+  }
+  return { ...anyHeaders };
+}
+
 /**
  * POST /api/auth/login — pubblico. `username` accetta username o email (backend).
  */
@@ -82,21 +126,72 @@ export async function loginMobilitas(
   usernameOrEmail: string,
   password: string
 ): Promise<LoginResponseData> {
+  const requestBody: LoginRequestBody = { username: usernameOrEmail, password };
+  const requestUrlPath = '/auth/login';
+  const fullUrl = `${apiClient.defaults.baseURL ?? ''}${requestUrlPath}`;
+  const requestStartedAt = Date.now();
+
+  console.log('[LOGIN] → request', {
+    method: 'POST',
+    url: fullUrl,
+    baseURL: apiClient.defaults.baseURL,
+    path: requestUrlPath,
+    timeoutMs: apiClient.defaults.timeout,
+    defaultHeaders: headersToPlain(apiClient.defaults.headers?.common),
+    body: { username: usernameOrEmail, password: maskSecret(password) },
+  });
+
   try {
-    const { data } = await apiClient.post<ApiResponseDto<LoginResponseData>>('/auth/login', {
-      username: usernameOrEmail,
-      password,
-    } satisfies LoginRequestBody);
+    const response = await apiClient.post<ApiResponseDto<LoginResponseData>>(
+      requestUrlPath,
+      requestBody
+    );
+    const elapsedMs = Date.now() - requestStartedAt;
+    const { data, status, statusText, headers } = response;
+
+    console.log('[LOGIN] ← response', {
+      status,
+      statusText,
+      elapsedMs,
+      headers: headersToPlain(headers),
+      data: {
+        success: data?.success,
+        message: data?.message,
+        error: data?.error,
+        data: data?.data
+          ? {
+              ...data.data,
+              token: maskSecret(data.data.token, 6),
+            }
+          : data?.data,
+      },
+    });
 
     if (!data.success || !data.data?.token) {
       throw new Error(data.message || data.error || 'Login fallito');
     }
     return data.data;
   } catch (e) {
-    if (isAxiosError(e) && e.response?.data && typeof e.response.data === 'object') {
-      const body = e.response.data as ApiResponseDto<unknown>;
-      if (body.message) throw new Error(body.message);
-      if (body.error && typeof body.error === 'string') throw new Error(body.error);
+    const elapsedMs = Date.now() - requestStartedAt;
+    if (isAxiosError(e)) {
+      console.log('[LOGIN] ✗ error', {
+        elapsedMs,
+        code: e.code,
+        message: e.message,
+        status: e.response?.status,
+        statusText: e.response?.statusText,
+        responseHeaders: headersToPlain(e.response?.headers),
+        responseData: e.response?.data,
+        requestUrl: e.config?.url,
+        requestBaseURL: e.config?.baseURL,
+      });
+      if (e.response?.data && typeof e.response.data === 'object') {
+        const body = e.response.data as ApiResponseDto<unknown>;
+        if (body.message) throw new Error(body.message);
+        if (body.error && typeof body.error === 'string') throw new Error(body.error);
+      }
+    } else {
+      console.log('[LOGIN] ✗ error (non-axios)', { elapsedMs, error: e });
     }
     throw e;
   }
@@ -147,6 +242,26 @@ export async function fetchCurrentUser(): Promise<StoredUserProfile> {
     }
   } else {
     profile = { ...profile, osteopata: null, osteopataId: null };
+  }
+
+  const shouldLoadPaziente = hasPazienteRole(me.ruoli) && typeof me.id === 'number' && me.id > 0;
+  if (shouldLoadPaziente) {
+    try {
+      const paziente = await fetchPazienteByUtenteId(me.id);
+      if (paziente) {
+        profile = {
+          ...profile,
+          pazienteId: paziente.id,
+          paziente: pazienteDtoToStored(paziente),
+        };
+      } else {
+        profile = { ...profile, pazienteId: null, paziente: null };
+      }
+    } catch {
+      profile = { ...profile, paziente: null };
+    }
+  } else {
+    profile = { ...profile, pazienteId: null, paziente: null };
   }
 
   await setStoredUserProfile(profile);

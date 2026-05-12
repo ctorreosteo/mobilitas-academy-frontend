@@ -50,7 +50,7 @@ export interface Course {
   difficulty: 'Principiante' | 'Intermedio' | 'Avanzato';
   coverImage?: string;
   youtubePlaylistId?: string; // ID playlist YouTube per questo corso
-  /** Da GET /api/formazione/corsi: utente può accedere al corso */
+  /** Da GET /api/formazione/corsi/accessibili: corso accessibile all'utente */
   formazioneAttivo?: boolean;
   ruoloRichiestoTipo?: string | null;
   ruoloRichiestoId?: number | null;

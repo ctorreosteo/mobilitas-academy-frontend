@@ -315,11 +315,11 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: withOpacity(theme.colors.text.secondary, 0.72),
     textAlign: 'center',
-    marginBottom: 28,
+    marginBottom: 16,
   },
   headerBadge: {
     alignSelf: 'center',
-    marginBottom: 12,
+    marginBottom: 28,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

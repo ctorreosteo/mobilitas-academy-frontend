@@ -96,7 +96,7 @@ const CoursesScreen: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Corsi</Text>
         <Text style={styles.headerSubtitle}>
-          Catalogo aggiornato con stato accesso, progresso e ripresa rapida.
+          Catalogo dei corsi accessibili, con progresso e ripresa rapida.
         </Text>
       </View>
       <View style={styles.headerBadge}>
@@ -140,7 +140,12 @@ const CoursesScreen: React.FC = () => {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
+        <View style={styles.sectionHeaderTopRow}>
+          <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
+          <View style={styles.coursesCountBadge}>
+            <Text style={styles.coursesCountText}>{courses.length}</Text>
+          </View>
+        </View>
         <Text style={styles.sectionHeaderHint}>Scorri per vedere e aprire i contenuti</Text>
       </View>
 
@@ -313,13 +318,38 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingHorizontal: 20,
     marginTop: 20,
-    marginBottom: 8,
+    marginBottom: 24,
+  },
+  sectionHeaderTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
   },
   sectionHeaderTitle: {
     fontSize: 22,
+    lineHeight: 28,
     fontWeight: '700',
     color: theme.colors.titlePrimary,
     letterSpacing: 0.25,
+  },
+  coursesCountBadge: {
+    minWidth: 34,
+    height: 28,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
+  },
+  coursesCountText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: theme.colors.secondary,
+    lineHeight: 16,
+    transform: [{ translateY: 1 }],
   },
   sectionHeaderHint: {
     marginTop: 2,

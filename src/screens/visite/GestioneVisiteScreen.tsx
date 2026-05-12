@@ -165,7 +165,7 @@ const GestioneVisiteScreen: React.FC = () => {
     !osteopathMissingId;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.lead}>
         <Text style={styles.leadText}>
           {osteopathAgenda

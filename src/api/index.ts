@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { NativeModules } from 'react-native';
+import Constants from 'expo-constants';
 import {
   getAuthToken,
   getStoredUserProfile,
@@ -8,16 +9,37 @@ import {
   clearAllAuth,
 } from '../services/authTokenStorage';
 
+/**
+ * Hostname del Metro dev server.
+ *
+ * Strategia (in ordine):
+ *  1) `NativeModules.SourceCode.scriptURL` — funziona in Expo Go / RN classico.
+ *  2) `expo-constants` — l'unico modo affidabile su development build con
+ *     new architecture (Fabric + Hermes), dove `scriptURL` è `undefined`.
+ *     `hostUri` è del tipo `"192.168.1.28:8081"`.
+ */
 function getDevServerHost(): string | null {
   const scriptURL: string | undefined = NativeModules?.SourceCode?.scriptURL;
-  if (!scriptURL) return null;
-
-  try {
-    const host = new URL(scriptURL).hostname;
-    return host || null;
-  } catch {
-    return null;
+  if (scriptURL) {
+    try {
+      const host = new URL(scriptURL).hostname;
+      if (host) return host;
+    } catch {
+      // ignoriamo, proviamo il fallback successivo
+    }
   }
+
+  const hostUri =
+    Constants.expoConfig?.hostUri ??
+    (Constants as unknown as { expoGoConfig?: { debuggerHost?: string } }).expoGoConfig
+      ?.debuggerHost ??
+    null;
+  if (hostUri) {
+    const host = hostUri.split(':')[0]?.trim();
+    if (host) return host;
+  }
+
+  return null;
 }
 
 function isLocalHost(host: string): boolean {
@@ -35,12 +57,28 @@ function isLocalHost(host: string): boolean {
 }
 
 const envBackendOrigin = process.env.EXPO_PUBLIC_BACKEND_URL?.trim().replace(/\/$/, '');
+const rawScriptURL: string | undefined = NativeModules?.SourceCode?.scriptURL;
 const devServerHost = getDevServerHost();
 const inferredDevBackendOrigin =
   devServerHost && isLocalHost(devServerHost) ? `http://${devServerHost}:8080` : null;
 const cloudBackendOrigin = 'https://mobilitas-backend-990845221858.europe-west8.run.app';
 const backendOrigin = envBackendOrigin || inferredDevBackendOrigin || cloudBackendOrigin;
 export const API_BASE_URL = `${backendOrigin}/api`;
+
+console.log('[API] base URL resolution', {
+  rawScriptURL,
+  expoHostUri: Constants.expoConfig?.hostUri ?? null,
+  expoGoDebuggerHost:
+    (Constants as unknown as { expoGoConfig?: { debuggerHost?: string } }).expoGoConfig
+      ?.debuggerHost ?? null,
+  devServerHost,
+  isDevServerLocal: devServerHost ? isLocalHost(devServerHost) : false,
+  envBackendOrigin,
+  inferredDevBackendOrigin,
+  cloudBackendOrigin,
+  chosenBackendOrigin: backendOrigin,
+  API_BASE_URL,
+});
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

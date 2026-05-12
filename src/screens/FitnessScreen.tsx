@@ -88,7 +88,7 @@ const FitnessScreen: React.FC = () => {
             <View style={styles.manageCardTexts}>
               <Text style={styles.manageCardTitle}>Le tue prenotazioni attive</Text>
               <Text style={styles.manageCardSubtitle}>
-                Tocca qui per vedere e annullare le prenotazioni.
+                Tocca qui per vedere e annullare le tue prenotazioni attive.
               </Text>
             </View>
           </View>
@@ -111,7 +111,7 @@ const FitnessScreen: React.FC = () => {
             <View style={styles.manageCardTexts}>
               <Text style={styles.manageCardTitle}>Calendario Fitness</Text>
               <Text style={styles.manageCardSubtitle}>
-                Tocca qui per vedere l'elenco completo e prenotare.
+                Tocca qui per vedere l'elenco completo delle sessioni disponibili e prenotare.
               </Text>
             </View>
           </View>
