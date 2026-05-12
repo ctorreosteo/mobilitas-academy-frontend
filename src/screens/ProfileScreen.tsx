@@ -26,6 +26,10 @@ import {
   fetchOsteopatiPerStudio,
   fetchStudiAttivi,
 } from '../services/studioVisitsService';
+import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
+
+const DELETE_ACCOUNT_WHATSAPP_PREFILL =
+  'Buongiorno, vorrei richiedere la cancellazione definitiva del mio account Mobilitas Academy.';
 
 function initialsFromProfile(p: StoredUserProfile | null): string {
   if (p?.nome?.trim() && p?.cognome?.trim()) {
@@ -59,6 +63,7 @@ const ProfileScreen: React.FC = () => {
     message: string;
     isError: boolean;
   } | null>(null);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
 
   const loadProfile = useCallback(async () => {
     const local = await getStoredUserProfile();
@@ -413,6 +418,25 @@ const ProfileScreen: React.FC = () => {
               </View>
               <Ionicons name="chevron-forward" size={20} color={theme.colors.error} style={{ opacity: 0.5 }} />
             </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity
+              style={[styles.menuItem, styles.actionRow]}
+              onPress={() => setDeleteAccountModalVisible(true)}
+              activeOpacity={0.75}
+            >
+              <View style={styles.actionRowLeft}>
+                <Ionicons name="trash-outline" size={22} color={theme.colors.error} />
+                <View style={styles.actionTexts}>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>Elimina account</Text>
+                  <Text style={[styles.actionSubtitle, styles.logoutSubtitle]}>
+                    Richiedi la cancellazione definitiva tramite la segreteria.
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.error} style={{ opacity: 0.5 }} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -668,6 +692,37 @@ const ProfileScreen: React.FC = () => {
       </Modal>
 
       <Modal
+        visible={deleteAccountModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+            </View>
+            <Text style={styles.modalTitle}>Eliminazione definitiva account</Text>
+            <Text style={styles.modalText}>
+              {`Per motivi di sicurezza e privacy, la cancellazione definitiva dell'account non può essere completata dall'app. Contatta la segreteria su WhatsApp: ti guideranno nella procedura.`}
+            </Text>
+            <View style={styles.deleteAccountModalFooter}>
+              <StudioWhatsAppSupportButton
+                prefilledMessage={DELETE_ACCOUNT_WHATSAPP_PREFILL}
+                style={styles.deleteAccountWhatsappBtn}
+              />
+              <Pressable
+                style={({ pressed }) => [styles.modalDismissFullBtn, pressed && styles.modalBtnPressed]}
+                onPress={() => setDeleteAccountModalVisible(false)}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Chiudi</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
         visible={Boolean(inactiveFeatureName)}
         transparent
         animationType="fade"
@@ -703,7 +758,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: 36,
   },
   header: {
     paddingHorizontal: 20,
@@ -1157,6 +1212,25 @@ const styles = StyleSheet.create({
   },
   modalBtnPressed: {
     opacity: 0.9,
+  },
+  deleteAccountModalFooter: {
+    marginTop: 4,
+    gap: 10,
+    width: '100%',
+  },
+  deleteAccountWhatsappBtn: {
+    width: '100%',
+  },
+  modalDismissFullBtn: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
   },
 });
 
