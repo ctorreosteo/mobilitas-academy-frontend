@@ -9,6 +9,7 @@ import {
   Pressable,
   Modal,
   Platform,
+  Linking,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,6 +48,7 @@ function patientName(v: VisitaAgendaDto): string {
 const GestioneVisiteScreen: React.FC = () => {
   const [giornoYmd, setGiornoYmd] = useState(() => toLocalYmd(new Date()));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [openingWhatsApp, setOpeningWhatsApp] = useState(false);
   const [iosPickerDate, setIosPickerDate] = useState(
     () => new Date(`${toLocalYmd(new Date())}T12:00:00`)
   );
@@ -164,6 +166,26 @@ const GestioneVisiteScreen: React.FC = () => {
     (pazienteId == null || pazienteId <= 0) &&
     !osteopathMissingId;
 
+  const handleOpenWhatsAppSupport = useCallback(async () => {
+    const phone = '393518198457';
+    const text =
+      "Buongiorno Team di Mobilitas! Sono un utente dell'applicazione e vorrei poter visualizzare le visite. Attendo un vostro riscontro, grazie!";
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+
+    setOpeningWhatsApp(true);
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) {
+        throw new Error('Impossibile aprire WhatsApp su questo dispositivo.');
+      }
+      await Linking.openURL(url);
+    } catch (e) {
+      console.warn('[VISITE] apertura WhatsApp non riuscita', e);
+    } finally {
+      setOpeningWhatsApp(false);
+    }
+  }, []);
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.lead}>
@@ -240,10 +262,26 @@ const GestioneVisiteScreen: React.FC = () => {
         )}
 
         {showPatientEmptyState && (
-          <Text style={styles.muted}>
-            Per elencare le visite serve il campo <Text style={styles.mono}>pazienteId</Text> nel profilo
-            (login o GET /auth/me).
-          </Text>
+          <View style={styles.supportCard}>
+            <Text style={styles.muted}>
+              Per visualizzare le visite in app dobbiamo collegare il tuo profilo paziente.
+              Contatta la nostra segreteria e ti aiutiamo subito.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.whatsappBtn,
+                pressed && styles.whatsappBtnPressed,
+                openingWhatsApp && styles.whatsappBtnDisabled,
+              ]}
+              onPress={handleOpenWhatsAppSupport}
+              disabled={openingWhatsApp}
+            >
+              <Ionicons name="logo-whatsapp" size={16} color={theme.colors.background.primary} />
+              <Text style={styles.whatsappBtnText}>
+                {openingWhatsApp ? 'Apertura WhatsApp...' : 'Contatta la segreteria su WhatsApp'}
+              </Text>
+            </Pressable>
+          </View>
         )}
 
         {osteopathAgenda && visiteOsteopataQuery.isLoading && (
@@ -527,6 +565,35 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.primary,
     fontSize: 13,
     color: theme.colors.secondary,
+  },
+  supportCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.2),
+    backgroundColor: withOpacity(theme.colors.primary, 0.4),
+    padding: 14,
+    gap: 12,
+  },
+  whatsappBtn: {
+    minHeight: 42,
+    borderRadius: 10,
+    backgroundColor: '#25D366',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  whatsappBtnPressed: {
+    opacity: 0.9,
+  },
+  whatsappBtnDisabled: {
+    opacity: 0.65,
+  },
+  whatsappBtnText: {
+    color: theme.colors.background.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
   inlineError: {
     marginBottom: 12,
