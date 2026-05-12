@@ -22,6 +22,11 @@ import {
   type CalendarioSessioneFitnessDto,
   type PartecipanteSessioneFitnessDto,
 } from '../../services/fitnessService';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
+import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
+
+const FITNESS_BOOKINGS_WHATSAPP =
+  "Buongiorno, utilizzo l'app Mobilitas Academy e ho problemi con le prenotazioni fitness nell'app. Potete aiutarmi? Grazie.";
 
 const FitnessBookingsScreen: React.FC = () => {
   const { userProfile } = useAuth();
@@ -62,7 +67,12 @@ const FitnessBookingsScreen: React.FC = () => {
       }
       setSessionDetailsBySessionId(detailsMap);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore nel caricamento prenotazioni');
+      setError(
+        getUserFacingApiErrorMessage(e, {
+          context: 'Impossibile caricare le prenotazioni',
+          fallback: 'Non siamo riusciti a caricare l’elenco. Controlla la connessione e riprova.',
+        })
+      );
     } finally {
       setLoading(false);
     }
@@ -89,7 +99,12 @@ const FitnessBookingsScreen: React.FC = () => {
         setConfirmCancelBooking(null);
         setCancelledSessionName(item.sessioneNome);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Impossibile annullare la prenotazione');
+        setError(
+          getUserFacingApiErrorMessage(e, {
+            context: 'Impossibile annullare la prenotazione',
+            fallback: 'Riprova tra poco o contatta la segreteria.',
+          })
+        );
       } finally {
         setCancelingId(null);
       }
@@ -124,15 +139,23 @@ const FitnessBookingsScreen: React.FC = () => {
 
         {!loading && error ? (
           <View style={styles.stateCard}>
-            <Ionicons name="alert-circle-outline" size={20} color={theme.colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
+            <View style={styles.stateCardTop}>
+              <Ionicons name="alert-circle-outline" size={20} color={theme.colors.error} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+            <StudioWhatsAppSupportButton
+              prefilledMessage={FITNESS_BOOKINGS_WHATSAPP}
+              style={styles.stateWhatsappBtn}
+            />
           </View>
         ) : null}
 
         {!loading && !error && bookings.length === 0 ? (
           <View style={styles.stateCard}>
-            <Ionicons name="calendar-outline" size={20} color={theme.colors.secondary} />
-            <Text style={styles.stateText}>Nessuna prenotazione attiva al momento.</Text>
+            <View style={styles.stateCardTop}>
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.secondary} />
+              <Text style={styles.stateText}>Nessuna prenotazione attiva al momento.</Text>
+            </View>
           </View>
         ) : null}
 
@@ -330,8 +353,11 @@ const styles = StyleSheet.create({
     borderColor: withOpacity(theme.colors.secondary, 0.22),
     backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
+    gap: 12,
+  },
+  stateCardTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
   },
   stateText: {
@@ -344,7 +370,11 @@ const styles = StyleSheet.create({
     flex: 1,
     color: theme.colors.error,
     fontSize: 14,
+    lineHeight: 20,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  stateWhatsappBtn: {
+    alignSelf: 'stretch',
   },
   bookingCard: {
     borderRadius: 14,

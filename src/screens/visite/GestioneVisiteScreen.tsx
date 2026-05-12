@@ -9,7 +9,6 @@ import {
   Pressable,
   Modal,
   Platform,
-  Linking,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,6 +30,7 @@ import {
   formatWeekdayLongIt,
   toLocalYmd,
 } from './visiteFormatting';
+import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
 
 function isOsteopathRole(ruoli: string[] | undefined): boolean {
   if (!ruoli?.length) return false;
@@ -167,20 +167,14 @@ const GestioneVisiteScreen: React.FC = () => {
     !osteopathMissingId;
 
   const handleOpenWhatsAppSupport = useCallback(async () => {
-    const phone = '393518198457';
     const text =
       "Buongiorno Team di Mobilitas! Sono un utente dell'applicazione e vorrei poter visualizzare le visite. Attendo un vostro riscontro, grazie!";
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-
     setOpeningWhatsApp(true);
     try {
-      const canOpen = await Linking.canOpenURL(url);
-      if (!canOpen) {
-        throw new Error('Impossibile aprire WhatsApp su questo dispositivo.');
+      const ok = await openStudioWhatsApp({ message: text });
+      if (!ok) {
+        console.warn('[VISITE] apertura WhatsApp non riuscita');
       }
-      await Linking.openURL(url);
-    } catch (e) {
-      console.warn('[VISITE] apertura WhatsApp non riuscita', e);
     } finally {
       setOpeningWhatsApp(false);
     }

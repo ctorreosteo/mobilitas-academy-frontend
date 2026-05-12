@@ -22,6 +22,11 @@ import {
   fetchPartecipazioniSessioniFitness,
   type CalendarioSessioneFitnessDto,
 } from '../../services/fitnessService';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
+import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
+
+const FITNESS_CALENDAR_WHATSAPP =
+  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a usare il calendario fitness / le sessioni. Potete aiutarmi? Grazie.";
 
 function toHour(time: string): string {
   return time.slice(0, 5);
@@ -73,7 +78,13 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
         setMySessionIds(new Set());
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossibile caricare il calendario fitness');
+      setError(
+        getUserFacingApiErrorMessage(e, {
+          context: 'Impossibile caricare il calendario fitness',
+          fallback:
+            'Non siamo riusciti a caricare le sessioni. Controlla la connessione e riprova.',
+        })
+      );
     } finally {
       setLoading(false);
     }
@@ -142,7 +153,12 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
         await loadCalendar();
         setBookedSessionName(row.sessioneNome);
       } catch (e) {
-        Alert.alert('Prenotazione non riuscita', e instanceof Error ? e.message : 'Riprova più tardi');
+        Alert.alert(
+          'Prenotazione non riuscita',
+          getUserFacingApiErrorMessage(e, {
+            fallback: 'Riprova più tardi o contatta la segreteria.',
+          })
+        );
       } finally {
         setBookingSessionId(null);
         setConfirmSession(null);
@@ -215,15 +231,23 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
 
         {!loading && error ? (
           <View style={styles.stateCard}>
-            <Ionicons name="alert-circle-outline" size={20} color={theme.colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
+            <View style={styles.stateCardTop}>
+              <Ionicons name="alert-circle-outline" size={20} color={theme.colors.error} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+            <StudioWhatsAppSupportButton
+              prefilledMessage={FITNESS_CALENDAR_WHATSAPP}
+              style={styles.stateWhatsappBtn}
+            />
           </View>
         ) : null}
 
         {!loading && !error && calendarRows.length === 0 ? (
           <View style={styles.stateCard}>
-            <Ionicons name="calendar-outline" size={20} color={theme.colors.secondary} />
-            <Text style={styles.stateText}>Nessuna sessione disponibile per la data selezionata.</Text>
+            <View style={styles.stateCardTop}>
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.secondary} />
+              <Text style={styles.stateText}>Nessuna sessione disponibile per la data selezionata.</Text>
+            </View>
           </View>
         ) : null}
 
@@ -449,8 +473,11 @@ const styles = StyleSheet.create({
     borderColor: withOpacity(theme.colors.secondary, 0.22),
     backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
+    gap: 12,
+  },
+  stateCardTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
   },
   stateText: {
@@ -463,7 +490,11 @@ const styles = StyleSheet.create({
     flex: 1,
     color: theme.colors.error,
     fontSize: 14,
+    lineHeight: 20,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  stateWhatsappBtn: {
+    alignSelf: 'stretch',
   },
   sessionCard: {
     borderRadius: 14,

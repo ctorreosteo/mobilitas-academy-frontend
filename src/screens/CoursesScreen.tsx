@@ -14,22 +14,17 @@ import { theme, withOpacity } from '../theme';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
 import { useFormazioneCourses } from '../hooks/useFormazioneCourses';
-import { isAxiosError } from 'axios';
+import { getUserFacingApiErrorMessage } from '../utils/apiErrorMessage';
+import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
+
+const COURSES_ERROR_WHATSAPP =
+  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare l'elenco dei corsi di formazione. Potete aiutarmi? Grazie.";
 
 function coursesErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const status = error.response?.status;
-    if (status === 401 || status === 403) {
-      return 'Accesso negato: effettua il login e assicurati che il token JWT sia salvato nell’app.';
-    }
-    if (!error.response) {
-      return 'Impossibile raggiungere il server. Controlla la rete o verifica che il backend sia avviato.';
-    }
-  }
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return 'Si è verificato un errore nel caricamento dei corsi.';
+  return getUserFacingApiErrorMessage(error, {
+    context: 'Impossibile caricare i corsi',
+    fallback: 'Non siamo riusciti a caricare l’elenco dei corsi. Riprova tra poco.',
+  });
 }
 
 const CoursesScreen: React.FC = () => {
@@ -71,6 +66,10 @@ const CoursesScreen: React.FC = () => {
       isError && courses.length > 0 ? (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{coursesErrorMessage(error)}</Text>
+          <StudioWhatsAppSupportButton
+            prefilledMessage={COURSES_ERROR_WHATSAPP}
+            style={styles.errorWhatsappBtn}
+          />
         </View>
       ) : null,
     [isError, error, courses.length]
@@ -168,6 +167,12 @@ const CoursesScreen: React.FC = () => {
             <Text style={styles.emptyText}>
               {isError ? coursesErrorMessage(error) : 'Nessun corso disponibile'}
             </Text>
+            {isError ? (
+              <StudioWhatsAppSupportButton
+                prefilledMessage={COURSES_ERROR_WHATSAPP}
+                style={styles.emptyWhatsappBtn}
+              />
+            ) : null}
           </View>
         }
       />
@@ -260,10 +265,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
+    gap: 12,
   },
   errorText: {
     fontSize: 14,
     color: theme.colors.text.primary,
+  },
+  errorWhatsappBtn: {
+    alignSelf: 'stretch',
   },
   statsCard: {
     flexDirection: 'row',
@@ -363,11 +372,17 @@ const styles = StyleSheet.create({
   emptyContainer: {
     paddingVertical: 40,
     alignItems: 'center',
+    paddingHorizontal: 8,
+    gap: 4,
   },
   emptyText: {
     fontSize: 16,
     color: theme.colors.text.secondary,
     textAlign: 'center',
+  },
+  emptyWhatsappBtn: {
+    marginTop: 16,
+    alignSelf: 'stretch',
   },
 });
 

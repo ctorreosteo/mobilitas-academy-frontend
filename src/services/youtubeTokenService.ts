@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../api';
 import { isFirebaseConfigured, getYouTubeAccessToken as getFirebaseToken } from './firebaseService';
 
-// Configurazione: priorità a Firebase Functions, poi backend URL, poi variabili d'ambiente
-// In sviluppo: 
+// Configurazione: priorità a Firebase Functions, poi backend API di produzione (`API_BASE_URL`), poi variabili d'ambiente (refresh token).
+// In sviluppo:
 //   - Se EXPO_PUBLIC_FIREBASE_USE_PRODUCTION=true, usa sempre l'URL produzione
 //   - Altrimenti usa EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL_LOCAL (se disponibile) o produzione come fallback
 // In produzione: usa sempre EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL
@@ -13,10 +14,10 @@ const FIREBASE_FUNCTIONS_URL = __DEV__
       : (process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL_LOCAL || process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL))
   : (process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL);
 const USE_FIREBASE = !!FIREBASE_FUNCTIONS_URL;
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const USE_BACKEND = !!BACKEND_URL && !USE_FIREBASE;
+/** Stesso backend di produzione dell’API (`src/api/index.ts`), se non si usano le Firebase Functions. */
+const USE_BACKEND = !USE_FIREBASE;
 
-// Variabili per modalità sviluppo (solo se non c'è backend)
+// Variabili per modalità sviluppo (solo se non c'è Firebase né backend raggiungibile)
 const CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 const CLIENT_SECRET = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_SECRET || '';
 const REFRESH_TOKEN = process.env.EXPO_PUBLIC_YOUTUBE_REFRESH_TOKEN || '';
@@ -72,7 +73,7 @@ export async function getYouTubeAccessToken(): Promise<string | null> {
   if (USE_BACKEND) {
     try {
       console.log('🔄 Ottenimento access token dal backend server...');
-      const response = await axios.get(`${BACKEND_URL}/api/youtube/token`);
+      const response = await axios.get(`${API_BASE_URL}/youtube/token`);
       
       if (response.data.access_token) {
         // Cache il token (scade 5 minuti prima della scadenza reale)
