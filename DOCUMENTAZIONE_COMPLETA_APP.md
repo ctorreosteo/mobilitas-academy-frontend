@@ -1,8 +1,32 @@
-# Mobilitas Academy - Documentazione Completa dell'Applicazione
+# Mobilitas Academy — Documentazione completa dell’applicazione
+
+## Indice
+
+1. [Scopo del documento](#1-scopo-del-documento)
+2. [Panoramica prodotto](#2-panoramica-prodotto)
+3. [Repository e naming](#3-repository-e-naming)
+4. [Stack tecnologico](#4-stack-tecnologico)
+5. [Architettura applicativa](#5-architettura-applicativa)
+6. [Struttura del repository](#6-struttura-del-repository)
+7. [Schermate e responsabilità](#7-schermate-e-responsabilità)
+8. [Flussi end-to-end](#8-flussi-end-to-end)
+9. [Contratti API e integrazione backend](#9-contratti-api-e-integrazione-backend)
+10. [Integrazioni esterne](#10-integrazioni-esterne)
+11. [Configurazioni runtime, native e deploy](#11-configurazioni-runtime-native-e-deploy)
+12. [UX tecnica: loading, errori, resilienza](#12-ux-tecnica-loading-errori-resilienza)
+13. [Sicurezza lato client](#13-sicurezza-lato-client)
+14. [Qualità, test e tooling](#14-qualità-test-e-tooling)
+15. [Debito tecnico e incongruenze](#15-debito-tecnico-e-incongruenze)
+16. [Glossario dominio](#16-glossario-dominio)
+17. [Mappa file chiave](#17-mappa-file-chiave-indice-rapido)
+18. [Piano evolutivo consigliato (90 giorni)](#18-piano-evolutivo-consigliato-90-giorni)
+19. [Conclusione](#19-conclusione)
+
+---
 
 ## 1. Scopo del documento
 
-Questo documento descrive in modo approfondito l'app mobile **Mobilitas Academy**, coprendo:
+Questo documento descrive in modo approfondito l’app mobile **Mobilitas Academy**, coprendo:
 
 - visione prodotto;
 - architettura tecnica;
@@ -13,668 +37,434 @@ Questo documento descrive in modo approfondito l'app mobile **Mobilitas Academy*
 - sicurezza lato client;
 - limiti attuali e possibili evoluzioni.
 
-L'obiettivo e fornire una base unica e completa per onboarding, manutenzione, audit tecnico e pianificazione evolutiva.
+L’obiettivo è fornire una base unica e aggiornata al codice per onboarding, manutenzione, audit tecnico e pianificazione evolutiva.
 
 ---
 
 ## 2. Panoramica prodotto
 
-Mobilitas Academy e un'app mobile orientata a due macro-domini:
+Mobilitas Academy è un’app mobile orientata a due macro-domini:
 
 - **Formazione**: fruizione di corsi video (corsi, moduli, lezioni, progressi);
-- **Operativita clinico-sportiva**: gestione visite osteopatiche e prenotazioni fitness.
+- **Operatività clinico-sportiva**: gestione visite osteopatiche e prenotazioni fitness.
 
-L'app include anche:
+L’app include anche:
 
 - autenticazione utente con sessione persistita;
 - area profilo con utility e funzioni di supporto;
-- integrazioni esterne per contenuti video (YouTube/Firebase/Cloudflare) in scenari specifici.
+- integrazioni esterne per contenuti e token (YouTube, Firebase Cloud Functions, Cloudflare Stream) dove configurato.
 
 ### 2.1 Profili utente e comportamento adattivo
 
-La UX cambia in base al ruolo dell'utente autenticato (ad esempio paziente vs osteopata):
+La UX cambia in base al ruolo dell’utente autenticato (ad esempio paziente vs osteopata):
 
-- nella gestione visite, l'utente paziente vede il proprio storico prenotazioni;
-- l'utente osteopata puo visualizzare agenda giornaliera e prenotare per pazienti selezionati.
+- nella gestione visite, l’utente paziente vede il proprio storico prenotazioni;
+- l’utente osteopata può visualizzare agenda giornaliera e prenotare per pazienti selezionati.
 
-I ruoli sono veicolati dal profilo backend (`ruoli`) e consumati nel frontend per abilitare/disabilitare percorsi.
-
----
-
-## 3. Stack tecnologico
-
-### 3.1 Core
-
-- **Framework mobile**: Expo + React Native
-- **Linguaggio**: TypeScript
-- **UI Navigation**: React Navigation (Bottom Tabs + Stack nidificati)
-- **Server State**: TanStack React Query
-- **HTTP Client**: Axios
-- **Media playback**: `expo-av`
-- **Storage locale**: AsyncStorage
-
-### 3.2 Runtime e toolchain
-
-- avvio via `expo start`;
-- build cloud via EAS (`eas build`, `eas submit`);
-- progetto prebuildato con cartelle native `ios/` e `android/`.
-
-Riferimenti principali:
-
-- `package.json`
-- `app.json`
-- `eas.json`
-- `tsconfig.json`
+I ruoli sono veicolati dal profilo backend (`ruoli`) e consumati nel frontend per abilitare o disabilitare percorsi. Dopo il login, `GET /auth/me` arricchisce il profilo locale con dati **osteopata** (se presente `osteopataId`) e **paziente** (se il ruolo include paziente), vedi `src/services/authApi.ts`.
 
 ---
 
-## 4. Architettura applicativa
+## 3. Repository e naming
 
-## 4.1 Entrypoint e bootstrap
-
-- `index.ts`: registra componente root.
-- `App.tsx`: compone l'albero provider e navigator.
-
-Catena principale:
-
-1. `ErrorBoundary` globale;
-2. `SafeAreaProvider`;
-3. `QueryClientProvider` (React Query);
-4. `AuthProvider` (stato sessione e utente);
-5. Navigator root condizionale (`Login` vs app autenticata).
-
-### 4.2 Navigazione
-
-La navigazione e organizzata su due livelli:
-
-- **Root Stack**:
-  - `Login` (utente non autenticato)
-  - `Main` (utente autenticato)
-- **Main Tabs**:
-  - Home
-  - Corsi
-  - Visite
-  - Fitness
-  - Profilo
-
-Alcune tab montano stack interni per drill-down:
-
-- stack Corsi (lista corsi -> contenuti -> player video),
-- stack Visite (menu -> gestione -> prenotazione),
-- stack Fitness (landing -> calendario -> prenotazioni attive).
-
-File di riferimento:
-
-- `App.tsx`
-- `src/screens/visite/VisiteStack.tsx`
-- `src/screens/fitness/FitnessStack.tsx`
-
-### 4.3 Stato globale e stato locale
-
-- **Globale auth**: `AuthContext` conserva token, utente, stato `isSignedIn`, loading di bootstrap.
-- **Server state**: query/mutation React Query per fetch e mutazioni dati backend.
-- **Locale UI**: `useState` per filtri, modali, selezioni, loading di vista.
-
-File chiave:
-
-- `src/context/AuthContext.tsx`
-- `src/hooks/useFormazioneCourses.ts`
-
-### 4.4 Layer servizi e API
-
-Il layer servizi separa i domini funzionali:
-
-- `authApi`, `formazioneService`, `visiteService`, `fitnessService`,
-- `acquistiService`, `serviziService`, `pazientiService`,
-- integrazioni esterne `youtubeService`, `firebaseService`, `cloudflareService`.
-
-Il client HTTP centrale in `src/api/index.ts` gestisce:
-
-- base URL dinamico;
-- injection bearer token;
-- refresh automatico su HTTP 401;
-- retry del request originale dopo refresh.
+- Cartella di lavoro tipica: `mobilitas-academy-frontend`.
+- In `package.json` il campo **`name`** è ancora `studio-osteopatico-frontend` (legacy npm); il prodotto e `app.json` usano **Mobilitas Academy** / slug `mobilitas-academy`.
+- Identifiers nativi: `com.mobilitas.academy` (iOS bundle id, Android package).
 
 ---
 
-## 5. Struttura del repository
+## 4. Stack tecnologico
 
-## 5.1 Directory principali
+### 4.1 Core (da `package.json`)
 
-- `src/screens`: schermate applicative (feature-driven)
-- `src/services`: accesso dati e normalizzazione DTO
-- `src/api`: configurazione axios e interceptor
-- `src/context`: stato globale (auth)
-- `src/components`: componenti UI riusabili
-- `src/hooks`: hook custom per use-case specifici
-- `src/utils`: utility (date, mapping, durata HLS, formattazioni)
-- `src/theme`: tema visuale e costanti di stile
-- `ios`, `android`: sorgenti nativi generati/gestiti per build native
+| Area | Tecnologia |
+|------|------------|
+| Framework | **Expo SDK ~54** + **React Native 0.81** |
+| React | **19.1** |
+| Linguaggio | **TypeScript ~5.9** |
+| Navigazione | **React Navigation 7** (bottom tabs + stack) |
+| Server state | **TanStack React Query 5** |
+| HTTP | **Axios** |
+| Video HLS | **`expo-av`** (Video, Audio mode) |
+| Orientamento | **`expo-screen-orientation`** |
+| OAuth app | **`expo-auth-session`** (flussi Google/YouTube lato hook) |
+| Storage | **AsyncStorage** |
+| Icone | **@expo/vector-icons** (Ionicons) |
 
-## 5.2 Documentazione operativa presente
+Dipendenze dichiarate ma **non referenziate nel codice sotto `src/`** al momento della stesura: `react-native-youtube-iframe`, `react-native-webview` (possibile uso futuro o residuo da rimuovere o integrare).
 
-Sono presenti vari documenti operativi, tra cui:
+### 4.2 Runtime e toolchain
 
-- `DEPLOYMENT.md`
-- `BACKEND_SETUP.md`
-- `YOUTUBE_SETUP.md`
-- `TROUBLESHOOTING.md`
-- `REFRESH_TOKEN_SETUP.md`
+- Avvio dev: `npm run start` → `expo start`;
+- Build native locali: `expo run:ios` / `expo run:android`;
+- Build cloud: **EAS** (`eas build`, `eas submit`);
+- Repository con cartelle native **`ios/`** e **`android/`** (prebuild / progetto gestito).
 
-Questi file completano la documentazione del flusso tecnico di rilascio e configurazione.
-
----
-
-## 6. Schermate e responsabilita funzionali
-
-## 6.1 Accesso e sessione
-
-### `src/screens/LoginScreen.tsx`
-
-Responsabilita:
-
-- login con email/username + password;
-- gestione remember username;
-- feedback di errore autenticazione;
-- apertura modale informativa registrazione.
-
-## 6.2 Home
-
-### `src/screens/HomeScreen.tsx`
-
-Responsabilita:
-
-- dashboard introduttiva;
-- entry point rapido verso aree core (visite, corsi, fitness).
-
-## 6.3 Formazione
-
-### `src/screens/CoursesScreen.tsx`
-
-Responsabilita:
-
-- visualizzazione corsi accessibili;
-- esposizione stato/progresso;
-- refresh dati e gestione stati loading/error.
-
-### `src/screens/CourseVideosScreen.tsx`
-
-Responsabilita:
-
-- caricamento moduli e lezioni del corso;
-- composizione gerarchica capitoli/contenuti;
-- recupero durata video HLS mancante;
-- visualizzazione avanzamento.
-
-### `src/screens/VideoPlayerScreen.tsx`
-
-Responsabilita:
-
-- riproduzione contenuti video;
-- controlli playback (play/pause, mute, speed);
-- supporto fullscreen e gestione orientamento.
-
-## 6.4 Fitness
-
-### `src/screens/FitnessScreen.tsx`
-
-Responsabilita:
-
-- landing area fitness;
-- riepilogo prenotazioni utente;
-- navigazione verso calendario e lista prenotazioni.
-
-### `src/screens/fitness/FitnessSessionsCalendarScreen.tsx`
-
-Responsabilita:
-
-- calendario disponibilita sessioni;
-- prenotazione sessione;
-- gestione conferme/esiti.
-
-### `src/screens/fitness/FitnessBookingsScreen.tsx`
-
-Responsabilita:
-
-- elenco sessioni prenotate dall'utente;
-- annullamento prenotazione con conferma.
-
-## 6.5 Visite
-
-### `src/screens/visite/VisiteMenuScreen.tsx`
-
-Responsabilita:
-
-- menu di accesso ai due percorsi visite:
-  - gestione storico/agenda;
-  - nuova prenotazione.
-
-### `src/screens/visite/GestioneVisiteScreen.tsx`
-
-Responsabilita:
-
-- comportamento adattivo per ruolo;
-- paziente: storico visite personali;
-- osteopata: vista agenda giornaliera;
-- supporto fallback WhatsApp in casi critici.
-
-### `src/screens/visite/BookVisitScreen.tsx`
-
-Responsabilita:
-
-- wizard di prenotazione visita:
-  - selezione studio;
-  - selezione osteopata;
-  - selezione data e slot;
-  - selezione paziente (se utente osteopata);
-  - selezione/creazione acquisto;
-- invio richiesta di prenotazione al backend.
-
-## 6.6 Profilo
-
-### `src/screens/ProfileScreen.tsx`
-
-Responsabilita:
-
-- visualizzazione snapshot profilo;
-- sincronizzazione dati utente (`auth/me`);
-- utilita (pulizia cache app);
-- link recensione Google studio (se disponibile);
-- logout.
-
-Alcune funzioni risultano volutamente placeholder/non attive.
+Riferimenti: `package.json`, `app.json`, `eas.json`, `tsconfig.json`.
 
 ---
 
-## 7. Flussi end-to-end dettagliati
+## 5. Architettura applicativa
 
-## 7.1 Flusso autenticazione
+### 5.1 Entrypoint e bootstrap
 
-1. Utente inserisce credenziali in `LoginScreen`.
-2. Chiamata `signIn` da `AuthContext`.
-3. `POST /auth/login` ottiene token/sessione.
-4. Persistenza in AsyncStorage di token + profilo base.
-5. Chiamata `GET /auth/me` per profilo aggiornato.
-6. Root navigator passa a `Main` tab app.
+- **`index.ts`**: `registerRootComponent(App)` (entry Expo).
+- **`App.tsx`**: shell dell’app, `ErrorBoundary`, provider, navigazione.
 
-### Restore sessione all'avvio
+Ordine dei provider (dal root):
 
-- bootstrap legge storage locale;
-- tenta validazione/refresh sessione;
-- in caso di errore non-401, mantiene sessione cache per resilienza offline;
-- in caso di 401, forza invalidazione e ritorno a login.
+1. **`ErrorBoundary`** (classe definita inline in `App.tsx`) — cattura errori React e mostra schermata di fallback;
+2. **`SafeAreaProvider`** (`react-native-safe-area-context`);
+3. **`QueryClientProvider`** (istanza `QueryClient` locale in `App.tsx`);
+4. **`AuthProvider`** (`src/context/AuthContext.tsx`);
+5. **`RootNavigator`**: `NavigationContainer` + stack root condizionale (`Login` vs `Main`).
 
-File chiave:
+### 5.2 Navigazione
 
-- `src/context/AuthContext.tsx`
-- `src/services/authApi.ts`
-- `src/services/authTokenStorage.ts`
+**Root stack** (`RootStack` in `App.tsx`):
 
-## 7.2 Flusso corsi e contenuti video
+- **`Login`**: utente non autenticato (`LoginScreen`);
+- **`Main`**: tab navigator autenticato (`MainTabNavigator`).
 
-1. `CoursesScreen` richiede corsi accessibili (`/formazione/corsi/accessibili`).
-2. Utente apre corso.
-3. `CourseVideosScreen` carica moduli (`/formazione/corsi/{id}/moduli`) e lezioni (`/formazione/moduli/{id}/lezioni`).
-4. Utility compongono struttura didattica coerente.
-5. Se durata video non disponibile e URL HLS, viene stimata leggendo il manifest.
-6. Utente apre player per fruizione.
+**Tab principali** (`MainTabNavigator`):
 
-File chiave:
+| Tab (name) | Componente | Note |
+|------------|--------------|------|
+| `Home` | `HomeScreen` | Header tab nascosto |
+| `Courses` | `CoursesStack` | Stack interno corsi |
+| `StudioVisits` | `VisiteStack` | Label UI: «Visite» |
+| `Fitness` | `FitnessStack` | Stack fitness |
+| `Profile` | `ProfileScreen` | |
 
-- `src/hooks/useFormazioneCourses.ts`
-- `src/services/formazioneService.ts`
-- `src/utils/hlsDuration.ts`
-- `src/screens/VideoPlayerScreen.tsx`
+**`CoursesStack`** (stack dentro la tab Corsi):
 
-## 7.3 Flusso visite
+1. `CoursesList` → `CoursesScreen`
+2. `CourseVideos` → `CourseVideosScreen`
+3. `VideoPlayer` → `VideoPlayerScreen`
 
-### Gestione visite
+**`VisiteStack`** (`src/screens/visite/VisiteStack.tsx`):
 
-- Paziente: fetch proprie visite (`/visite/by-paziente/{id}`).
-- Osteopata: fetch agenda giornaliera filtrata (`/visite` con data/osteopata).
+1. `VisiteMenu` → `VisiteMenuScreen` (route iniziale)
+2. `BookVisit` → `BookVisitScreen`
+3. `GestioneVisite` → `GestioneVisiteScreen`
 
-### Nuova prenotazione
+**`FitnessStack`** (`src/screens/fitness/FitnessStack.tsx`):
 
-1. Fetch studi (`/studi`).
-2. Fetch osteopati per studio (`/osteopati/studio/{id}`).
-3. Fetch disponibilita (`/osteopati/disponibilita-effettive`).
-4. Selezione slot.
-5. Se role osteopata:
-   - ricerca paziente (`/pazienti/search/advanced`);
-   - selezione acquisto prenotabile (`/acquisti/paziente/{id}`);
-   - eventuale creazione acquisto (`POST /acquisti`).
-6. Creazione visita (`POST /visite`).
+1. `FitnessCalendar` → `FitnessScreen` (hub «Calendario Fitness»: riepilogo, link a prenotazioni e calendario)
+2. `FitnessBookings` → `FitnessBookingsScreen` (prenotazioni attive)
+3. `FitnessSessionsCalendar` → `FitnessSessionsCalendarScreen` (calendario sessioni e prenotazione)
 
-File chiave:
+### 5.3 Stato globale e stato locale
 
-- `src/services/visiteService.ts`
-- `src/services/pazientiService.ts`
-- `src/services/acquistiService.ts`
-- `src/services/serviziService.ts`
-- `src/screens/visite/BookVisitScreen.tsx`
+- **Auth**: `AuthContext` — `isReady`, `isSignedIn`, `userProfile`, `signIn`, `signOut`. Il flag `isSignedIn` deriva dalla presenza del JWT in memoria dopo l’hydration da storage.
+- **Server state**: React Query (`useQuery` / `useMutation` dove usati; invalidazione su login in `signIn`).
+- **UI locale**: `useState` / `useFocusEffect` nelle schermate.
 
-## 7.4 Flusso fitness
+### 5.4 Layer servizi e API
 
-1. Caricamento calendario sessioni (`/fitness/calendario-sessioni`).
-2. Caricamento prenotazioni utente (`/fitness/partecipanti-sessioni`).
-3. Prenotazione nuova sessione (`POST /fitness/partecipanti-sessioni`).
-4. Eventuale annullamento (`DELETE /fitness/partecipanti-sessioni/{id}`).
+Il client HTTP centralizzato è **`src/api/index.ts`** (`apiClient` Axios):
 
-File chiave:
+- **`API_BASE_URL`**: costante **`https://mobilitas-backend-990845221858.europe-west8.run.app/api`** (origine produzione **fissa nel codice**, non letta da `.env`; vedi commento in `.env.example`).
+- Interceptor **request**: aggiunge `Authorization: Bearer` se esiste token in AsyncStorage.
+- Interceptor **response** su **401** (salvo path `/auth/login`, `/auth/register`, `/auth/refresh`): tenta **`POST /auth/refresh`** con il token attuale; in caso di successo aggiorna storage e **ripete la richiesta originale**; in caso di fallimento chiama `clearAllAuth()`.
 
-- `src/services/fitnessService.ts`
-- `src/screens/fitness/FitnessSessionsCalendarScreen.tsx`
-- `src/screens/fitness/FitnessBookingsScreen.tsx`
+Servizi dominio (cartella `src/services/`): tra gli altri `authApi`, `authTokenStorage`, `formazioneService`, `formazioneCourseContent`, `visiteService`, **`studioVisitsService`** (studi, osteopati, disponibilità calcolata, prenotazioni `visite-studio`), `fitnessService`, `acquistiService`, `serviziService`, `pazientiService`, `youtubeService`, **`youtubeTokenService`**, `firebaseService`, `cloudflareService`, **`appCacheService`**.
+
+Hook dedicati in `src/hooks/`: ad esempio `useFormazioneCourses`, `useYouTubeAuth`, `useYouTubePlaylist`, `useYouTubeChannelPlaylists`, `useApi`, `useTabBarBottomPadding`.
 
 ---
 
-## 8. Contratti API e integrazione backend
+## 6. Struttura del repository
 
-## 8.1 Pattern generale risposta backend
+### 6.1 Directory principali
 
-I servizi frontend tengono conto di envelope API del tipo:
+| Path | Contenuto |
+|------|-----------|
+| `src/screens` | Schermate per feature |
+| `src/screens/visite` | Flusso visite (stack, modali, tipi) |
+| `src/screens/fitness` | Flusso fitness (stack, tipi) |
+| `src/services` | Chiamate API e normalizzazione DTO |
+| `src/api` | Configurazione Axios e interceptor |
+| `src/context` | Stato globale (auth) |
+| `src/components` | UI riusabile (card, bottoni, capitoli, splash, ecc.) |
+| `src/hooks` | Hook custom |
+| `src/utils` | Date, errori API user-facing, HLS duration, tema, WhatsApp studio |
+| `src/theme` | Tema e costanti di stile |
+| `src/types` | Tipi condivisi |
+| `assets/` | Icone, splash, favicon |
+| `ios/`, `android/` | Progetti nativi |
+| `scripts/` | Script di supporto (es. `fill-video-durations.js`) |
 
-- `success`
-- `message`
-- `error`
-- `data` (payload)
+### 6.2 Documentazione operativa presente
 
-Le funzioni di servizio normalizzano shape eterogenee in modelli frontend stabili, riducendo coupling tra UI e DTO backend.
+Oltre a questo file:
 
-## 8.2 Domini API principali usati dal frontend
-
-- `auth/*`
-- `formazione/*`
-- `visite/*`
-- `fitness/*`
-- `studi/*`
-- `osteopati/*`
-- `pazienti/*`
-- `acquisti/*`
-- `servizi/*`
-
-## 8.3 Strategia token e refresh
-
-- token bearer in header `Authorization`;
-- refresh flow automatico su 401 con endpoint `/auth/refresh`;
-- ripetizione request originale dopo rinnovo token.
-
-Meccanismo centralizzato in:
-
-- `src/api/index.ts`
+- `DEPLOYMENT.md`, `BACKEND_SETUP.md`, `TROUBLESHOOTING.md`
+- `YOUTUBE_SETUP.md`, `README_YOUTUBE.md`, `REFRESH_TOKEN_SETUP.md`, **`OAUTH_SETUP.md`**
+- `TEST_FIREBASE_PROD.md`
+- `fonts/README.md`, `.expo/README.md`
 
 ---
 
-## 9. Integrazioni esterne
+## 7. Schermate e responsabilità
 
-## 9.1 YouTube Data API
+### 7.1 Accesso e sessione — `src/screens/LoginScreen.tsx`
 
-Supporti presenti:
+- Login con **username o email** + password (`POST /api/auth/login`);
+- preferenza **ricorda username** (solo identificativo, mai la password);
+- feedback errori;
+- modale informativa registrazione.
 
-- fetch video playlist e metadati;
-- gestione contenuti non in elenco in base a configurazione;
-- token management via API key/OAuth a seconda setup.
+### 7.2 Home — `src/screens/HomeScreen.tsx`
 
-File:
+- Dashboard e accessi rapidi verso aree core (visite, corsi, fitness).
 
-- `src/services/youtubeService.ts`
-- `src/hooks/useYouTubeAuth.ts`
+### 7.3 Formazione
 
-## 9.2 Firebase Functions
+- **`CoursesScreen.tsx`**: corsi accessibili, stati loading/errore, refresh.
+- **`CourseVideosScreen.tsx`**: moduli e lezioni, gerarchia capitoli, durata HLS opzionale (`hlsDuration`), avanzamento.
+- **`VideoPlayerScreen.tsx`**:  
+  - URL **HLS** (`.m3u8`): riproduzione con **`expo-av`**, mute, velocità, fullscreen modale con **`expo-screen-orientation`** (unlock in fullscreen, lock portrait all’uscita);  
+  - URL **non HLS**: area video con thumbnail/placeholder e controlli limitati (nessun player WebView/YouTube integrato in questa schermata al momento).
 
-In alcuni scenari viene usata come proxy/serverless bridge per:
+### 7.4 Fitness
 
-- ottenimento token YouTube;
-- recupero playlist e dettagli media.
+- **`FitnessScreen.tsx`**: hub con conteggio prenotazioni, navigazione verso **Prenotazioni attive** e **Calendario sessioni**; supporto WhatsApp in errore (`StudioWhatsAppSupportButton`).
+- **`FitnessSessionsCalendarScreen.tsx`**: calendario disponibilità, prenotazione sessione.
+- **`FitnessBookingsScreen.tsx`**: elenco prenotazioni, annullamento con conferma.
 
-File:
+### 7.5 Visite
 
-- `src/services/firebaseService.ts`
+- **`VisiteMenuScreen.tsx`**: accesso a gestione visite e nuova prenotazione.
+- **`GestioneVisiteScreen.tsx`**: comportamento per ruolo (paziente vs osteopata), fallback WhatsApp dove previsto.
+- **`BookVisitScreen.tsx`**: wizard prenotazione (studi, osteopati, slot da `studioVisitsService`, paziente/acquisti per osteopata, invio al backend).
 
-## 9.3 Cloudflare Stream
+Componenti di supporto: `SelectModal`, `CreaAcquistoModal`, `visiteFormatting.ts`, tipi in `types.ts`.
 
-Presente integrazione per recupero contenuti video e mapping a entita corso/modulo/video.
+### 7.6 Profilo — `src/screens/ProfileScreen.tsx`
 
-File:
-
-- `src/services/cloudflareService.ts`
-
-## 9.4 Storage locale
-
-Uso principale di AsyncStorage per:
-
-- token auth;
-- profilo utente;
-- preferenze login;
-- eventuali token/flag di integrazioni media.
-
-File:
-
-- `src/services/authTokenStorage.ts`
+- Snapshot profilo e sync con `/auth/me` dove applicabile;
+- utilità **pulizia cache** (React Query + token OAuth YouTube in storage + cache durate HLS) tramite **`appCacheService.cleanAndRefreshCaches`** senza logout;
+- link recensione Google studio se esposto dal backend;
+- logout (`signOut` → `POST /auth/logout` best-effort + clear storage).
 
 ---
 
-## 10. Configurazioni runtime, native e deploy
+## 8. Flussi end-to-end
 
-## 10.1 Config app Expo
+### 8.1 Autenticazione
 
-`app.json` definisce:
+1. Credenziali in `LoginScreen` → `signIn` in `AuthContext`.
+2. `loginMobilitas` → **`POST /api/auth/login`** → JWT + payload profilo base.
+3. `persistLoginSession` salva token e profilo in AsyncStorage.
+4. `fetchCurrentUser` → **`GET /api/auth/me`** con arricchimento osteopata/paziente e aggiornamento storage.
+5. Root navigator mostra `Main`.
 
-- nome/slug;
-- bundle/application identifiers;
-- scheme deep link (`mobilitas-academy`);
-- plugin (`expo-av`);
-- orientamenti e permessi iOS.
+**Bootstrap all’avvio** (`AuthContext`):
 
-## 10.2 EAS build pipeline
+- lettura parallela token + profilo da storage; se c’è token, **UI autenticata immediata** (evita flash del login);
+- `restorePersistedSession()` → validazione con **`GET /auth/me`**:
+  - **401**: `clearAllAuth()`, utente disconnesso;
+  - **altri errori / rete**: si **mantiene** sessione locale (comportamento «offline permissivo» documentato in `authApi.ts`).
 
-`eas.json` include profili:
+File chiave: `src/context/AuthContext.tsx`, `src/services/authApi.ts`, `src/services/authTokenStorage.ts`.
 
-- development
-- preview
-- production
+### 8.2 Corsi e video
 
-con variabili ambiente e impostazioni submit.
+1. **`GET /formazione/corsi/accessibili`** — lista corsi (`fetchCorsi`).
+2. Apertura corso → **`GET /formazione/corsi/{corsoId}/moduli`** e **`GET /formazione/moduli/{moduloId}/lezioni`**.
+3. Se manca la durata e l’URL è HLS, stima da manifest (`src/utils/hlsDuration.ts`).
+4. Player per stream HLS in `VideoPlayerScreen`.
 
-## 10.3 Variabili ambiente
+### 8.3 Visite
 
-`.env.example` documenta variabili necessarie e segnala esplicitamente che:
+- **Gestione**: paziente vs osteopata tramite `visiteService` (es. visite per paziente, agenda filtrata).
+- **Prenotazione**: studi/osteopati/disponibilità tramite **`studioVisitsService`**; creazione visita e flussi acquisti/pazienti tramite `visiteService`, `acquistiService`, `pazientiService`, `serviziService` (coerente con `BookVisitScreen`).
 
-- le variabili `EXPO_PUBLIC_*` sono pubbliche nel bundle client;
-- non vanno usate per segreti sensibili.
+### 8.4 Fitness
 
-## 10.4 Android
-
-Configurazioni salienti:
-
-- deep link scheme in manifest;
-- permessi rete/audio/storage;
-- settaggi package/namespace nel gradle app.
-
-File:
-
-- `android/app/src/main/AndroidManifest.xml`
-- `android/app/build.gradle`
-
-## 10.5 iOS
-
-`ios/Mobilitas/Info.plist` include:
-
-- URL schemes;
-- orientamenti supportati;
-- permessi microfono;
-- ATS locale e flag encryption declaration.
+1. **`GET /fitness/calendario-sessioni`** (query opzionali per filtri data/sessione/istruttore).
+2. **`GET /fitness/partecipanti-sessioni`** — prenotazioni dell’utente (o elenco gestito dal backend).
+3. **`POST /fitness/partecipanti-sessioni`** — crea prenotazione (`utenteId`, `sessioneId`).
+4. **`DELETE /fitness/partecipanti-sessioni/{id}`** — annullamento.
 
 ---
 
-## 11. UX tecnica: loading, errori, resilienza
+## 9. Contratti API e integrazione backend
 
-## 11.1 Loading e feedback
+### 9.1 Pattern risposta
 
-Le schermate data-driven adottano:
+Envelope tipico (`ApiResponseDto` / analoghi): `success`, `message`, `error`, `data`. I servizi normalizzano risposte eterogenee per l’UI.
 
-- indicatori di caricamento espliciti;
-- pull-to-refresh dove appropriato;
-- messaggi di stato per assenza dati.
+### 9.2 Domini principali
 
-## 11.2 Error handling
+Prefisso client: **`/api`** su `API_BASE_URL`.
 
-Approccio tipico:
+Esempi di famiglie usate: `auth/*`, `formazione/*`, `visite/*`, `visite-studio/*`, `fitness/*`, `studi/*`, `osteopati/*`, `pazienti/*`, `acquisti/*`, `servizi/*`, eventuale **`youtube/token`** per token YouTube lato backend.
 
-- try/catch nei servizi;
-- mapping errori HTTP/axios in messaggi usabili in UI;
-- fallback funzionali in caso di shape payload inattese.
+### 9.3 Token e refresh
 
-Globalmente:
-
-- `ErrorBoundary` protegge da crash React non gestiti.
-
-## 11.3 Edge case gestiti
-
-- restore sessione offline permissivo;
-- date picker con logica differenziata iOS/Android;
-- normalizzazioni per backend non sempre uniforme.
+- Header **`Authorization: Bearer <JWT>`**;
+- refresh automatico su 401 tramite **`POST /api/auth/refresh`** nell’interceptor in `src/api/index.ts`.
 
 ---
 
-## 12. Sicurezza lato client: stato attuale
+## 10. Integrazioni esterne
 
-## 12.1 Punti positivi
+### 10.1 YouTube
 
-- consapevolezza esplicita sul rischio `EXPO_PUBLIC_*` nei file di setup/documentazione;
-- uso token bearer standard e refresh centralizzato.
+- **`youtubeService.ts`**: chiamate Data API dove serve (playlist, metadati; dipende da chiavi/token disponibili).
+- **`youtubeTokenService.ts`**: ottiene access token con priorità:  
+  1) **Firebase Functions** (se `EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL` configurato in build),  
+  2) **backend** `GET ${API_BASE_URL}/youtube/token` se non si usa Firebase,  
+  3) variabili ambiente (client secret / refresh — **sconsigliato in produzione**).  
+  Cache in-memory del token con scadenza anticipata.
+- **`useYouTubeAuth.ts`**: OAuth con **`expo-auth-session`**, redirect `mobilitas-academy://oauth`, token salvato in AsyncStorage (`@youtube_access_token`).
+- Hook **`useYouTubePlaylist`**, **`useYouTubeChannelPlaylists`**: consumo playlist/canale.
 
-## 12.2 Rischi rilevati
+### 10.2 Firebase
 
-- alcune integrazioni mostrano supporto a secret in variabili pubbliche lato client (rischio elevato);
-- presenza di riferimenti/documentazione con chiavi API reali di esempio puo causare leakage;
-- logging dettagliato in servizi sensibili potrebbe esporre metadati in ambienti non controllati.
+- **`firebaseService.ts`**: bridge verso Cloud Functions (es. token YouTube), URL da env (`EXPO_PUBLIC_FIREBASE_*`, `EXPO_PUBLIC_FIREBASE_USE_PRODUCTION` in `eas.json` per profili build).
 
-## 12.3 Raccomandazioni prioritarie
+### 10.3 Cloudflare Stream
 
-1. Spostare completamente token/secret su backend trusted.
-2. Usare proxy server-side per provider terzi (YouTube/Cloudflare).
-3. Ruotare chiavi eventualmente gia esposte.
-4. Ridurre log sensibili in release build.
+- **`cloudflareService.ts`**: account, subdomain, token (documentazione in `.env.example` avverte di non esporre token in produzione sul client).
 
----
+### 10.4 Storage locale (`authTokenStorage.ts`)
 
-## 13. Qualita, test e tooling
-
-## 13.1 Stato attuale
-
-- TypeScript strict presente;
-- non emerge una suite test automatizzata (unit/integration/e2e) attiva;
-- assenza di script lint/format standard in `package.json`.
-
-## 13.2 Impatto pratico
-
-- alta dipendenza da QA manuale;
-- rischio regressioni maggiore su refactor cross-feature;
-- difficolta a garantire stabilita in release frequenti.
-
-## 13.3 Priorita miglioramento
-
-1. introdurre linting e formatting automatizzati;
-2. aggiungere test unitari su servizi e parser DTO;
-3. aggiungere smoke test su flussi core (login, prenotazioni, corsi).
+JWT, profilo utente, preferenze login; separato dal token OAuth YouTube gestito dalla hook / `appCacheService`.
 
 ---
 
-## 14. Debito tecnico e incongruenze osservabili
+## 11. Configurazioni runtime, native e deploy
 
-- possibile disallineamento tra identificativi app in config Expo e progetto Android nativo;
-- presenza di file/artefatti non centrali o legacy (esempi test/manuali);
-- feature profilo parzialmente placeholder;
-- permessi Android potenzialmente piu ampi del necessario.
+### 11.1 `app.json` (Expo)
 
-Questi elementi non bloccano il funzionamento base, ma incidono su robustezza, sicurezza e manutenibilita a medio termine.
+- Nome **Mobilitas Academy**, slug `mobilitas-academy`, **scheme** `mobilitas-academy` (deep link / OAuth).
+- **`newArchEnabled`: true** (Nuova architettura React Native).
+- **Android**: `edgeToEdgeEnabled`, package `com.mobilitas.academy`, adaptive icon.
+- **iOS**: `bundleIdentifier` `com.mobilitas.academy`, tablet, testo microfono in `infoPlist`.
+- **Plugin**: `expo-av` (permesso microfono con messaggio localizzato), **`expo-screen-orientation`**.
 
----
+### 11.2 `eas.json`
 
-## 15. Glossario dominio
+Profili **`development`** (client dev, simulatore iOS), **`preview`**, **`production`** (autoIncrement versione iOS).  
+Variabile comune: **`EXPO_PUBLIC_FIREBASE_USE_PRODUCTION`** (`false` in development, `true` in preview/production).  
+Sezione **`submit.production`** contiene placeholder Apple da sostituire prima del submit reale.
 
-- **Visita**: appuntamento clinico paziente-osteopata.
-- **Studio**: sede fisica in cui opera l'osteopata.
-- **Osteopata**: professionista sanitario coinvolto in agenda/prenotazioni.
-- **Paziente**: utente destinatario della visita.
-- **Acquisto**: pacchetto/servizio associato al paziente, usabile per prenotazioni.
-- **Servizio**: definizione commerciale/clinica di una prestazione.
-- **Disponibilita/Slot**: finestre temporali prenotabili.
-- **Corso/Modulo/Lezione**: gerarchia contenuti didattici.
-- **Sessione fitness**: evento sportivo prenotabile a calendario.
+### 11.3 Variabili ambiente
 
----
+**`.env.example`**: elenca Firebase, YouTube, Cloudflare; ribadisce che **`EXPO_PUBLIC_*`** è pubblico nel bundle e che l’**URL API principale non è configurabile da `.env`** (è in `src/api/index.ts`).
 
-## 16. Mappa file chiave (indice rapido)
+### 11.4 Android / iOS
 
-- Bootstrap e app shell:
-  - `index.ts`
-  - `App.tsx`
-- Contesto auth:
-  - `src/context/AuthContext.tsx`
-  - `src/services/authApi.ts`
-  - `src/services/authTokenStorage.ts`
-- Networking/API:
-  - `src/api/index.ts`
-- Formazione:
-  - `src/screens/CoursesScreen.tsx`
-  - `src/screens/CourseVideosScreen.tsx`
-  - `src/screens/VideoPlayerScreen.tsx`
-  - `src/services/formazioneService.ts`
-- Visite:
-  - `src/screens/visite/VisiteMenuScreen.tsx`
-  - `src/screens/visite/GestioneVisiteScreen.tsx`
-  - `src/screens/visite/BookVisitScreen.tsx`
-  - `src/services/visiteService.ts`
-- Fitness:
-  - `src/screens/FitnessScreen.tsx`
-  - `src/screens/fitness/FitnessSessionsCalendarScreen.tsx`
-  - `src/screens/fitness/FitnessBookingsScreen.tsx`
-  - `src/services/fitnessService.ts`
-- Profilo:
-  - `src/screens/ProfileScreen.tsx`
-- Integr. esterne:
-  - `src/services/youtubeService.ts`
-  - `src/services/firebaseService.ts`
-  - `src/services/cloudflareService.ts`
-- Config/build:
-  - `app.json`
-  - `eas.json`
-  - `.env.example`
-  - `android/app/src/main/AndroidManifest.xml`
-  - `ios/Mobilitas/Info.plist`
+- Android: `AndroidManifest.xml`, `build.gradle` sotto `android/app/`.
+- iOS: `ios/Mobilitas/Info.plist` (URL scheme allineato a Expo, orientamenti, ATS, dichiarazione crittografia).
 
 ---
 
-## 17. Piano evolutivo consigliato (90 giorni)
+## 12. UX tecnica: loading, errori, resilienza
 
-## 17.1 Fase 1 (settimane 1-3) - sicurezza e baseline qualita
-
-- migrazione secret fuori dal client;
-- hardening logging e gestione errori;
-- introduzione lint + typecheck in CI.
-
-## 17.2 Fase 2 (settimane 4-8) - affidabilita funzionale
-
-- test unitari su servizi critici (auth, visite, fitness, formazione);
-- test smoke dei percorsi principali;
-- allineamento config Expo/Android/iOS.
-
-## 17.3 Fase 3 (settimane 9-12) - UX e performance
-
-- ottimizzazione fetch/caching video e liste lunghe;
-- rifinitura stati vuoti/errori con UX consistente;
-- completamento aree profilo placeholder.
+- Indicatori di caricamento e pull-to-refresh dove implementati.
+- Messaggi user-facing centralizzati in parte tramite **`getUserFacingApiErrorMessage`** (`src/utils/apiErrorMessage.ts`).
+- **`ErrorBoundary`** in `App.tsx` per crash non gestiti.
+- Date picker e differenze iOS/Android dove presenti nelle schermate prenotazione.
+- Tab bar floating con padding bottom dedicato (`useTabBarBottomPadding`) per non coprire contenuti.
 
 ---
 
-## 18. Conclusione
+## 13. Sicurezza lato client
 
-L'app Mobilitas Academy presenta una base solida e gia funzionale su domini chiave (autenticazione, formazione video, visite, fitness), con una struttura frontend abbastanza chiara e modulare. Le principali priorita strategiche non sono tanto nella feature coverage, quanto nel consolidamento di:
+### 13.1 Punti positivi
 
-- sicurezza delle integrazioni terze;
-- automazione qualita (test/lint/CI);
-- coerenza di configurazione multi-piattaforma.
+- Documentazione esplicita su rischio `EXPO_PUBLIC_*` in `.env.example`.
+- Bearer + refresh centralizzato sugli endpoint protetti.
+- Percorsi preferiti per segreti YouTube: Firebase o endpoint backend, non env client in produzione.
 
-Intervenendo su questi tre assi, il progetto puo passare rapidamente da una buona base operativa a una piattaforma robusta, scalabile e pronta per cicli di rilascio piu rapidi e affidabili.
+### 13.2 Rischi
+
+- Possibilità teorica di configurare **client secret** / refresh token in variabili pubbliche se qualcuno compila `.env` in modo errato.
+- Logging dettagliato in `authApi` (login) in console: utile in dev, da mitigare in release se necessario.
+
+### 13.3 Raccomandazioni
+
+1. Nessun segreto OAuth nel client in build store.
+2. Proxy server-side per provider terzi.
+3. Ruotare chiavi eventualmente esposte.
+4. Ridurre log sensibili nelle build di produzione.
+
+---
+
+## 14. Qualità, test e tooling
+
+- TypeScript con **`"strict": true`** in `tsconfig.json` (estende `expo/tsconfig.base`).
+- **Non** risultano script **`test`**, **`lint`** o **`format`** in `package.json` al momento della stesura.
+- Impatto: QA prevalentemente manuale; consigliati lint, typecheck CI, test su servizi e smoke su login / prenotazioni / corsi.
+
+---
+
+## 15. Debito tecnico e incongruenze
+
+- `package.json` **name** non allineato al brand (`studio-osteopatico-frontend`).
+- Dipendenze **`react-native-youtube-iframe`** e **`react-native-webview`** senza uso in `src/`.
+- **`VideoPlayerScreen`**: per stream non-HLS l’esperienza di riproduzione è limitata rispetto a HLS.
+- Alcune azioni UI (es. «Segna come completato») possono essere placeholder — verificare il file prima di promettere comportamento in release.
+- Permessi Android: verificare che siano minimi necessari per le funzioni realmente usate.
+
+---
+
+## 16. Glossario dominio
+
+- **Visita**: appuntamento clinico paziente–osteopata.
+- **Studio**: sede fisica.
+- **Osteopata**: professionista in agenda e prenotazioni.
+- **Paziente**: destinatario della visita.
+- **Acquisto**: pacchetto/servizio prenotabile.
+- **Servizio**: definizione di prestazione.
+- **Disponibilità / slot**: finestre temporali prenotabili.
+- **Corso / modulo / lezione**: gerarchia didattica.
+- **Sessione fitness**: evento prenotabile a calendario.
+
+---
+
+## 17. Mappa file chiave (indice rapido)
+
+| Area | File |
+|------|------|
+| Bootstrap | `index.ts`, `App.tsx` |
+| Auth | `src/context/AuthContext.tsx`, `src/services/authApi.ts`, `src/services/authTokenStorage.ts` |
+| HTTP | `src/api/index.ts` |
+| Formazione | `src/screens/CoursesScreen.tsx`, `CourseVideosScreen.tsx`, `VideoPlayerScreen.tsx`, `src/services/formazioneService.ts`, `formazioneCourseContent.ts`, `src/hooks/useFormazioneCourses.ts`, `src/utils/hlsDuration.ts` |
+| Visite | `VisiteStack.tsx`, `VisiteMenuScreen.tsx`, `GestioneVisiteScreen.tsx`, `BookVisitScreen.tsx`, `src/services/visiteService.ts`, **`studioVisitsService.ts`** |
+| Fitness | `FitnessStack.tsx`, `FitnessScreen.tsx`, `FitnessSessionsCalendarScreen.tsx`, `FitnessBookingsScreen.tsx`, `src/services/fitnessService.ts` |
+| Profilo | `ProfileScreen.tsx`, **`appCacheService.ts`** |
+| YouTube / media | `youtubeService.ts`, **`youtubeTokenService.ts`**, `firebaseService.ts`, `cloudflareService.ts`, `useYouTubeAuth.ts`, `useYouTubePlaylist.ts`, `useYouTubeChannelPlaylists.ts` |
+| Errori UI | `src/utils/apiErrorMessage.ts` |
+| Build | `app.json`, `eas.json`, `.env.example`, `android/app/src/main/AndroidManifest.xml`, `ios/Mobilitas/Info.plist` |
+
+---
+
+## 18. Piano evolutivo consigliato (90 giorni)
+
+### Fase 1 (settimane 1–3) — Sicurezza e baseline
+
+- Nessun segreto nel client; hardening logging.
+- Lint + typecheck in CI.
+
+### Fase 2 (settimane 4–8) — Affidabilità
+
+- Test unitari su `authApi`, interceptor, servizi visite/fitness/formazione.
+- Smoke E2E su flussi principali.
+- Allineamento naming npm / repo se richiesto dal team release.
+
+### Fase 3 (settimane 9–12) — UX e performance
+
+- Caching liste lunghe e strategie query React Query.
+- UX coerente per vuoti ed errori.
+- Completamento player per formati non-HLS o rimozione dipendenze inutilizzate.
+
+---
+
+## 19. Conclusione
+
+Mobilitas Academy ha una base solida su **autenticazione con refresh**, **formazione video HLS**, **visite** (incluso catalogo studi/slot tramite `studioVisitsService`) e **fitness**, con navigazione chiara e servizi separati per dominio. Le priorità strategiche restano: **sicurezza delle integrazioni**, **qualità automatizzata** (test/lint/CI) e **coerenza tra config store, nome pacchetto npm e dipendenze effettivamente usate**. Intervenendo su questi assi, il progetto resta pronto per rilasci rapidi e controllati.

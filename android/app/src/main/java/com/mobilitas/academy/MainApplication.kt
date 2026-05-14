@@ -1,4 +1,4 @@
-package com.anonymous.studioosteopaticofrontend
+package com.mobilitas.academy
 
 import android.app.Application
 import android.content.res.Configuration
