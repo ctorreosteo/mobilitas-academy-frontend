@@ -6,14 +6,28 @@ import {
   setStoredUserProfile,
   clearAllAuth,
 } from '../services/authTokenStorage';
+import { resolveDevBackendOrigin } from '../utils/resolveDevBackendUrl';
 
-/** Backend API in produzione (unica origine usata dal client). */
+/** Backend API in produzione. */
 const PRODUCTION_BACKEND_ORIGIN = 'https://mobilitas-backend-990845221858.europe-west8.run.app';
 
-export const API_BASE_URL = `${PRODUCTION_BACKEND_ORIGIN}/api`;
+const USE_PRODUCTION_IN_DEV = process.env.EXPO_PUBLIC_API_USE_PRODUCTION === 'true';
+const LOCAL_BACKEND_ORIGIN = (
+  process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://localhost:8080'
+).replace(/\/$/, '');
+
+function getBackendOrigin(): string {
+  if (!__DEV__ || USE_PRODUCTION_IN_DEV) {
+    return PRODUCTION_BACKEND_ORIGIN;
+  }
+  return resolveDevBackendOrigin(LOCAL_BACKEND_ORIGIN);
+}
+
+export const API_ORIGIN = getBackendOrigin();
+export const API_BASE_URL = `${API_ORIGIN}/api`;
 
 if (__DEV__) {
-  console.log('[API] base URL', API_BASE_URL);
+  console.log('[API] base URL', API_BASE_URL, USE_PRODUCTION_IN_DEV ? '(produzione forzata)' : '(locale)');
 }
 
 export const apiClient = axios.create({

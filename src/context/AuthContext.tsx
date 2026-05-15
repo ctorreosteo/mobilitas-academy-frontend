@@ -20,6 +20,10 @@ import {
   persistLoginSession,
   restorePersistedSession,
 } from '../services/authApi';
+import {
+  clearFitnessSessionCatalogCache,
+  prefetchFitnessSessionCatalog,
+} from '../services/fitnessCatalogPrefetch';
 import { isAxiosError } from 'axios';
 
 export type SignInOptions = {
@@ -72,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ]);
           setToken(validatedToken);
           setUserProfile(validatedProfile);
+          prefetchFitnessSessionCatalog();
         } else {
           setToken(null);
           setUserProfile(null);
@@ -114,12 +119,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       await setRememberUsernamePreference(!!options?.rememberUsername, username.trim());
       queryClient.invalidateQueries();
+      prefetchFitnessSessionCatalog();
     },
     [queryClient]
   );
 
   const signOut = useCallback(async () => {
     await logoutMobilitas();
+    clearFitnessSessionCatalogCache();
     setToken(null);
     setUserProfile(null);
     queryClient.clear();

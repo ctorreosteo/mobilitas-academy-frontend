@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -20,14 +21,25 @@ import {
   creaPrenotazioneSessioneFitness,
   fetchCalendarioSessioniFitness,
   fetchPartecipazioniSessioniFitness,
+  fetchSessioniFitness,
   type CalendarioSessioneFitnessDto,
 } from '../../services/fitnessService';
+import {
+  applyFitnessSessionCatalog,
+  getFitnessSessionCoversRecord,
+  prefetchFitnessSessionCatalog,
+  subscribeFitnessSessionCatalog,
+} from '../../services/fitnessCatalogPrefetch';
+import { pickCoverImageUrl } from '../../utils/pickCoverImageUrl';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const FITNESS_CALENDAR_WHATSAPP =
   "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a usare il calendario fitness / le sessioni. Potete aiutarmi? Grazie.";
+
+/** Altezza area copertina card sessione (px). */
+const SESSION_COVER_HEIGHT = 184;
 
 function toHour(time: string): string {
   return time.slice(0, 5);
@@ -56,6 +68,7 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const [visibleMonth, setVisibleMonth] = useState(startOfMonth(new Date()));
   const [calendarRows, setCalendarRows] = useState<CalendarioSessioneFitnessDto[]>([]);
+  const [coverBySessionId, setCoverBySessionId] = useState<Record<number, string | null>>({});
   const [mySessionIds, setMySessionIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [bookingSessionId, setBookingSessionId] = useState<number | null>(null);
@@ -64,14 +77,28 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const utenteId = userProfile?.utenteId ?? null;
 
+  useEffect(() => {
+    setCoverBySessionId(getFitnessSessionCoversRecord());
+    return subscribeFitnessSessionCatalog(() => {
+      setCoverBySessionId(getFitnessSessionCoversRecord());
+    });
+  }, []);
+
   const loadCalendar = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [calendar, bookings] = await Promise.all([
+      const [calendar, bookings, sessioni] = await Promise.all([
         fetchCalendarioSessioniFitness({ data: selectedDate }),
         fetchPartecipazioniSessioniFitness(),
+        fetchSessioniFitness().catch(() => []),
       ]);
+      if (sessioni.length > 0) {
+        applyFitnessSessionCatalog(sessioni);
+        setCoverBySessionId(
+          Object.fromEntries(sessioni.map((s) => [s.id, s.immagineCopertinaUrl ?? null]))
+        );
+      }
       setCalendarRows(calendar);
       if (utenteId) {
         const mine = bookings.filter((item) => item.utenteId === utenteId).map((item) => item.sessioneId);
@@ -94,8 +121,18 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      void prefetchFitnessSessionCatalog();
       loadCalendar();
     }, [loadCalendar])
+  );
+
+  const getSessionCoverUrl = useCallback(
+    (row: CalendarioSessioneFitnessDto) =>
+      pickCoverImageUrl(
+        row.sessioneImmagineCopertinaUrl,
+        coverBySessionId[row.sessioneId]
+      ),
+    [coverBySessionId]
   );
 
   const selectedDateLabel = useMemo(() => {
@@ -257,8 +294,18 @@ const FitnessSessionsCalendarScreen: React.FC = () => {
           ? calendarRows.map((row) => {
               const alreadyBooked = mySessionIds.has(row.sessioneId);
               const bookingThis = bookingSessionId === row.sessioneId;
+              const coverUrl = getSessionCoverUrl(row);
               return (
                 <View key={row.id} style={styles.sessionCard}>
+                  {coverUrl ? (
+                    <View style={styles.sessionCoverWrap}>
+                      <Image
+                        source={{ uri: coverUrl }}
+                        style={styles.sessionCover}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  ) : null}
                   <View style={styles.sessionTop}>
                     <Text style={styles.sessionTitle}>{row.sessioneNome}</Text>
                     <Text style={styles.sessionHour}>
@@ -504,6 +551,21 @@ const styles = StyleSheet.create({
     backgroundColor: withOpacity(theme.colors.primary, 0.45),
     padding: 14,
     gap: 8,
+    overflow: 'hidden',
+  },
+  sessionCoverWrap: {
+    marginHorizontal: -14,
+    marginTop: -14,
+    marginBottom: 4,
+    height: SESSION_COVER_HEIGHT,
+    overflow: 'hidden',
+    borderTopLeftRadius: 13,
+    borderTopRightRadius: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: withOpacity(theme.colors.secondary, 0.2),
+  },
+  sessionCover: {
+    ...StyleSheet.absoluteFillObject,
   },
   sessionTop: {
     flexDirection: 'row',

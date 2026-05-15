@@ -1,6 +1,17 @@
 import { isAxiosError } from 'axios';
 import { apiClient } from '../api';
 import type { ApiResponseDto } from './formazioneService';
+import { pickCoverImageUrl } from '../utils/pickCoverImageUrl';
+
+export interface SessioneFitnessDto {
+  id: number;
+  nome: string;
+  descrizione: string;
+  numeroMassimoPartecipanti: number;
+  durata: number;
+  tags: string;
+  immagineCopertinaUrl: string | null;
+}
 
 export interface CalendarioSessioneFitnessDto {
   id: number;
@@ -10,6 +21,7 @@ export interface CalendarioSessioneFitnessDto {
   sessioneId: number;
   sessioneNome: string;
   sessioneDescrizione?: string | null;
+  sessioneImmagineCopertinaUrl?: string | null;
   istruttoreId: number;
   istruttoreNomeCompleto: string;
 }
@@ -35,6 +47,32 @@ export interface FetchCalendarioSessioniFitnessParams {
   istruttoreId?: number;
 }
 
+function normalizeSessioneFitness(raw: SessioneFitnessDto & Record<string, unknown>): SessioneFitnessDto {
+  return {
+    ...raw,
+    immagineCopertinaUrl: pickCoverImageUrl(
+      raw.immagineCopertinaUrl,
+      raw.immagine_copertina_url,
+      raw.immagineCopertina
+    ),
+  };
+}
+
+function normalizeCalendarioRow(
+  raw: CalendarioSessioneFitnessDto & Record<string, unknown>
+): CalendarioSessioneFitnessDto {
+  const cover = pickCoverImageUrl(
+    raw.sessioneImmagineCopertinaUrl,
+    raw.sessione_immagine_copertina_url,
+    raw.immagineCopertinaUrl,
+    raw.immagine_copertina_url
+  );
+  return {
+    ...raw,
+    sessioneImmagineCopertinaUrl: cover ?? raw.sessioneImmagineCopertinaUrl ?? null,
+  };
+}
+
 function sortCalendarRows(rows: CalendarioSessioneFitnessDto[]): CalendarioSessioneFitnessDto[] {
   return [...rows].sort((a, b) => {
     const byDate = a.data.localeCompare(b.data);
@@ -57,6 +95,28 @@ function extractFitnessApiError(error: unknown): Error {
     : new Error('Impossibile comunicare con il servizio fitness');
 }
 
+export function parseSessioneFitnessTags(tags: string | null | undefined): string[] {
+  if (!tags?.trim()) return [];
+  return tags
+    .split(';')
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+export async function fetchSessioniFitness(): Promise<SessioneFitnessDto[]> {
+  try {
+    const { data } = await apiClient.get<ApiResponseDto<SessioneFitnessDto[]>>('/fitness/sessioni');
+    if (!data.success || !Array.isArray(data.data)) {
+      throw new Error(data.message || data.error || 'Impossibile caricare il catalogo sessioni fitness');
+    }
+    return data.data.map((row) =>
+      normalizeSessioneFitness(row as SessioneFitnessDto & Record<string, unknown>)
+    );
+  } catch (error) {
+    throw extractFitnessApiError(error);
+  }
+}
+
 export async function fetchCalendarioSessioniFitness(
   params?: FetchCalendarioSessioniFitnessParams
 ): Promise<CalendarioSessioneFitnessDto[]> {
@@ -68,7 +128,11 @@ export async function fetchCalendarioSessioniFitness(
     if (!data.success || !Array.isArray(data.data)) {
       throw new Error(data.message || data.error || 'Impossibile caricare il calendario fitness');
     }
-    return sortCalendarRows(data.data);
+    return sortCalendarRows(
+      data.data.map((row) =>
+        normalizeCalendarioRow(row as CalendarioSessioneFitnessDto & Record<string, unknown>)
+      )
+    );
   } catch (error) {
     throw extractFitnessApiError(error);
   }
