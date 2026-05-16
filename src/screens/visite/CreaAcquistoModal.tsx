@@ -15,6 +15,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import {
   createAcquisto,
   type AcquistoDto,
@@ -95,8 +96,14 @@ export function CreaAcquistoModal({
       onCreated(acquisto);
       onClose();
     },
-    onError: (e: Error) => {
-      Alert.alert('Creazione non riuscita', e.message || 'Riprova più tardi.');
+    onError: (e: unknown) => {
+      Alert.alert(
+        'Creazione non riuscita',
+        getUserFacingApiErrorMessage(e, {
+          context: 'Impossibile creare l’acquisto',
+          fallback: 'Riprova più tardi.',
+        })
+      );
     },
   });
 
@@ -163,7 +170,9 @@ export function CreaAcquistoModal({
                   ListEmptyComponent={
                     <Text style={styles.pickerEmpty}>
                       {serviziQuery.isError
-                        ? (serviziQuery.error as Error)?.message ?? 'Errore di caricamento.'
+                        ? getUserFacingApiErrorMessage(serviziQuery.error, {
+                            context: 'Impossibile caricare i servizi',
+                          })
                         : 'Nessun servizio attivo in questa data (lato server).'}
                     </Text>
                   }
@@ -221,7 +230,11 @@ export function CreaAcquistoModal({
                   </View>
                 ) : null}
                 {serviziQuery.isError ? (
-                  <Text style={styles.errorText}>{serviziQuery.error?.message}</Text>
+                  <Text style={styles.errorText}>
+                    {getUserFacingApiErrorMessage(serviziQuery.error, {
+                      context: 'Impossibile caricare i servizi',
+                    })}
+                  </Text>
                 ) : null}
                 <Pressable
                   style={[styles.select, serviziQuery.isPending && styles.selectDisabled]}

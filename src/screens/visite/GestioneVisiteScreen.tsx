@@ -32,6 +32,7 @@ import {
 } from './visiteFormatting';
 import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 
 function isOsteopathRole(ruoli: string[] | undefined): boolean {
   if (!ruoli?.length) return false;
@@ -154,10 +155,22 @@ const GestioneVisiteScreen: React.FC = () => {
     }
   }, [profileQuery, osteopathAgenda, visiteOsteopataQuery, visitePazienteQuery]);
 
-  const profileError = profileQuery.error?.message;
+  const profileError = profileQuery.error
+    ? getUserFacingApiErrorMessage(profileQuery.error, {
+        context: 'Impossibile caricare il profilo',
+      })
+    : null;
   const visiteError = osteopathAgenda
-    ? visiteOsteopataQuery.error?.message
-    : visitePazienteQuery.error?.message;
+    ? visiteOsteopataQuery.error
+      ? getUserFacingApiErrorMessage(visiteOsteopataQuery.error, {
+          context: 'Impossibile caricare l’agenda del giorno',
+        })
+      : null
+    : visitePazienteQuery.error
+      ? getUserFacingApiErrorMessage(visitePazienteQuery.error, {
+          context: 'Impossibile caricare le visite',
+        })
+      : null;
   const visiteOsteoList = visiteOsteopataQuery.data ?? [];
   const visitePazienteList = visitePazienteQuery.data ?? [];
 

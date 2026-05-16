@@ -9,6 +9,18 @@ import type { ApiResponseDto } from './formazioneService';
  */
 export type VisitaSortOrder = 'ASC' | 'DESC';
 
+/** Valori `Visita.StatusVisita` lato backend. */
+export type VisitaStatus =
+  | 'PRENOTATA'
+  | 'EFFETTUATA'
+  | 'NO_SHOW_CONTA'
+  | 'NO_SHOW_NON_CONTA'
+  | 'DISDETTA';
+
+/** Vista agenda/calendario: tutte tranne le disdette. */
+export const VISITA_STATUS_AGENDA_CSV =
+  'PRENOTATA,EFFETTUATA,NO_SHOW_CONTA,NO_SHOW_NON_CONTA';
+
 export interface VisitaMinimaleDto {
   id: number;
   dataVisita: string;
@@ -60,6 +72,7 @@ export type VisitaCreataDto = VisitaMinimaleDto & {
 
 /**
  * GET /api/visite — agenda osteopata per un singolo giorno (stessa data su inizio/fine).
+ * Esclude le disdette tramite {@link VISITA_STATUS_AGENDA_CSV}.
  */
 export async function fetchVisiteOsteopataGiorno(params: {
   osteopataId: number;
@@ -74,6 +87,7 @@ export async function fetchVisiteOsteopataGiorno(params: {
       osteopataId,
       dataInizio,
       dataFine,
+      statusVisita: VISITA_STATUS_AGENDA_CSV,
       sortBy: 'oraInizio',
       sortDir: 'asc',
       page,

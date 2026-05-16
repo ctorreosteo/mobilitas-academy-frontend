@@ -61,6 +61,7 @@ import {
   studioLabel,
   toLocalYmd,
 } from './visiteFormatting';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 
 function initialVisitYmdTomorrow(): string {
   const t = new Date();
@@ -291,8 +292,14 @@ const BookVisitScreen: React.FC = () => {
       navigation.popToTop();
       Alert.alert('Prenotazione registrata', 'Riceverai conferma secondo le procedure dello studio.');
     },
-    onError: (e: Error) => {
-      Alert.alert('Errore', e.message || 'Impossibile completare la prenotazione');
+    onError: (e: unknown) => {
+      Alert.alert(
+        'Errore',
+        getUserFacingApiErrorMessage(e, {
+          context: 'Impossibile completare la prenotazione',
+          fallback: 'Impossibile completare la prenotazione. Riprova più tardi.',
+        })
+      );
     },
   });
 
@@ -492,9 +499,19 @@ const BookVisitScreen: React.FC = () => {
     );
   };
 
-  const studiError = studiQuery.error?.message;
-  const osteopatiError = osteopatiQuery.error?.message;
-  const disponibilitaError = disponibilitaQuery.error?.message;
+  const studiError = studiQuery.error
+    ? getUserFacingApiErrorMessage(studiQuery.error, { context: 'Impossibile caricare gli studi' })
+    : null;
+  const osteopatiError = osteopatiQuery.error
+    ? getUserFacingApiErrorMessage(osteopatiQuery.error, {
+        context: 'Impossibile caricare gli osteopati',
+      })
+    : null;
+  const disponibilitaError = disponibilitaQuery.error
+    ? getUserFacingApiErrorMessage(disponibilitaQuery.error, {
+        context: 'Impossibile caricare le disponibilità',
+      })
+    : null;
 
   const canShowConfirmFooter =
     osteopataId != null &&
@@ -602,7 +619,9 @@ const BookVisitScreen: React.FC = () => {
                           )}
                           {pazientiSearchQuery.error && (
                             <Text style={styles.inlineError}>
-                              {pazientiSearchQuery.error.message}
+                              {getUserFacingApiErrorMessage(pazientiSearchQuery.error, {
+                                context: 'Impossibile cercare i pazienti',
+                              })}
                             </Text>
                           )}
                           {!pazientiSearchQuery.isFetching &&
@@ -666,7 +685,10 @@ const BookVisitScreen: React.FC = () => {
                       ) : null}
                       {acquistiQuery.isError ? (
                         <Text style={styles.inlineError}>
-                          {acquistiQuery.error?.message ?? 'Impossibile caricare gli acquisti'}
+                          {getUserFacingApiErrorMessage(acquistiQuery.error, {
+                            context: 'Impossibile caricare gli acquisti',
+                            fallback: 'Impossibile caricare gli acquisti. Riprova più tardi.',
+                          })}
                         </Text>
                       ) : null}
                       <Pressable
