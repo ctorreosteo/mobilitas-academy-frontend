@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -147,6 +147,8 @@ const CoursesStack = () => {
 };
 
 function MainTabNavigator() {
+  const { bottom: bottomInset } = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -159,7 +161,7 @@ function MainTabNavigator() {
           position: 'absolute',
           left: 14,
           right: 14,
-          bottom: 0,
+          bottom: bottomInset,
           borderRadius: 24,
           backgroundColor: tabBarColors.background,
           borderTopWidth: 1,

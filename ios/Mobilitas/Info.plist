@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -33,7 +33,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSMinimumSystemVersion</key>
@@ -48,7 +48,7 @@
 		<true/>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>L'accesso al microfono è richiesto esclusivamente per supportare le funzionalità di riproduzione audio e video durante le lezioni interattive. Mobilitas Academy non registra, non memorizza e non trasmette alcun dato audio dell'utente.</string>
+	<string>L&apos;accesso al microfono è richiesto esclusivamente per supportare le funzionalità di riproduzione audio e video durante le lezioni interattive. Mobilitas Academy non registra, non memorizza e non trasmette alcun dato audio dell&apos;utente.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
