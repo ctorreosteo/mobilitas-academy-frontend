@@ -17,9 +17,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
 import {
+  fetchCalendarioCompletoGiorno,
   fetchVisiteByPaziente,
-  fetchVisiteOsteopataGiorno,
-  type VisitaAgendaDto,
+  type CalendarioEventoItem,
+  type CalendarioItemDto,
+  type CalendarioNonReperibilitaItem,
+  type CalendarioVisitaItem,
 } from '../../services/visiteService';
 import { fetchCurrentUser } from '../../services/authApi';
 import {
@@ -27,7 +30,9 @@ import {
   formatDayTitle,
   formatOraDisplay,
   formatPrezzoEUR,
+  formatTimelineFascia,
   formatWeekdayLongIt,
+  tipoEventoLabel,
   toLocalYmd,
 } from './visiteFormatting';
 import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
@@ -39,12 +44,116 @@ function isOsteopathRole(ruoli: string[] | undefined): boolean {
   return ruoli.some((r) => String(r).toUpperCase().includes('OSTEOPATA'));
 }
 
-function patientName(v: VisitaAgendaDto): string {
-  const flat = [v.pazienteNome, v.pazienteCognome].filter(Boolean).join(' ').trim();
+function joinNomeCognome(
+  nome?: string | null,
+  cognome?: string | null,
+  nested?: { nome?: string | null; cognome?: string | null } | null
+): string {
+  const flat = [nome, cognome].filter(Boolean).join(' ').trim();
   if (flat) return flat;
-  const p = v.paziente;
-  const nested = p ? [p.nome, p.cognome].filter(Boolean).join(' ').trim() : '';
-  return nested || 'Paziente';
+  return nested ? [nested.nome, nested.cognome].filter(Boolean).join(' ').trim() : '';
+}
+
+function itemStudioNome(item: CalendarioItemDto): string {
+  return item.studioNome?.trim() || item.studio?.nome?.trim() || '';
+}
+
+function itemStanzaNome(item: CalendarioItemDto): string {
+  return item.stanzaNome?.trim() || item.stanza?.nome?.trim() || '';
+}
+
+function AgendaLuogoRows({ item }: { item: CalendarioItemDto }) {
+  const studio = itemStudioNome(item);
+  const stanza = itemStanzaNome(item);
+  return (
+    <>
+      {studio ? <Text style={styles.bookingMeta}>Studio: {studio}</Text> : null}
+      {stanza ? <Text style={styles.bookingMeta}>Stanza: {stanza}</Text> : null}
+    </>
+  );
+}
+
+function patientName(v: CalendarioVisitaItem): string {
+  return joinNomeCognome(v.pazienteNome, v.pazienteCognome, v.paziente) || 'Paziente';
+}
+
+function calendarioItemKey(item: CalendarioItemDto): string {
+  return `${item.tipo}-${item.id}`;
+}
+
+function eventoTitolo(item: CalendarioEventoItem): string {
+  const titolo = item.titolo?.trim();
+  if (titolo) return titolo;
+  return tipoEventoLabel(item.tipoEvento);
+}
+
+function VisitaAgendaCard({ item }: { item: CalendarioVisitaItem }) {
+  const orario = formatTimelineFascia(item);
+  return (
+    <View style={styles.bookingCard}>
+      <View style={styles.bookingTopRow}>
+        <Text style={styles.bookingPatientName} numberOfLines={3}>
+          {patientName(item)}
+        </Text>
+        <Text style={styles.bookingTimeRight} numberOfLines={2}>
+          {orario || '—'}
+        </Text>
+      </View>
+      {item.siglaVisita ? <Text style={styles.bookingStato}>{item.siglaVisita}</Text> : null}
+      <AgendaLuogoRows item={item} />
+    </View>
+  );
+}
+
+function EventoAgendaCard({ item }: { item: CalendarioEventoItem }) {
+  const orario = formatTimelineFascia(item);
+  const tipoLabel = tipoEventoLabel(item.tipoEvento);
+  const titolo = eventoTitolo(item);
+  const showTipo = Boolean(item.tipoEvento) && titolo !== tipoLabel;
+  const descrizione = item.descrizione?.trim();
+  return (
+    <View style={[styles.bookingCard, styles.bookingCardEvento]}>
+      <View style={styles.bookingKindRow}>
+        <Ionicons name="calendar-outline" size={14} color={theme.colors.accent} />
+        <Text style={styles.bookingKindEvento}>{showTipo ? tipoLabel : 'Evento'}</Text>
+      </View>
+      <View style={styles.bookingTopRow}>
+        <Text style={styles.bookingEventoTitle} numberOfLines={3}>
+          {titolo}
+        </Text>
+        <Text style={styles.bookingTimeRight} numberOfLines={2}>
+          {orario || '—'}
+        </Text>
+      </View>
+      {descrizione ? (
+        <Text style={styles.bookingDescrizione} numberOfLines={3}>
+          {descrizione}
+        </Text>
+      ) : null}
+      <AgendaLuogoRows item={item} />
+    </View>
+  );
+}
+
+function AssenzaAgendaCard({ item }: { item: CalendarioNonReperibilitaItem }) {
+  const orario = formatTimelineFascia(item);
+  const motivo = item.motivo?.trim();
+  return (
+    <View style={[styles.bookingCard, styles.bookingCardAssenza]}>
+      <View style={styles.bookingKindRow}>
+        <Ionicons name="remove-circle-outline" size={14} color={theme.colors.error} />
+        <Text style={styles.bookingKindAssenza}>Non disponibile</Text>
+      </View>
+      <View style={styles.bookingTopRow}>
+        <Text style={styles.bookingAssenzaTitle} numberOfLines={3}>
+          {motivo || 'Assenza'}
+        </Text>
+        <Text style={styles.bookingTimeRight} numberOfLines={2}>
+          {orario || '—'}
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 const GestioneVisiteScreen: React.FC = () => {
@@ -131,10 +240,10 @@ const GestioneVisiteScreen: React.FC = () => {
     enabled: !osteopathAgenda && typeof pazienteId === 'number' && pazienteId > 0,
   });
 
-  const visiteOsteopataQuery = useQuery({
-    queryKey: ['visite-osteopata-giorno', osteopataId, giornoYmd],
+  const calendarioOsteopataQuery = useQuery({
+    queryKey: ['calendario-completo', osteopataId, giornoYmd],
     queryFn: () =>
-      fetchVisiteOsteopataGiorno({
+      fetchCalendarioCompletoGiorno({
         osteopataId: osteopataId!,
         dataInizio: giornoYmd,
         dataFine: giornoYmd,
@@ -144,16 +253,16 @@ const GestioneVisiteScreen: React.FC = () => {
 
   const refreshing =
     profileQuery.isFetching ||
-    (osteopathAgenda ? visiteOsteopataQuery.isFetching : visitePazienteQuery.isFetching);
+    (osteopathAgenda ? calendarioOsteopataQuery.isFetching : visitePazienteQuery.isFetching);
 
   const onRefresh = useCallback(() => {
     profileQuery.refetch();
     if (osteopathAgenda) {
-      visiteOsteopataQuery.refetch();
+      calendarioOsteopataQuery.refetch();
     } else {
       visitePazienteQuery.refetch();
     }
-  }, [profileQuery, osteopathAgenda, visiteOsteopataQuery, visitePazienteQuery]);
+  }, [profileQuery, osteopathAgenda, calendarioOsteopataQuery, visitePazienteQuery]);
 
   const profileError = profileQuery.error
     ? getUserFacingApiErrorMessage(profileQuery.error, {
@@ -161,8 +270,8 @@ const GestioneVisiteScreen: React.FC = () => {
       })
     : null;
   const visiteError = osteopathAgenda
-    ? visiteOsteopataQuery.error
-      ? getUserFacingApiErrorMessage(visiteOsteopataQuery.error, {
+    ? calendarioOsteopataQuery.error
+      ? getUserFacingApiErrorMessage(calendarioOsteopataQuery.error, {
           context: 'Impossibile caricare l’agenda del giorno',
         })
       : null
@@ -171,7 +280,7 @@ const GestioneVisiteScreen: React.FC = () => {
           context: 'Impossibile caricare le visite',
         })
       : null;
-  const visiteOsteoList = visiteOsteopataQuery.data ?? [];
+  const calendarioOsteoList = calendarioOsteopataQuery.data ?? [];
   const visitePazienteList = visitePazienteQuery.data ?? [];
 
   const showPatientEmptyState =
@@ -200,7 +309,7 @@ const GestioneVisiteScreen: React.FC = () => {
       <View style={styles.lead}>
         <Text style={styles.leadText}>
           {osteopathAgenda
-            ? 'Agenda del giorno: visite in ordine di orario. Scegli la data per caricare l’elenco.'
+            ? 'Agenda del giorno: visite, eventi e assenze in ordine di orario. Scegli la data per caricare l’elenco.'
             : 'Prenotate, effettuate, disdette e altri stati — ordine dalla più recente.'}
         </Text>
       </View>
@@ -293,10 +402,10 @@ const GestioneVisiteScreen: React.FC = () => {
           </View>
         )}
 
-        {osteopathAgenda && visiteOsteopataQuery.isLoading && (
+        {osteopathAgenda && calendarioOsteopataQuery.isLoading && (
           <View style={styles.centered}>
             <ActivityIndicator color={theme.colors.secondary} />
-            <Text style={styles.muted}>Caricamento visite del giorno…</Text>
+            <Text style={styles.muted}>Caricamento agenda del giorno…</Text>
           </View>
         )}
 
@@ -313,10 +422,10 @@ const GestioneVisiteScreen: React.FC = () => {
         {visiteError && <Text style={styles.inlineError}>{visiteError}</Text>}
 
         {osteopathAgenda &&
-          !visiteOsteopataQuery.isLoading &&
+          !calendarioOsteopataQuery.isLoading &&
           !visiteError &&
-          visiteOsteoList.length === 0 && (
-            <Text style={styles.muted}>Nessuna visita in questo giorno.</Text>
+          calendarioOsteoList.length === 0 && (
+            <Text style={styles.muted}>Nessun impegno in questo giorno.</Text>
           )}
 
         {!osteopathAgenda &&
@@ -329,38 +438,17 @@ const GestioneVisiteScreen: React.FC = () => {
           )}
 
         {osteopathAgenda
-          ? visiteOsteoList.map((v) => {
-              const prezzo = formatPrezzoEUR(v.prezzoVisita);
-              const oraIn = formatOraDisplay(v.oraInizio);
-              const oraOut = formatOraDisplay(v.oraFine);
-              const orario =
-                oraIn && oraOut && oraOut !== oraIn ? `${oraIn} – ${oraOut}` : oraIn || oraOut || '';
-              const studioNome = v.studio?.nome?.trim();
-              return (
-                <View key={v.id} style={styles.bookingCard}>
-                  <View style={styles.bookingTopRow}>
-                    <Text style={styles.bookingPatientName} numberOfLines={3}>
-                      {patientName(v)}
-                    </Text>
-                    <Text style={styles.bookingTimeRight} numberOfLines={2}>
-                      {orario || '—'}
-                    </Text>
-                  </View>
-                  {studioNome ? (
-                    <Text style={styles.bookingMeta}>Studio: {studioNome}</Text>
-                  ) : null}
-                  {v.siglaVisita ? (
-                    <Text style={styles.bookingStato}>Sigla: {v.siglaVisita}</Text>
-                  ) : null}
-                  {v.statusVisita ? (
-                    <Text style={styles.bookingStato}>Stato visita: {v.statusVisita}</Text>
-                  ) : null}
-                  {v.statusPagamento ? (
-                    <Text style={styles.bookingStato}>Pagamento: {v.statusPagamento}</Text>
-                  ) : null}
-                  {prezzo ? <Text style={styles.bookingStato}>Importo: {prezzo}</Text> : null}
-                </View>
-              );
+          ? calendarioOsteoList.map((item) => {
+              if (item.tipo === 'EVENTO') {
+                return <EventoAgendaCard key={calendarioItemKey(item)} item={item} />;
+              }
+              if (item.tipo === 'NON_REPERIBILITA') {
+                return <AssenzaAgendaCard key={calendarioItemKey(item)} item={item} />;
+              }
+              if (item.tipo === 'VISITA') {
+                return <VisitaAgendaCard key={calendarioItemKey(item)} item={item} />;
+              }
+              return null;
             })
           : visitePazienteList.map((v) => {
               const prezzo = formatPrezzoEUR(v.prezzoVisita);
@@ -376,7 +464,7 @@ const GestioneVisiteScreen: React.FC = () => {
                       'Osteopata non assegnato'}
                   </Text>
                   {v.siglaVisita ? (
-                    <Text style={styles.bookingStato}>Sigla: {v.siglaVisita}</Text>
+                    <Text style={styles.bookingStato}>{v.siglaVisita}</Text>
                   ) : null}
                   {v.statusVisita ? (
                     <Text style={styles.bookingStato}>Stato visita: {v.statusVisita}</Text>
@@ -617,6 +705,50 @@ const styles = StyleSheet.create({
     borderColor: withOpacity(theme.colors.secondary, 0.2),
     backgroundColor: withOpacity(theme.colors.primary, 0.45),
   },
+  bookingCardEvento: {
+    borderColor: withOpacity(theme.colors.accent, 0.35),
+    backgroundColor: withOpacity(theme.colors.accent, 0.08),
+  },
+  bookingCardAssenza: {
+    borderColor: withOpacity(theme.colors.error, 0.28),
+    backgroundColor: withOpacity(theme.colors.error, 0.08),
+  },
+  bookingKindRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  bookingKindEvento: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    color: theme.colors.accent,
+    textTransform: 'uppercase',
+  },
+  bookingKindAssenza: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    color: theme.colors.error,
+    textTransform: 'uppercase',
+  },
+  bookingEventoTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.text.secondary,
+    lineHeight: 20,
+  },
+  bookingAssenzaTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+    fontWeight: '600',
+    color: withOpacity(theme.colors.text.secondary, 0.92),
+    lineHeight: 20,
+  },
   bookingWhen: {
     fontSize: 16,
     fontWeight: '600',
@@ -648,6 +780,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     color: theme.colors.secondary,
+  },
+  bookingDescrizione: {
+    marginTop: 8,
+    fontSize: 13,
+    lineHeight: 19,
+    color: theme.colors.text.secondary,
+    opacity: 0.88,
   },
   bookingStato: {
     marginTop: 6,

@@ -286,7 +286,7 @@ const BookVisitScreen: React.FC = () => {
     onSuccess: () => {
       setSlotSelezionato(null);
       queryClient.invalidateQueries({ queryKey: ['visite-by-paziente'] });
-      queryClient.invalidateQueries({ queryKey: ['visite-osteopata-giorno'] });
+      queryClient.invalidateQueries({ queryKey: ['calendario-completo'] });
       queryClient.invalidateQueries({ queryKey: ['visite-disponibilita'] });
       queryClient.invalidateQueries({ queryKey: ['acquisti-paziente'] });
       navigation.popToTop();

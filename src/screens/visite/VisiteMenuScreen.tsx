@@ -45,7 +45,7 @@ const VisiteMenuScreen: React.FC = () => {
           </View>
           <Text style={styles.cardTitle}>Gestisci le tue visite</Text>
           <Text style={styles.cardHint}>
-            Elenco delle tue visite (stato, pagamento, date) dal server.
+            Agenda del giorno con visite, eventi e assenze, oppure lo storico delle tue visite.
           </Text>
         </Pressable>
 

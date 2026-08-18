@@ -112,6 +112,71 @@ export function formatOraDisplay(ora: string | null | undefined): string {
   return ora.length >= 5 ? ora.slice(0, 5) : ora;
 }
 
+/** Estrae `HH:mm` da `YYYY-MM-DDTHH:mm:ss` senza interpretarlo come UTC. */
+export function formatLocalDateTimeTime(isoLocal: string | null | undefined): string {
+  if (!isoLocal || typeof isoLocal !== 'string') return '';
+  const timePart = isoLocal.includes('T') ? isoLocal.split('T')[1] : isoLocal;
+  return formatOraDisplay(timePart);
+}
+
+function formatShortDayIt(ymd: string): string {
+  const d = new Date(`${ymd}T12:00:00`);
+  return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+}
+
+/**
+ * Fascia oraria in timeline: preferisce `oraInizio`/`oraFine`; altrimenti `dataInizio`/`dataFine`.
+ * Se l’evento copre più giorni, include anche la data.
+ */
+export function formatTimelineFascia(item: {
+  oraInizio?: string | null;
+  oraFine?: string | null;
+  dataInizio?: string | null;
+  dataFine?: string | null;
+}): string {
+  const oraIn = formatOraDisplay(item.oraInizio);
+  const oraOut = formatOraDisplay(item.oraFine);
+  if (oraIn || oraOut) {
+    return oraIn && oraOut && oraOut !== oraIn ? `${oraIn} – ${oraOut}` : oraIn || oraOut;
+  }
+  const startDay = item.dataInizio?.slice(0, 10);
+  const endDay = item.dataFine?.slice(0, 10);
+  const startTime = formatLocalDateTimeTime(item.dataInizio);
+  const endTime = formatLocalDateTimeTime(item.dataFine);
+  if (startDay && endDay && startDay !== endDay) {
+    const left = [formatShortDayIt(startDay), startTime].filter(Boolean).join(' ');
+    const right = [formatShortDayIt(endDay), endTime].filter(Boolean).join(' ');
+    if (left && right) return `${left} – ${right}`;
+    return left || right;
+  }
+  return startTime && endTime && endTime !== startTime
+    ? `${startTime} – ${endTime}`
+    : startTime || endTime || '';
+}
+
+const TIPO_EVENTO_LABELS: Record<string, string> = {
+  FORMAZIONE_INDIVIDUALE: 'Formazione Individuale',
+  FORMAZIONE_TEAM: 'Formazione Team',
+  RIUNIONE: 'Riunione',
+  RIUNIONE_INDIVIDUALE: 'Riunione Individuale',
+  RIUNIONE_TEAM: 'Riunione Team',
+  SHOOTING_CONTENUTI: 'Shooting Contenuti',
+  SHOOTING_VISITA: 'Shooting Visita',
+  SHOOTING_PODCAST: 'Shooting Podcast',
+  GPADEL: 'GPADEL',
+  CHIUSURA_STUDIO: 'Chiusura Studio',
+  PAUSA_PRANZO: 'Pausa Pranzo',
+  TIROCINIO: 'Tirocinio',
+  CORSO_FORMAZIONE: 'Corso Formazione',
+  COLLOQUIO: 'Colloquio',
+  ALTRO: 'Altro',
+};
+
+export function tipoEventoLabel(tipoEvento: string | null | undefined): string {
+  if (!tipoEvento) return 'Evento';
+  return TIPO_EVENTO_LABELS[tipoEvento] ?? tipoEvento;
+}
+
 export function formatPrezzoEUR(n: number | null | undefined): string | null {
   if (n == null || Number.isNaN(Number(n))) return null;
   return Number(n).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });

@@ -17,10 +17,6 @@ export type VisitaStatus =
   | 'NO_SHOW_NON_CONTA'
   | 'DISDETTA';
 
-/** Vista agenda/calendario: tutte tranne le disdette. */
-export const VISITA_STATUS_AGENDA_CSV =
-  'PRENOTATA,EFFETTUATA,NO_SHOW_CONTA,NO_SHOW_NON_CONTA';
-
 export interface VisitaMinimaleDto {
   id: number;
   dataVisita: string;
@@ -35,12 +31,91 @@ export interface VisitaMinimaleDto {
   prezzoVisita?: number | null;
 }
 
-/** Risposta GET /api/visite: campi annidati opzionali oltre al minimo. */
-export type VisitaAgendaDto = VisitaMinimaleDto & {
-  paziente?: { nome?: string | null; cognome?: string | null } | null;
-  studio?: { id?: number; nome?: string | null } | null;
-  oraFine?: string | null;
-};
+/** Discriminatore timeline GET /api/calendario/completo. `id` non è globale: chiave UI = tipo + id. */
+export type CalendarioItemTipo = 'VISITA' | 'EVENTO' | 'NON_REPERIBILITA';
+
+export type TipoEventoCalendario =
+  | 'FORMAZIONE_INDIVIDUALE'
+  | 'FORMAZIONE_TEAM'
+  | 'RIUNIONE'
+  | 'RIUNIONE_INDIVIDUALE'
+  | 'RIUNIONE_TEAM'
+  | 'SHOOTING_CONTENUTI'
+  | 'SHOOTING_VISITA'
+  | 'SHOOTING_PODCAST'
+  | 'GPADEL'
+  | 'CHIUSURA_STUDIO'
+  | 'PAUSA_PRANZO'
+  | 'TIROCINIO'
+  | 'CORSO_FORMAZIONE'
+  | 'COLLOQUIO'
+  | 'ALTRO';
+
+interface CalendarioNomeRef {
+  id?: number;
+  nome?: string | null;
+  cognome?: string | null;
+}
+
+interface CalendarioItemBase {
+  tipo: CalendarioItemTipo;
+  id: number;
+  /** Locale Europe/Rome, senza Z/offset: `2026-08-18T09:00:00`. */
+  dataInizio?: string;
+  dataFine?: string;
+  dataVisita?: string;
+  oraInizio?: string;
+  oraFine?: string;
+  osteopataNome?: string;
+  osteopataCognome?: string;
+  osteopata?: CalendarioNomeRef | null;
+  studioId?: number;
+  studioNome?: string;
+  studio?: CalendarioNomeRef | null;
+  stanzaId?: number;
+  stanzaNome?: string;
+  stanza?: CalendarioNomeRef | null;
+}
+
+export interface CalendarioVisitaItem extends CalendarioItemBase {
+  tipo: 'VISITA';
+  pazienteNome?: string;
+  pazienteCognome?: string;
+  paziente?: CalendarioNomeRef | null;
+  siglaVisita?: string;
+}
+
+export interface CalendarioEventoItem extends CalendarioItemBase {
+  tipo: 'EVENTO';
+  tipoEvento?: TipoEventoCalendario | string;
+  titolo?: string;
+  descrizione?: string;
+  raggruppamentoId?: string;
+  /** ID utente, non osteopataId. */
+  invitatoId?: number;
+  invitatoNome?: string;
+  invitatoCognome?: string;
+}
+
+export interface CalendarioNonReperibilitaItem extends CalendarioItemBase {
+  tipo: 'NON_REPERIBILITA';
+  tipoReperibilita?: string;
+  motivo?: string;
+}
+
+export type CalendarioItemDto =
+  | CalendarioVisitaItem
+  | CalendarioEventoItem
+  | CalendarioNonReperibilitaItem;
+
+export interface CalendarioCompletoDto {
+  items?: CalendarioItemDto[];
+  totalVisite?: number;
+  totalPagesVisite?: number;
+  currentPageVisite?: number;
+  totalEventi?: number;
+  totalNonReperibilita?: number;
+}
 
 /** Riferimenti per-id nel body POST /api/visite (allineato a VisitaDto lato Java). */
 export interface VisitaIdRefDto {
@@ -71,33 +146,23 @@ export type VisitaCreataDto = VisitaMinimaleDto & {
 };
 
 /**
- * GET /api/visite — agenda osteopata per un singolo giorno (stessa data su inizio/fine).
- * Esclude le disdette tramite {@link VISITA_STATUS_AGENDA_CSV}.
+ * GET /api/calendario/completo — timeline osteopata (visite + eventi invitati + non reperibilità).
+ * Sostituisce GET /api/visite per l’agenda del giorno. Sempre passare osteopataId + date.
+ * `items` è già ordinato per dataInizio crescente.
  */
-export async function fetchVisiteOsteopataGiorno(params: {
+export async function fetchCalendarioCompletoGiorno(params: {
   osteopataId: number;
   dataInizio: string;
   dataFine: string;
-  page?: number;
-  size?: number;
-}): Promise<VisitaAgendaDto[]> {
-  const { osteopataId, dataInizio, dataFine, page = 0, size = 200 } = params;
-  const { data } = await apiClient.get<ApiResponseDto<VisitaAgendaDto[]>>('/visite', {
-    params: {
-      osteopataId,
-      dataInizio,
-      dataFine,
-      statusVisita: VISITA_STATUS_AGENDA_CSV,
-      sortBy: 'oraInizio',
-      sortDir: 'asc',
-      page,
-      size,
-    },
+}): Promise<CalendarioItemDto[]> {
+  const { osteopataId, dataInizio, dataFine } = params;
+  const { data } = await apiClient.get<ApiResponseDto<CalendarioCompletoDto>>('/calendario/completo', {
+    params: { osteopataId, dataInizio, dataFine },
   });
-  if (!data.success || !Array.isArray(data.data)) {
-    throw new Error(data.message || data.error || 'Impossibile caricare le visite');
+  if (!data.success || !data.data) {
+    throw new Error(data.message || data.error || 'Impossibile caricare l’agenda');
   }
-  return data.data;
+  return Array.isArray(data.data.items) ? data.data.items : [];
 }
 
 export async function fetchVisiteByPaziente(
