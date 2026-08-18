@@ -34,6 +34,7 @@ import {
   formatWeekdayLongIt,
   tipoEventoLabel,
   toLocalYmd,
+  visitaStatusLabel,
 } from './visiteFormatting';
 import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
@@ -87,6 +88,18 @@ function eventoTitolo(item: CalendarioEventoItem): string {
   return tipoEventoLabel(item.tipoEvento);
 }
 
+function VisitNumberBadge({ number }: { number: number }) {
+  return (
+    <View
+      style={styles.visitNumberBadge}
+      accessibilityRole="text"
+      accessibilityLabel={`Visita numero ${number}`}
+    >
+      <Text style={styles.visitNumberBadgeText}>{number}</Text>
+    </View>
+  );
+}
+
 function VisitaAgendaCard({ item }: { item: CalendarioVisitaItem }) {
   const orario = formatTimelineFascia(item);
   return (
@@ -99,7 +112,6 @@ function VisitaAgendaCard({ item }: { item: CalendarioVisitaItem }) {
           {orario || '—'}
         </Text>
       </View>
-      {item.siglaVisita ? <Text style={styles.bookingStato}>{item.siglaVisita}</Text> : null}
       <AgendaLuogoRows item={item} />
     </View>
   );
@@ -235,8 +247,8 @@ const GestioneVisiteScreen: React.FC = () => {
     !hasOsteopataId;
 
   const visitePazienteQuery = useQuery({
-    queryKey: ['visite-by-paziente', pazienteId, 'DESC'],
-    queryFn: () => fetchVisiteByPaziente(pazienteId!, { sortOrder: 'DESC' }),
+    queryKey: ['visite-by-paziente', pazienteId, 'ASC'],
+    queryFn: () => fetchVisiteByPaziente(pazienteId!, { sortOrder: 'ASC' }),
     enabled: !osteopathAgenda && typeof pazienteId === 'number' && pazienteId > 0,
   });
 
@@ -310,7 +322,7 @@ const GestioneVisiteScreen: React.FC = () => {
         <Text style={styles.leadText}>
           {osteopathAgenda
             ? 'Agenda del giorno: visite, eventi e assenze in ordine di orario. Scegli la data per caricare l’elenco.'
-            : 'Prenotate, effettuate, disdette e altri stati — ordine dalla più recente.'}
+            : 'Prenotate, effettuate, disdette e altri stati — ordine dalla più vecchia.'}
         </Text>
       </View>
       <View style={styles.headerBadge}>
@@ -450,24 +462,24 @@ const GestioneVisiteScreen: React.FC = () => {
               }
               return null;
             })
-          : visitePazienteList.map((v) => {
+          : visitePazienteList.map((v, index) => {
               const prezzo = formatPrezzoEUR(v.prezzoVisita);
               const ora = formatOraDisplay(v.oraInizio);
               return (
                 <View key={v.id} style={styles.bookingCard}>
-                  <Text style={styles.bookingWhen}>
-                    {formatDayTitle(v.dataVisita)}
-                    {ora ? `\n${ora}` : ''}
-                  </Text>
+                  <View style={styles.bookingTopRow}>
+                    <Text style={[styles.bookingWhen, styles.bookingTopMain]}>
+                      {formatDayTitle(v.dataVisita)}
+                      {ora ? `\n${ora}` : ''}
+                    </Text>
+                    <VisitNumberBadge number={index + 1} />
+                  </View>
                   <Text style={styles.bookingMeta}>
                     {[v.osteopataNome, v.osteopataCognome].filter(Boolean).join(' ') ||
                       'Osteopata non assegnato'}
                   </Text>
-                  {v.siglaVisita ? (
-                    <Text style={styles.bookingStato}>{v.siglaVisita}</Text>
-                  ) : null}
                   {v.statusVisita ? (
-                    <Text style={styles.bookingStato}>Stato visita: {v.statusVisita}</Text>
+                    <Text style={styles.bookingStato}>Stato visita: {visitaStatusLabel(v.statusVisita)}</Text>
                   ) : null}
                   {v.statusPagamento ? (
                     <Text style={styles.bookingStato}>Pagamento: {v.statusPagamento}</Text>
@@ -759,6 +771,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+  },
+  bookingTopMain: {
+    flex: 1,
+    minWidth: 0,
+  },
+  visitNumberBadge: {
+    minWidth: 32,
+    height: 32,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: theme.colors.secondary,
+    backgroundColor: withOpacity(theme.colors.secondary, 0.14),
+  },
+  visitNumberBadgeText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: theme.colors.secondary,
+    letterSpacing: 0.2,
   },
   bookingPatientName: {
     flex: 1,

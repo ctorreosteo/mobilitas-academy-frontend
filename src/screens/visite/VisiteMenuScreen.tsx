@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
@@ -8,60 +8,83 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
 import type { VisiteStackParamList } from './types';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
+import { useAuth } from '../../context/AuthContext';
+import { hasPazienteRole } from '../../services/authApi';
 
 type Nav = StackNavigationProp<VisiteStackParamList, 'VisiteMenu'>;
 
 const VisiteMenuScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();
   const navigation = useNavigation<Nav>();
+  const { userProfile } = useAuth();
+  const showPagamenti = hasPazienteRole(userProfile?.ruoli);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.heroHeader}>
-        <Text style={styles.heroTitle}>Visite</Text>
-        <Text style={styles.heroSubtitle}>
-          Consulta le visite registrate oppure prenota un nuovo appuntamento in pochi passaggi.
-        </Text>
-      </View>
-      <View style={styles.headerBadge}>
-        <Ionicons name="medkit-outline" size={14} color={theme.colors.text.primary} />
-        <Text style={styles.headerBadgeText}>Area visite</Text>
-      </View>
-      <View style={styles.dividerWrap}>
-        <View style={styles.dividerLine} />
-        <View style={styles.dividerIconWrap}>
-          <Ionicons name="calendar-outline" size={15} color={theme.colors.secondary} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 + tabBarPad }}>
+        <View style={styles.heroHeader}>
+          <Text style={styles.heroTitle}>Visite</Text>
+          <Text style={styles.heroSubtitle}>
+            {showPagamenti
+              ? 'Consulta le visite, prenota un appuntamento o rivedi i pagamenti del tuo profilo.'
+              : 'Consulta le visite registrate oppure prenota un nuovo appuntamento in pochi passaggi.'}
+          </Text>
         </View>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <View style={[styles.cards, { paddingBottom: 20 + tabBarPad }]}>
-        <Pressable
-          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-          onPress={() => navigation.navigate('GestioneVisite')}
-        >
-          <View style={styles.cardIconWrap}>
-            <Ionicons name="list-outline" size={28} color={theme.colors.secondary} />
+        <View style={styles.headerBadge}>
+          <Ionicons name="medkit-outline" size={14} color={theme.colors.text.primary} />
+          <Text style={styles.headerBadgeText}>Area visite</Text>
+        </View>
+        <View style={styles.dividerWrap}>
+          <View style={styles.dividerLine} />
+          <View style={styles.dividerIconWrap}>
+            <Ionicons name="calendar-outline" size={15} color={theme.colors.secondary} />
           </View>
-          <Text style={styles.cardTitle}>Gestisci le tue visite</Text>
-          <Text style={styles.cardHint}>
-            Agenda del giorno con visite, eventi e assenze, oppure lo storico delle tue visite.
-          </Text>
-        </Pressable>
+          <View style={styles.dividerLine} />
+        </View>
 
-        <Pressable
-          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-          onPress={() => navigation.navigate('BookVisit')}
-        >
-          <View style={styles.cardIconWrap}>
-            <Ionicons name="calendar-outline" size={28} color={theme.colors.secondary} />
-          </View>
-          <Text style={styles.cardTitle}>Prenota una nuova visita</Text>
-          <Text style={styles.cardHint}>
-            Scegli studio, osteopata e fascia oraria tra le disponibilità.
-          </Text>
-        </Pressable>
-      </View>
+        <View style={styles.cards}>
+          <Pressable
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            onPress={() => navigation.navigate('GestioneVisite')}
+          >
+            <View style={styles.cardIconWrap}>
+              <Ionicons name="list-outline" size={28} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.cardTitle}>Gestisci le tue visite</Text>
+            <Text style={styles.cardHint}>
+              Agenda del giorno con visite, eventi e assenze, oppure lo storico delle tue visite.
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            onPress={() => navigation.navigate('BookVisit')}
+          >
+            <View style={styles.cardIconWrap}>
+              <Ionicons name="calendar-outline" size={28} color={theme.colors.secondary} />
+            </View>
+            <Text style={styles.cardTitle}>Prenota una nuova visita</Text>
+            <Text style={styles.cardHint}>
+              Scegli studio, osteopata e fascia oraria tra le disponibilità.
+            </Text>
+          </Pressable>
+
+          {showPagamenti ? (
+            <Pressable
+              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+              onPress={() => navigation.navigate('PagamentiPaziente')}
+            >
+              <View style={styles.cardIconWrap}>
+                <Ionicons name="wallet-outline" size={28} color={theme.colors.secondary} />
+              </View>
+              <Text style={styles.cardTitle}>I tuoi pagamenti</Text>
+              <Text style={styles.cardHint}>
+                Importo, stato, data e ora di ogni pagamento.
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -101,6 +101,17 @@ export function osteopataLabel(o: OsteopataDto): string {
   return [o.cognome, o.nome].filter(Boolean).join(' ').trim();
 }
 
+/** Osteopati che non devono comparire nel picker di prenotazione visite. */
+export function isOsteopataExcludedFromVisitBooking(o: {
+  cognome?: string | null;
+  nome?: string | null;
+}): boolean {
+  const parts = [o.cognome, o.nome]
+    .map((p) => (p ?? '').trim().toLowerCase())
+    .filter(Boolean);
+  return parts.includes('ricciardi');
+}
+
 export function studioLabel(s: StudioDto): string {
   const geo = [s.indirizzo, s.citta, s.cap].filter(Boolean).join(', ');
   if (geo) return `${s.nome} — ${geo}`;
@@ -117,6 +128,19 @@ export function formatLocalDateTimeTime(isoLocal: string | null | undefined): st
   if (!isoLocal || typeof isoLocal !== 'string') return '';
   const timePart = isoLocal.includes('T') ? isoLocal.split('T')[1] : isoLocal;
   return formatOraDisplay(timePart);
+}
+
+/**
+ * Data e ora da datetime locale senza timezone (`2026-07-16T10:05:00`).
+ * Non passa da `Date` sull’istante intero, per evitare shift UTC.
+ */
+export function formatLocalDateTimeDisplay(isoLocal: string | null | undefined): string {
+  if (!isoLocal || typeof isoLocal !== 'string') return '';
+  const datePart = isoLocal.includes('T') ? isoLocal.split('T')[0] : isoLocal.slice(0, 10);
+  const time = formatLocalDateTimeTime(isoLocal);
+  const day = datePart.length >= 10 ? formatDayTitle(datePart) : '';
+  if (day && time) return `${day} · ${time}`;
+  return day || time;
 }
 
 function formatShortDayIt(ymd: string): string {
@@ -175,6 +199,15 @@ const TIPO_EVENTO_LABELS: Record<string, string> = {
 export function tipoEventoLabel(tipoEvento: string | null | undefined): string {
   if (!tipoEvento) return 'Evento';
   return TIPO_EVENTO_LABELS[tipoEvento] ?? tipoEvento;
+}
+
+/** Stato visita per la UI paziente. */
+export function visitaStatusLabel(status?: string | null): string {
+  if (!status) return '';
+  const key = status.toUpperCase();
+  if (key === 'NO_SHOW_NON_CONTA') return 'DISDETTA';
+  if (key === 'NO_SHOW_CONTA') return 'EFFETTUATA';
+  return status;
 }
 
 export function formatPrezzoEUR(n: number | null | undefined): string | null {

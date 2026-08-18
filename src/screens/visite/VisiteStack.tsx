@@ -4,6 +4,7 @@ import { theme } from '../../theme';
 import VisiteMenuScreen from './VisiteMenuScreen';
 import BookVisitScreen from './BookVisitScreen';
 import GestioneVisiteScreen from './GestioneVisiteScreen';
+import PagamentiPazienteScreen from './PagamentiPazienteScreen';
 import type { VisiteStackParamList } from './types';
 
 const Stack = createStackNavigator<VisiteStackParamList>();
@@ -40,6 +41,11 @@ const VisiteStack: React.FC = () => {
         name="GestioneVisite"
         component={GestioneVisiteScreen}
         options={{ title: 'Gestisci le tue visite' }}
+      />
+      <Stack.Screen
+        name="PagamentiPaziente"
+        component={PagamentiPazienteScreen}
+        options={{ title: 'I tuoi pagamenti' }}
       />
     </Stack.Navigator>
   );

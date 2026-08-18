@@ -169,7 +169,7 @@ export async function fetchVisiteByPaziente(
   pazienteId: number,
   options?: { sortOrder?: VisitaSortOrder }
 ): Promise<VisitaMinimaleDto[]> {
-  const sortOrder = options?.sortOrder ?? 'DESC';
+  const sortOrder = options?.sortOrder ?? 'ASC';
   const { data } = await apiClient.get<ApiResponseDto<VisitaMinimaleDto[]>>(
     `/visite/by-paziente/${pazienteId}`,
     { params: { sortOrder } }

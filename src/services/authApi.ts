@@ -72,7 +72,7 @@ function pazienteDtoToStored(d: PazienteDto): StoredPazienteProfile {
   };
 }
 
-function hasPazienteRole(roles: string[] | null | undefined): boolean {
+export function hasPazienteRole(roles: string[] | null | undefined): boolean {
   if (!Array.isArray(roles)) return false;
   return roles.some((role) => role.toUpperCase().includes('PAZIENTE'));
 }

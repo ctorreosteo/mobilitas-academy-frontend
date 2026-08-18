@@ -57,6 +57,7 @@ import {
   formatWeekdayLongIt,
   groupSlotsByDay,
   osteopataLabel,
+  isOsteopataExcludedFromVisitBooking,
   slotIsoToVisitaFields,
   studioLabel,
   toLocalYmd,
@@ -305,19 +306,20 @@ const BookVisitScreen: React.FC = () => {
 
   const osteopatiForSelect = useMemo(() => {
     const raw = osteopatiQuery.data;
-    const list: OsteopataDto[] = Array.isArray(raw) ? raw : [];
+    const list: OsteopataDto[] = Array.isArray(raw) ? [...raw] : [];
     if (
-      !isOsteopathBooking ||
-      typeof profileOsteopataId !== 'number' ||
-      profileOsteopataId <= 0
+      isOsteopathBooking &&
+      typeof profileOsteopataId === 'number' &&
+      profileOsteopataId > 0 &&
+      !list.some((o) => o.id === profileOsteopataId)
     ) {
-      return list;
+      const selfDto = selfOsteopataDtoFromProfile(profileQuery.data, profileOsteopataId);
+      if (selfDto) list.push(selfDto);
     }
-    if (list.some((o) => o.id === profileOsteopataId)) {
-      return list;
-    }
-    const selfDto = selfOsteopataDtoFromProfile(profileQuery.data, profileOsteopataId);
-    return selfDto ? [...list, selfDto] : list;
+    return list.filter((o) => {
+      if (isOsteopathBooking && o.id === profileOsteopataId) return true;
+      return !isOsteopataExcludedFromVisitBooking(o);
+    });
   }, [isOsteopathBooking, profileOsteopataId, osteopatiQuery.data, profileQuery.data]);
 
   useEffect(() => {
@@ -351,8 +353,10 @@ const BookVisitScreen: React.FC = () => {
   useEffect(() => {
     if (isOsteopathBooking) return;
     if (studioId == null) return;
-    const refOsteopataId = osteopataRiferimentoQuery.data?.id;
+    const ref = osteopataRiferimentoQuery.data;
+    const refOsteopataId = ref?.id;
     if (typeof refOsteopataId !== 'number' || refOsteopataId <= 0) return;
+    if (isOsteopataExcludedFromVisitBooking(ref)) return;
     if (!osteopatiForSelect.some((o) => o.id === refOsteopataId)) return;
     if (osteopataId === refOsteopataId) return;
     setOsteopataId(refOsteopataId);
@@ -363,6 +367,24 @@ const BookVisitScreen: React.FC = () => {
     osteopataRiferimentoQuery.data,
     osteopatiForSelect,
     osteopataId,
+  ]);
+
+  useEffect(() => {
+    if (osteopataId == null) return;
+    if (isOsteopathBooking && osteopataId === profileOsteopataId) return;
+    const selected =
+      osteopatiQuery.data?.find((o) => o.id === osteopataId) ??
+      osteopatiForSelect.find((o) => o.id === osteopataId);
+    if (!selected) return;
+    if (!isOsteopataExcludedFromVisitBooking(selected)) return;
+    setOsteopataId(null);
+    setSlotSelezionato(null);
+  }, [
+    osteopataId,
+    isOsteopathBooking,
+    profileOsteopataId,
+    osteopatiQuery.data,
+    osteopatiForSelect,
   ]);
 
   const studi = studiQuery.data ?? [];
