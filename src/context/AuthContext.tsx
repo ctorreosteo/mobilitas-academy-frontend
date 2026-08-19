@@ -21,8 +21,7 @@ import {
   persistLoginSession,
   restorePersistedSession,
 } from '../services/authApi';
-import { subscribePasswordExpired } from '../services/passwordExpired';
-import { navigateToForcedPasswordChange } from '../navigation/navigationRef';
+import { subscribePasswordExpired, beginAuthTeardown, endAuthTeardown } from '../services/passwordExpired';
 import {
   clearSessioniPosturaliCatalogCache,
   prefetchSessioniPosturaliCatalog,
@@ -105,7 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     return subscribePasswordExpired(() => {
       setPasswordExpired(true);
-      navigateToForcedPasswordChange();
     });
   }, []);
 
@@ -148,12 +146,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    await logoutMobilitas();
-    clearSessioniPosturaliCatalogCache();
-    setToken(null);
-    setUserProfile(null);
-    setPasswordExpired(false);
-    queryClient.clear();
+    beginAuthTeardown();
+    try {
+      await logoutMobilitas();
+      clearSessioniPosturaliCatalogCache();
+      setPasswordExpired(false);
+      setUserProfile(null);
+      setToken(null);
+      queryClient.clear();
+    } finally {
+      endAuthTeardown();
+    }
   }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(

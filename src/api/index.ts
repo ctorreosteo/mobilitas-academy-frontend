@@ -6,7 +6,7 @@ import {
   setStoredUserProfile,
   clearAllAuth,
 } from '../services/authTokenStorage';
-import { notifyPasswordExpired } from '../services/passwordExpired';
+import { notifyPasswordExpired, isAuthTearingDown } from '../services/passwordExpired';
 import { isPasswordExpiredResponse } from '../utils/apiEnvelope';
 import { resolveDevBackendOrigin } from '../utils/resolveDevBackendUrl';
 
@@ -59,7 +59,8 @@ function shouldSkipAuthRefresh(url: string): boolean {
   return (
     isPublicAuthPath(url) ||
     url.includes('/auth/register') ||
-    url.includes('/auth/refresh')
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/logout')
   );
 }
 
@@ -100,6 +101,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    if (isAuthTearingDown()) {
+      return Promise.reject(error);
+    }
+
     const original = error.config as AuthRetryConfig | undefined;
     const status = error.response?.status;
 

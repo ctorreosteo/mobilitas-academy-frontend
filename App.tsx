@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -229,16 +229,17 @@ const bootStyles = StyleSheet.create({
 
 function RootNavigator() {
   const { isReady, isSignedIn, passwordExpired } = useAuth();
-
-  const openForcedPasswordChange = useCallback(() => {
-    if (isSignedIn && passwordExpired) {
-      navigateToForcedPasswordChange();
-    }
-  }, [isSignedIn, passwordExpired]);
+  const routedExpiredRef = useRef(false);
 
   useEffect(() => {
-    openForcedPasswordChange();
-  }, [openForcedPasswordChange]);
+    if (!isSignedIn || !passwordExpired) {
+      routedExpiredRef.current = false;
+      return;
+    }
+    if (routedExpiredRef.current) return;
+    routedExpiredRef.current = true;
+    navigateToForcedPasswordChange();
+  }, [isSignedIn, passwordExpired]);
 
   if (!isReady) {
     return (
@@ -268,7 +269,6 @@ function RootNavigator() {
       ref={navigationRef}
       theme={navigationTheme}
       linking={navigationLinking}
-      onReady={openForcedPasswordChange}
     >
       <RootStack.Navigator
         screenOptions={{

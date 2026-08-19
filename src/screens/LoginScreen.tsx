@@ -27,8 +27,12 @@ import {
   getRememberedLoginUsername,
   getRememberUsernamePreference,
 } from '../services/authTokenStorage';
+import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
 
 const inputBg = theme.colors.background.secondary;
+
+const REGISTER_WHATSAPP_PREFILL =
+  'Buongiorno, vorrei registrarmi all’app Mobilitas Academy. Potete aiutarmi con la procedura? Grazie.';
 
 const LOGIN_MAX_FAILED_ATTEMPTS = 5;
 const LOGIN_COOLDOWN_SECONDS = 60;
@@ -233,13 +237,18 @@ const LoginScreen: React.FC = () => {
             </View>
             <Text style={styles.modalTitle}>Registrazione</Text>
             <Text style={styles.modalText}>
-              La registrazione deve essere effettuata presso la segreteria dello studio o chiamando.
+              La registrazione viene gestita dalla segreteria dello studio. Scrivici su WhatsApp e
+              ti guidiamo nella procedura.
             </Text>
+            <StudioWhatsAppSupportButton
+              prefilledMessage={REGISTER_WHATSAPP_PREFILL}
+              style={styles.modalWhatsappBtn}
+            />
             <Pressable
               style={({ pressed }) => [styles.modalPrimaryBtn, pressed && styles.modalBtnPressed]}
               onPress={() => setShowRegisterModal(false)}
             >
-              <Text style={styles.modalPrimaryBtnText}>Ho capito</Text>
+              <Text style={styles.modalPrimaryBtnText}>Chiudi</Text>
             </Pressable>
           </View>
         </View>
@@ -466,6 +475,9 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: withOpacity(theme.colors.text.secondary, 0.92),
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+  },
+  modalWhatsappBtn: {
+    marginTop: 2,
   },
   modalPrimaryBtn: {
     borderRadius: 12,
