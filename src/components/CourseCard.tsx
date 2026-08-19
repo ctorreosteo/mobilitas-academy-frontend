@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform, ImageBackground, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { theme, withOpacity } from '../theme';
@@ -13,7 +14,6 @@ interface CourseCardProps {
   title: string;
   instructor: string;
   duration: number; // in minuti
-  completionPercentage: number;
   isCompleted: boolean;
   coverImage?: string;
   /** Corso in catalogo ma senza accesso (backend `attivo: false`) */
@@ -25,7 +25,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
   title,
   instructor,
   duration,
-  completionPercentage,
   isCompleted,
   coverImage,
   isLocked,
@@ -40,60 +39,50 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const durationLabel = duration > 0 ? `${duration} min` : '—';
 
   return (
-    <View style={[styles.card, isLocked && styles.cardLocked]}>
-      {coverImage && (
-        <View style={styles.coverImageContainer}>
-          <Image
-            source={{ uri: coverImage }}
-            style={styles.coverImage}
-            resizeMode="cover"
-            onError={() => console.log('Errore caricamento immagine:', coverImage)}
-          />
+    <ImageBackground
+      source={coverImage ? { uri: coverImage } : undefined}
+      style={[styles.card, isLocked && styles.cardLocked]}
+      imageStyle={styles.cardImage}
+      resizeMode="cover"
+      onError={() => console.log('Errore caricamento immagine:', coverImage)}
+    >
+      {/* Vela scura: senza, titolo e pulsante spariscono sulle copertine chiare. */}
+      <LinearGradient
+        colors={[withOpacity(theme.colors.background.primary, 0.45), withOpacity(theme.colors.background.primary, 0.92)]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          {isLocked ? (
+            <View style={styles.lockBadge}>
+              <Text style={styles.lockBadgeText}>Bloccato</Text>
+            </View>
+          ) : null}
         </View>
-      )}
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        {isLocked ? (
-          <View style={styles.lockBadge}>
-            <Text style={styles.lockBadgeText}>Bloccato</Text>
-          </View>
-        ) : null}
-      </View>
-      
-      <View style={styles.progressContainer}>
-        <View style={styles.progressInfo}>
-          <Text style={styles.progressText}>Progresso</Text>
-          <Text style={styles.progressPercentage}>{completionPercentage}%</Text>
-        </View>
-        <View style={styles.progressBar}>
-          <View 
-            style={[
-              styles.progressFill, 
-              { width: `${completionPercentage}%` }
-            ]} 
-          />
+
+        <View style={styles.footer}>
+          <Text style={styles.duration}>{durationLabel}</Text>
+          <TouchableOpacity
+            style={[styles.continueButton, isLocked && styles.continueButtonDisabled]}
+            onPress={handleContinue}
+            activeOpacity={isLocked ? 1 : 0.8}
+            disabled={isLocked}
+          >
+            <Text style={[styles.continueText, isLocked && styles.continueTextDisabled]}>
+              {isLocked ? 'Non disponibile' : isCompleted ? 'Rivedi' : 'Continua'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-      
-      <View style={styles.footer}>
-        <Text style={styles.duration}>{durationLabel}</Text>
-        <TouchableOpacity 
-          style={[styles.continueButton, isLocked && styles.continueButtonDisabled]}
-          onPress={handleContinue}
-          activeOpacity={isLocked ? 1 : 0.8}
-          disabled={isLocked}
-        >
-          <Text style={[styles.continueText, isLocked && styles.continueTextDisabled]}>
-            {isLocked ? 'Non disponibile' : isCompleted ? 'Rivedi' : 'Continua'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
+    // Altezza fissa: la copertina è di sfondo e non detta più le dimensioni.
+    minHeight: 270,
     backgroundColor: '#0A2B4D',
     borderRadius: 16,
     marginBottom: 16,
@@ -109,30 +98,21 @@ const styles = StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
   },
-  coverImageContainer: {
-    width: '100%',
-    height: 190,
-    backgroundColor: '#06213D',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  coverImage: {
-    width: '100%',
-    height: '100%',
+  cardImage: {
+    borderRadius: 16,
   },
   cardLocked: {
     opacity: 0.82,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
-    padding: 20,
-    paddingTop: 20,
     gap: 8,
   },
   lockBadge: {
@@ -150,50 +130,19 @@ const styles = StyleSheet.create({
     color: withOpacity(theme.colors.text.secondary, 0.76),
   },
   title: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '600',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: '#D8FFE3',
-  },
-  progressContainer: {
-    marginBottom: 16,
-    paddingHorizontal: 20,
-  },
-  progressInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: withOpacity(theme.colors.text.secondary, 0.82),
-    fontWeight: '500',
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: '#CCFFD9',
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: withOpacity(theme.colors.text.secondary, 0.12),
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 3,
+    textShadowColor: withOpacity(theme.colors.black, 0.55),
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
   },
   duration: {
     fontSize: 14,

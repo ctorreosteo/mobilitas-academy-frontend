@@ -12,6 +12,12 @@ import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+/**
+ * Pulsante "Segna come completato" nascosto su richiesta: markup e stili restano
+ * pronti, basta rimettere `true` per riattivarlo.
+ */
+const SHOW_COMPLETION_BUTTON: boolean = false;
+
 type VideoPlayerRouteParams = { video: Video; course?: Course };
 
 type VideoPlayerScreenRouteProp = RouteProp<
@@ -344,17 +350,19 @@ const VideoPlayerScreen: React.FC = () => {
           </View>
         )}
 
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryButton]}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="checkmark-circle-outline" size={20} color={theme.colors.primary} />
-            <Text style={styles.primaryButtonText}>
-              {video.isCompleted ? 'Segna come non completato' : 'Segna come completato'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {SHOW_COMPLETION_BUTTON ? (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.primaryButton]}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="checkmark-circle-outline" size={20} color={theme.colors.primary} />
+              <Text style={styles.primaryButtonText}>
+                {video.isCompleted ? 'Segna come non completato' : 'Segna come completato'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
     </>

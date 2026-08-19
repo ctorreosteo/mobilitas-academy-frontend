@@ -17,6 +17,12 @@ import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
+/**
+ * Riquadro statistiche (totali/completati/media) nascosto su richiesta: markup,
+ * stili e calcolo restano pronti, basta rimettere `true` per riattivarlo.
+ */
+const SHOW_STATS_CARD: boolean = false;
+
 /** Testi propri del catalogo: li fornisce la schermata posturale o aziendale. */
 export interface CorsiCatalogCopy {
   headerTitle: string;
@@ -66,7 +72,6 @@ const CorsiCatalogView: React.FC<CorsiCatalogViewProps> = ({
         title={item.title}
         instructor={item.instructor}
         duration={item.duration}
-        completionPercentage={item.completionPercentage}
         isCompleted={item.isCompleted}
         coverImage={item.coverImage}
         isLocked={item.formazioneAttivo === false}
@@ -102,43 +107,51 @@ const CorsiCatalogView: React.FC<CorsiCatalogViewProps> = ({
           </View>
         ) : null}
 
-        <View style={[styles.statsCard, styles.statsCardInList]}>
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Ionicons
-                name="library-outline"
-                size={16}
-                color={withOpacity(theme.colors.secondary, 0.95)}
-              />
+        {SHOW_STATS_CARD ? (
+          <View style={[styles.statsCard, styles.statsCardInList]}>
+            <View style={styles.statItem}>
+              <View style={styles.statIconWrap}>
+                <Ionicons
+                  name="library-outline"
+                  size={16}
+                  color={withOpacity(theme.colors.secondary, 0.95)}
+                />
+              </View>
+              <Text style={styles.statNumber}>{stats.totalCourses}</Text>
+              <Text style={styles.statLabel}>Totali</Text>
             </View>
-            <Text style={styles.statNumber}>{stats.totalCourses}</Text>
-            <Text style={styles.statLabel}>Totali</Text>
-          </View>
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={16}
-                color={withOpacity(theme.colors.secondary, 0.95)}
-              />
+            <View style={styles.statItem}>
+              <View style={styles.statIconWrap}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={16}
+                  color={withOpacity(theme.colors.secondary, 0.95)}
+                />
+              </View>
+              <Text style={styles.statNumber}>{stats.completedCourses}</Text>
+              <Text style={styles.statLabel}>Completati</Text>
             </View>
-            <Text style={styles.statNumber}>{stats.completedCourses}</Text>
-            <Text style={styles.statLabel}>Completati</Text>
-          </View>
-          <View style={styles.statItem}>
-            <View style={styles.statIconWrap}>
-              <Ionicons
-                name="trending-up-outline"
-                size={16}
-                color={withOpacity(theme.colors.secondary, 0.95)}
-              />
+            <View style={styles.statItem}>
+              <View style={styles.statIconWrap}>
+                <Ionicons
+                  name="trending-up-outline"
+                  size={16}
+                  color={withOpacity(theme.colors.secondary, 0.95)}
+                />
+              </View>
+              <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
+              <Text style={styles.statLabel}>Media</Text>
             </View>
-            <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
-            <Text style={styles.statLabel}>Media</Text>
           </View>
-        </View>
+        ) : null}
 
-        <View style={[styles.sectionHeader, styles.sectionHeaderInList]}>
+        <View
+          style={[
+            styles.sectionHeader,
+            styles.sectionHeaderInList,
+            !SHOW_STATS_CARD && styles.sectionHeaderNoStats,
+          ]}
+        >
           <View style={styles.sectionHeaderTopRow}>
             <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
             <View style={styles.coursesCountBadge}>
@@ -372,6 +385,10 @@ const styles = StyleSheet.create({
   },
   sectionHeaderInList: {
     paddingHorizontal: 0,
+  },
+  // Senza il riquadro statistiche il titolo resta troppo staccato dal divisore.
+  sectionHeaderNoStats: {
+    marginTop: 0,
   },
   sectionHeaderTopRow: {
     flexDirection: 'row',

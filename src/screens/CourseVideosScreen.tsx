@@ -1,5 +1,13 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -12,6 +20,9 @@ import { getCachedDurationFromHls } from '../utils/hlsDuration';
 import { loadCourseContent } from '../services/courseContent';
 import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 import type { CorsiStackParamList } from './corsi/types';
+
+/** Righe di descrizione visibili quando il riquadro è compresso. */
+const COLLAPSED_DESCRIPTION_LINES = 2;
 
 type CourseVideosScreenRouteProp = RouteProp<CorsiStackParamList, 'CourseVideos'>;
 type NavigationProp = StackNavigationProp<CorsiStackParamList, 'VideoPlayer'>;
@@ -30,7 +41,7 @@ const CourseVideosScreen: React.FC = () => {
   const [videosWithDuration, setVideosWithDuration] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [loadingDurations, setLoadingDurations] = useState(true);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,11 +84,9 @@ const CourseVideosScreen: React.FC = () => {
     );
     if (needDuration.length === 0) {
       setVideosWithDuration(sourceVideos);
-      setLoadingDurations(false);
       return;
     }
     let cancelled = false;
-    setLoadingDurations(true);
     Promise.all(
       needDuration.map(async (video) => {
         const duration = await getCachedDurationFromHls(video.url || '');
@@ -93,9 +102,8 @@ const CourseVideosScreen: React.FC = () => {
             return d !== undefined ? { ...v, duration: d } : v;
           })
         );
-        setLoadingDurations(false);
       })
-      .catch(() => setLoadingDurations(false));
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -105,28 +113,9 @@ const CourseVideosScreen: React.FC = () => {
     navigation.navigate('VideoPlayer', { video, course: displayCourse });
   };
 
-  const totalDuration = useMemo(
-    () => videosWithDuration.reduce((acc, v) => acc + v.duration, 0),
-    [videosWithDuration]
-  );
-  const completedVideos = videosWithDuration.filter((v) => v.isCompleted).length;
-  const progressPercentage =
-    videosWithDuration.length > 0
-      ? Math.round((completedVideos / videosWithDuration.length) * 100)
-      : 0;
-
-  const formatTotalDuration = (seconds: number): string => {
-    if (seconds <= 0) return '—';
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
-    if (hours > 0) return `${hours}h`;
-    return `${mins}m`;
-  };
-
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
           <Text style={styles.loadingText}>Caricamento moduli e lezioni…</Text>
@@ -136,19 +125,36 @@ const CourseVideosScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <View style={styles.header}>
+        <Text style={styles.courseTitle}>{displayCourse.title}</Text>
+      </View>
+
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + tabBarPad }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.courseTitle}>{displayCourse.title}</Text>
-          <Text style={styles.instructor}>di {displayCourse.instructor}</Text>
-        </View>
-
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionText}>{displayCourse.description}</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.descriptionContainer}
+          onPress={() => setDescriptionExpanded((expanded) => !expanded)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.descriptionHeader}>
+            <Text style={styles.descriptionTitle}>Descrizione</Text>
+            <Ionicons
+              name={descriptionExpanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={theme.colors.text.secondary}
+              style={styles.descriptionChevron}
+            />
+          </View>
+          <Text
+            style={styles.descriptionText}
+            numberOfLines={descriptionExpanded ? undefined : COLLAPSED_DESCRIPTION_LINES}
+          >
+            {displayCourse.description}
+          </Text>
+        </TouchableOpacity>
         <View style={styles.headerBadge}>
           <Ionicons name="bookmarks-outline" size={14} color={theme.colors.text.primary} />
           <Text style={styles.headerBadgeText}>Dettaglio corso</Text>
@@ -166,40 +172,6 @@ const CourseVideosScreen: React.FC = () => {
             <Text style={styles.errorText}>{loadError}</Text>
           </View>
         ) : null}
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{courseChapters.length}</Text>
-            <Text style={styles.statLabel}>Moduli</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{videosWithDuration.length}</Text>
-            <Text style={styles.statLabel}>Video</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue} numberOfLines={1}>
-              {loadingDurations && totalDuration === 0 ? '...' : formatTotalDuration(totalDuration)}
-            </Text>
-            <Text style={styles.statLabel}>Durata</Text>
-          </View>
-        </View>
-
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Progresso Corso</Text>
-            <Text style={styles.progressPercentage}>{progressPercentage}%</Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[styles.progressFill, { width: `${progressPercentage}%` }]}
-            />
-          </View>
-          <Text style={styles.progressText}>
-            {completedVideos} di {videosWithDuration.length} video completati
-          </Text>
-        </View>
 
         <View style={styles.chaptersContainer}>
           {courseChapters.length === 0 && !loadError ? (
@@ -261,25 +233,21 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
-  scrollContent: {},
+  scrollContent: {
+    paddingTop: 4,
+  },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingTop: 4,
+    paddingBottom: 16,
+    backgroundColor: theme.colors.background.primary,
   },
   courseTitle: {
     fontSize: 28,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     color: theme.colors.secondary,
-    marginBottom: 8,
     lineHeight: 36,
-  },
-  instructor: {
-    fontSize: 16,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-    opacity: 0.7,
   },
   descriptionContainer: {
     marginHorizontal: 20,
@@ -289,6 +257,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: withOpacity(theme.colors.secondary, 0.1),
+  },
+  descriptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  descriptionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.text.secondary,
+  },
+  descriptionChevron: {
+    opacity: 0.5,
   },
   descriptionText: {
     fontSize: 15,
@@ -338,92 +321,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: withOpacity(theme.colors.secondary, 0.32),
     backgroundColor: withOpacity(theme.colors.secondary, 0.08),
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    marginHorizontal: 20,
-    marginBottom: 24,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.08),
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.15),
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.secondary,
-    marginBottom: 4,
-    textAlign: 'center',
-    minHeight: 32,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-    opacity: 0.7,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.2),
-    marginHorizontal: 16,
-  },
-  progressContainer: {
-    marginHorizontal: 20,
-    marginBottom: 32,
-    padding: 20,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.05),
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.1),
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-  },
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.secondary,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.15),
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.text.secondary,
-    opacity: 0.6,
   },
   chaptersContainer: {
     paddingHorizontal: 20,
