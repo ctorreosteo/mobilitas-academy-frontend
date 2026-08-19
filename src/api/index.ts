@@ -6,6 +6,8 @@ import {
   setStoredUserProfile,
   clearAllAuth,
 } from '../services/authTokenStorage';
+import { notifyPasswordExpired } from '../services/passwordExpired';
+import { isPasswordExpiredResponse } from '../utils/apiEnvelope';
 import { resolveDevBackendOrigin } from '../utils/resolveDevBackendUrl';
 
 /** Backend API in produzione. */
@@ -40,6 +42,27 @@ export const apiClient = axios.create({
 
 type AuthRetryConfig = InternalAxiosRequestConfig & { __isRetry?: boolean };
 
+function requestPath(config: { url?: string } | undefined): string {
+  return config?.url ?? '';
+}
+
+/** Endpoint pubblici di auth: un JWT stantio non deve far scattare la catena di sicurezza. */
+function isPublicAuthPath(url: string): boolean {
+  return (
+    url.includes('/auth/login') ||
+    url.includes('/auth/reset-password') ||
+    url.includes('/auth/applicazione/')
+  );
+}
+
+function shouldSkipAuthRefresh(url: string): boolean {
+  return (
+    isPublicAuthPath(url) ||
+    url.includes('/auth/register') ||
+    url.includes('/auth/refresh')
+  );
+}
+
 interface ApiEnvelope<T> {
   success: boolean;
   message?: string;
@@ -59,6 +82,12 @@ interface RefreshPayload {
 
 apiClient.interceptors.request.use(
   async (config) => {
+    if (isPublicAuthPath(requestPath(config))) {
+      if (config.headers) {
+        delete config.headers.Authorization;
+      }
+      return config;
+    }
     const token = await getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -74,16 +103,17 @@ apiClient.interceptors.response.use(
     const original = error.config as AuthRetryConfig | undefined;
     const status = error.response?.status;
 
+    if (status === 403 && isPasswordExpiredResponse(error.response?.data)) {
+      notifyPasswordExpired();
+      return Promise.reject(error);
+    }
+
     if (status !== 401 || !original || original.__isRetry) {
       return Promise.reject(error);
     }
 
-    const path = original.url ?? '';
-    if (
-      path.includes('/auth/login') ||
-      path.includes('/auth/register') ||
-      path.includes('/auth/refresh')
-    ) {
+    const path = requestPath(original);
+    if (shouldSkipAuthRefresh(path)) {
       return Promise.reject(error);
     }
 

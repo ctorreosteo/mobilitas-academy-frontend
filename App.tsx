@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,14 +10,19 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import ProfiloStack from './src/screens/profilo/ProfiloStack';
 import CorsiStack from './src/screens/corsi/CorsiStack';
 import VisiteStack from './src/screens/visite/VisiteStack';
 import SessioniStack from './src/screens/sessioni/SessioniStack';
 import SpineIcon from './src/components/SpineIcon';
 import LoginScreen from './src/screens/LoginScreen';
+import PasswordDimenticataScreen from './src/screens/auth/PasswordDimenticataScreen';
+import ImpostaPasswordScreen from './src/screens/auth/ImpostaPasswordScreen';
 import { theme } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { navigationRef, navigateToForcedPasswordChange } from './src/navigation/navigationRef';
+import { navigationLinking } from './src/navigation/linking';
+import type { MainTabParamList, RootStackParamList } from './src/navigation/types';
 
 const tabBarColors = {
   background: '#07294A',
@@ -26,8 +31,8 @@ const tabBarColors = {
   inactive: 'rgba(114, 250, 147, 0.45)',
 };
 
-const Tab = createBottomTabNavigator();
-const RootStack = createStackNavigator();
+const Tab = createBottomTabNavigator<MainTabParamList>();
+const RootStack = createStackNavigator<RootStackParamList>();
 const queryClient = new QueryClient();
 const navigationTheme = {
   ...DefaultTheme,
@@ -199,7 +204,7 @@ function MainTabNavigator() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfiloStack}
         options={{
           title: 'Profilo',
           tabBarLabel: 'Profilo',
@@ -223,7 +228,17 @@ const bootStyles = StyleSheet.create({
 });
 
 function RootNavigator() {
-  const { isReady, isSignedIn } = useAuth();
+  const { isReady, isSignedIn, passwordExpired } = useAuth();
+
+  const openForcedPasswordChange = useCallback(() => {
+    if (isSignedIn && passwordExpired) {
+      navigateToForcedPasswordChange();
+    }
+  }, [isSignedIn, passwordExpired]);
+
+  useEffect(() => {
+    openForcedPasswordChange();
+  }, [openForcedPasswordChange]);
 
   if (!isReady) {
     return (
@@ -233,8 +248,28 @@ function RootNavigator() {
     );
   }
 
+  const authHeaderOptions = {
+    headerShown: true as const,
+    headerStyle: {
+      backgroundColor: theme.colors.background.primary,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    headerTintColor: theme.colors.secondary,
+    headerTitleStyle: {
+      fontWeight: '600' as const,
+      color: theme.colors.secondary,
+    },
+    headerBackTitle: '',
+  };
+
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navigationTheme}
+      linking={navigationLinking}
+      onReady={openForcedPasswordChange}
+    >
       <RootStack.Navigator
         screenOptions={{
           headerShown: false,
@@ -244,10 +279,22 @@ function RootNavigator() {
         }}
       >
         {!isSignedIn ? (
-          <RootStack.Screen name="Login" component={LoginScreen} />
+          <>
+            <RootStack.Screen name="Login" component={LoginScreen} />
+            <RootStack.Screen
+              name="PasswordDimenticata"
+              component={PasswordDimenticataScreen}
+              options={{ ...authHeaderOptions, title: 'Password dimenticata' }}
+            />
+          </>
         ) : (
           <RootStack.Screen name="Main" component={MainTabNavigator} />
         )}
+        <RootStack.Screen
+          name="ImpostaPassword"
+          component={ImpostaPasswordScreen}
+          options={{ ...authHeaderOptions, title: 'Imposta password' }}
+        />
       </RootStack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>

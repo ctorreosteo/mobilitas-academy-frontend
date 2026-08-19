@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
-  Alert,
   ActivityIndicator,
   Modal,
   Pressable,
@@ -16,10 +15,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { useCooldown } from '../hooks/useCooldown';
+import type { RootStackParamList } from '../navigation/types';
 import {
   getRememberedLoginUsername,
   getRememberUsernamePreference,
@@ -27,14 +30,22 @@ import {
 
 const inputBg = theme.colors.background.secondary;
 
+const LOGIN_MAX_FAILED_ATTEMPTS = 5;
+const LOGIN_COOLDOWN_SECONDS = 60;
+
+type LoginNav = StackNavigationProp<RootStackParamList, 'Login'>;
+
 const LoginScreen: React.FC = () => {
   const { signIn } = useAuth();
+  const navigation = useNavigation<LoginNav>();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberUsername, setRememberUsername] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const failedAttempts = useRef(0);
+  const { isCoolingDown, secondsLeft, start: startCooldown } = useCooldown(LOGIN_COOLDOWN_SECONDS);
 
   useEffect(() => {
     let active = true;
@@ -56,6 +67,7 @@ const LoginScreen: React.FC = () => {
 
   const onSubmit = async () => {
     setError(null);
+    if (isCoolingDown) return;
     if (!username.trim() || !password) {
       setError('Inserisci username o email e password.');
       return;
@@ -63,7 +75,13 @@ const LoginScreen: React.FC = () => {
     setSubmitting(true);
     try {
       await signIn(username.trim(), password, { rememberUsername });
+      failedAttempts.current = 0;
     } catch (e) {
+      failedAttempts.current += 1;
+      if (failedAttempts.current >= LOGIN_MAX_FAILED_ATTEMPTS) {
+        startCooldown();
+        failedAttempts.current = 0;
+      }
       setError(e instanceof Error ? e.message : 'Accesso non riuscito');
     } finally {
       setSubmitting(false);
@@ -109,7 +127,7 @@ const LoginScreen: React.FC = () => {
                 autoCorrect={false}
                 keyboardType="email-address"
                 textContentType="username"
-                editable={!submitting}
+                editable={!submitting && !isCoolingDown}
               />
             </View>
 
@@ -117,12 +135,7 @@ const LoginScreen: React.FC = () => {
               <View style={styles.passwordRow}>
                 <Text style={styles.passwordLabel}>Password</Text>
                 <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert(
-                      'Password dimenticata?',
-                      'Contatta l’amministratore di Mobilitas HQ per reimpostare l’accesso.'
-                    )
-                  }
+                  onPress={() => navigation.navigate('PasswordDimenticata')}
                   hitSlop={12}
                 >
                   <Text style={styles.linkMuted}>Password dimenticata?</Text>
@@ -136,7 +149,7 @@ const LoginScreen: React.FC = () => {
                 onChangeText={setPassword}
                 secureTextEntry
                 textContentType="password"
-                editable={!submitting}
+                editable={!submitting && !isCoolingDown}
               />
             </View>
 
@@ -161,10 +174,17 @@ const LoginScreen: React.FC = () => {
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
+            {isCoolingDown ? (
+              <Text style={styles.errorText}>
+                Troppi tentativi. Riprova tra {secondsLeft}{' '}
+                {secondsLeft === 1 ? 'secondo' : 'secondi'}.
+              </Text>
+            ) : null}
+
             <TouchableOpacity
-              style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
+              style={[styles.primaryBtn, (submitting || isCoolingDown) && styles.primaryBtnDisabled]}
               onPress={onSubmit}
-              disabled={submitting}
+              disabled={submitting || isCoolingDown}
               activeOpacity={0.85}
             >
               {submitting ? (

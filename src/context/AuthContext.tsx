@@ -15,11 +15,14 @@ import {
 } from '../services/authTokenStorage';
 import {
   fetchCurrentUser,
+  isPasswordChangeRequired,
   loginMobilitas,
   logoutMobilitas,
   persistLoginSession,
   restorePersistedSession,
 } from '../services/authApi';
+import { subscribePasswordExpired } from '../services/passwordExpired';
+import { navigateToForcedPasswordChange } from '../navigation/navigationRef';
 import {
   clearSessioniPosturaliCatalogCache,
   prefetchSessioniPosturaliCatalog,
@@ -34,10 +37,16 @@ export type SignInOptions = {
 type AuthContextValue = {
   isReady: boolean;
   isSignedIn: boolean;
+  /**
+   * Account misto con password gestionale scaduta: non è un logout.
+   * Le API applicative rispondono 403 `PASSWORD_SCADUTA` finché non si cambia.
+   */
+  passwordExpired: boolean;
   /** Snapshot dopo login / restore / GET /auth/me (+ osteopata se applicabile). */
   userProfile: StoredUserProfile | null;
   signIn: (username: string, password: string, options?: SignInOptions) => Promise<void>;
   signOut: () => Promise<void>;
+  clearPasswordExpired: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -47,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<StoredUserProfile | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [passwordExpired, setPasswordExpired] = useState(false);
 
   /** Ripristina JWT e profilo da storage; valida con /auth/me quando c’è rete. */
   useEffect(() => {
@@ -92,11 +102,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    return subscribePasswordExpired(() => {
+      setPasswordExpired(true);
+      navigateToForcedPasswordChange();
+    });
+  }, []);
+
+  const clearPasswordExpired = useCallback(() => {
+    setPasswordExpired(false);
+  }, []);
+
   const signIn = useCallback(
     async (username: string, password: string, options?: SignInOptions) => {
       const session = await loginMobilitas(username.trim(), password);
       await persistLoginSession(session);
       setToken(session.token);
+      setPasswordExpired(isPasswordChangeRequired(session));
       try {
         const profile = await fetchCurrentUser();
         setUserProfile(profile);
@@ -105,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await logoutMobilitas();
           setToken(null);
           setUserProfile(null);
+          setPasswordExpired(false);
           const msg =
             typeof e.response?.data === 'object' &&
             e.response.data &&
@@ -129,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearSessioniPosturaliCatalogCache();
     setToken(null);
     setUserProfile(null);
+    setPasswordExpired(false);
     queryClient.clear();
   }, [queryClient]);
 
@@ -136,11 +160,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isReady: hydrated,
       isSignedIn: !!token,
+      passwordExpired,
       userProfile,
       signIn,
       signOut,
+      clearPasswordExpired,
     }),
-    [hydrated, token, userProfile, signIn, signOut]
+    [hydrated, token, passwordExpired, userProfile, signIn, signOut, clearPasswordExpired]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

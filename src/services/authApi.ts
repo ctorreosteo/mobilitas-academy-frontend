@@ -12,9 +12,19 @@ import {
 } from './authTokenStorage';
 import { fetchOsteopataById, type OsteopataDto } from './studioVisitsService';
 import { fetchPazienteByUtenteId, type PazienteDto } from './pazientiService';
+import { parseApiEnvelope } from '../utils/apiEnvelope';
 export interface LoginRequestBody {
   username: string;
   password: string;
+}
+
+/** Blocco del login: per un paziente puro è tutto `false` / `null` — nessun avviso in app. */
+export interface CambioPasswordStatoDto {
+  cambioPasswordObbligatorio: boolean;
+  passwordScaduta: boolean;
+  cambioPasswordForzato: boolean;
+  dataScadenzaCambioPassword: string | null;
+  dataAperturaFinestraCambioPassword: string | null;
 }
 
 export interface LoginResponseData {
@@ -25,6 +35,7 @@ export interface LoginResponseData {
   email: string;
   ruoli: string[];
   pazienteId?: number | null;
+  cambioPassword?: CambioPasswordStatoDto | null;
 }
 
 export interface UserInfoResponseDto {
@@ -122,12 +133,6 @@ function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUser
   return profile;
 }
 
-function maskSecret(value: string | undefined | null, keep = 4): string {
-  if (!value) return '<empty>';
-  if (value.length <= keep * 2) return '*'.repeat(value.length);
-  return `${value.slice(0, keep)}…${value.slice(-keep)} (len=${value.length})`;
-}
-
 function headersToPlain(headers: unknown): Record<string, unknown> {
   if (!headers || typeof headers !== 'object') return {};
   const anyHeaders = headers as { toJSON?: () => Record<string, unknown> } & Record<string, unknown>;
@@ -160,7 +165,7 @@ export async function loginMobilitas(
     path: requestUrlPath,
     timeoutMs: apiClient.defaults.timeout,
     defaultHeaders: headersToPlain(apiClient.defaults.headers?.common),
-    body: { username: usernameOrEmail, password: maskSecret(password) },
+    body: { username: usernameOrEmail, hasPassword: Boolean(password) },
   });
 
   try {
@@ -180,12 +185,10 @@ export async function loginMobilitas(
         success: data?.success,
         message: data?.message,
         error: data?.error,
-        data: data?.data
-          ? {
-              ...data.data,
-              token: maskSecret(data.data.token, 6),
-            }
-          : data?.data,
+        hasToken: Boolean(data?.data?.token),
+        username: data?.data?.username,
+        ruoli: data?.data?.ruoli,
+        passwordScaduta: data?.data?.cambioPassword?.passwordScaduta ?? false,
       },
     });
 
@@ -202,20 +205,262 @@ export async function loginMobilitas(
         message: e.message,
         status: e.response?.status,
         statusText: e.response?.statusText,
-        responseHeaders: headersToPlain(e.response?.headers),
-        responseData: e.response?.data,
         requestUrl: e.config?.url,
         requestBaseURL: e.config?.baseURL,
       });
-      if (e.response?.data && typeof e.response.data === 'object') {
-        const body = e.response.data as ApiResponseDto<unknown>;
-        if (body.message) throw new Error(body.message);
-        if (body.error && typeof body.error === 'string') throw new Error(body.error);
-      }
+      const envelope = parseApiEnvelope(e.response?.data);
+      if (envelope?.message) throw new Error(envelope.message);
+      if (envelope?.error) throw new Error(envelope.error);
     } else {
       console.log('[LOGIN] ✗ error (non-axios)', { elapsedMs, error: e });
     }
     throw e;
+  }
+}
+
+/** Lunghezza minima imposta dal backend. L'app può essere più severa, non più permissiva. */
+export const MIN_PASSWORD_LENGTH = 8;
+
+export interface ChangePasswordRequestBody {
+  currentPassword: string;
+  newPassword: string;
+  /** Opzionale: se assente il backend non confronta. La mandiamo per avere il controllo anche server-side. */
+  confirmPassword?: string;
+}
+
+/** Campo del form a cui l'errore si riferisce, per evidenziare l'input giusto. */
+export type ChangePasswordField = 'currentPassword' | 'newPassword' | 'confirmPassword';
+
+/**
+ * Errore applicativo di `POST /auth/change-password`: il backend risponde 400 con un
+ * codice stabile in `error` e un testo già mostrabile in `message`. Si fa `switch` sul
+ * codice, mai sul testo.
+ */
+export class ChangePasswordError extends Error {
+  readonly code: string | null;
+  readonly field: ChangePasswordField | null;
+
+  constructor(message: string, code: string | null, field: ChangePasswordField | null) {
+    super(message);
+    this.name = 'ChangePasswordError';
+    this.code = code;
+    this.field = field;
+  }
+}
+
+/** Codici documentati; l'elenco può crescere, quindi il chiamante tiene sempre un default. */
+const CHANGE_PASSWORD_ERRORS: Record<string, { message: string; field: ChangePasswordField }> = {
+  NUOVA_PASSWORD_OBBLIGATORIA: {
+    message: 'Inserisci la nuova password.',
+    field: 'newPassword',
+  },
+  PASSWORD_NON_COINCIDONO: {
+    message: 'Le due password non coincidono.',
+    field: 'confirmPassword',
+  },
+  PASSWORD_ATTUALE_ERRATA: {
+    message: 'La password attuale non è corretta.',
+    field: 'currentPassword',
+  },
+  PASSWORD_TROPPO_CORTA: {
+    message: `La nuova password deve avere almeno ${MIN_PASSWORD_LENGTH} caratteri.`,
+    field: 'newPassword',
+  },
+  PASSWORD_UGUALE_ALLA_PRECEDENTE: {
+    message: 'La nuova password deve essere diversa da quella attuale.',
+    field: 'newPassword',
+  },
+};
+
+function toChangePasswordError(
+  code: string | null,
+  serverMessage: string | null
+): ChangePasswordError {
+  const known = code ? CHANGE_PASSWORD_ERRORS[code] : undefined;
+  if (known) {
+    return new ChangePasswordError(known.message, code, known.field);
+  }
+  // Codice nuovo o assente: il `message` del backend è già pensato per l'utente.
+  return new ChangePasswordError(
+    serverMessage || 'Non è stato possibile cambiare la password. Riprova.',
+    code,
+    null
+  );
+}
+
+/**
+ * POST /api/auth/change-password — richiede Bearer, nessun vincolo di ruolo.
+ *
+ * Il JWT già emesso resta valido fino alla scadenza naturale: la sessione non si chiude
+ * e il cambio non disconnette gli altri dispositivi. Chiamiamo `refresh` dopo il successo
+ * per ripartire con un token nuovo (best-effort: se fallisce il vecchio è ancora buono).
+ *
+ * Niente log di password: questa funzione non stampa mai il body.
+ */
+export async function changePassword(input: ChangePasswordRequestBody): Promise<string> {
+  const body: ChangePasswordRequestBody = {
+    currentPassword: input.currentPassword,
+    newPassword: input.newPassword,
+    confirmPassword: input.confirmPassword ?? input.newPassword,
+  };
+
+  try {
+    const { data } = await apiClient.post<ApiResponseDto<string>>('/auth/change-password', body);
+    if (!data.success) {
+      throw toChangePasswordError(data.error ?? null, data.message ?? null);
+    }
+    try {
+      await refreshAuthToken();
+    } catch {
+      // Il token corrente resta valido: il cambio password è comunque andato a buon fine.
+    }
+    return data.message || 'Password cambiata con successo';
+  } catch (e) {
+    if (e instanceof ChangePasswordError) throw e;
+    if (isAxiosError(e) && e.response?.status === 400) {
+      const envelope = parseApiEnvelope(e.response.data);
+      if (envelope) {
+        throw toChangePasswordError(envelope.error ?? null, envelope.message ?? null);
+      }
+    }
+    throw e;
+  }
+}
+
+/** True se un account misto deve cambiare la password prima di usare le API gestionali. */
+export function isPasswordChangeRequired(
+  session: Pick<LoginResponseData, 'ruoli' | 'cambioPassword'>
+): boolean {
+  if (!hasGestionaleRole(session.ruoli)) return false;
+  const stato = session.cambioPassword;
+  if (!stato) return false;
+  return Boolean(stato.passwordScaduta || stato.cambioPasswordObbligatorio);
+}
+
+export const RESET_REQUEST_USER_MESSAGE =
+  "Se l'account esiste, riceverai un'email con il link per reimpostare la password.";
+
+export type ResetLinkMotivo = 'SCADUTO' | 'GIA_USATO' | 'NON_TROVATO' | null;
+
+export interface ResetLinkVerifica {
+  valido: boolean;
+  motivo: ResetLinkMotivo;
+  nome: string | null;
+  scadenza: string | null;
+}
+
+/** Errore dei flussi pubblici (invito / reset): si interpreta lo status HTTP, non il testo. */
+export class PasswordLinkError extends Error {
+  readonly httpStatus: number;
+
+  constructor(httpStatus: number, message: string) {
+    super(message);
+    this.name = 'PasswordLinkError';
+    this.httpStatus = httpStatus;
+  }
+}
+
+function messageForPasswordLinkStatus(status: number, kind: 'invite' | 'reset'): string {
+  if (kind === 'invite') {
+    switch (status) {
+      case 400:
+        return 'Link non valido: chiedi allo studio un nuovo invito.';
+      case 409:
+        return 'Questo link è già stato usato: accedi con la password che hai scelto.';
+      case 410:
+        return 'Il link è scaduto: chiedi allo studio un nuovo invito.';
+      default:
+        return 'Non è stato possibile impostare la password. Riprova.';
+    }
+  }
+  switch (status) {
+    case 400:
+      return 'Link non valido, oppure la nuova password è troppo corta o uguale alla precedente.';
+    case 409:
+      return 'Questo link è già stato usato: accedi con la password che hai scelto.';
+    case 410:
+      return 'Il link è scaduto: chiedine uno nuovo.';
+    default:
+      return 'Non è stato possibile reimpostare la password. Riprova.';
+  }
+}
+
+function throwPasswordLinkError(error: unknown, kind: 'invite' | 'reset'): never {
+  if (isAxiosError(error) && error.response?.status) {
+    throw new PasswordLinkError(
+      error.response.status,
+      messageForPasswordLinkStatus(error.response.status, kind)
+    );
+  }
+  throw error;
+}
+
+/**
+ * POST /api/auth/reset-password/richiedi — pubblico.
+ * Risponde sempre 200 con lo stesso testo, anche se l’account non esiste: non dedurre nulla.
+ */
+export async function requestPasswordReset(emailOUsername: string): Promise<void> {
+  const { data } = await apiClient.post<ApiResponseDto<string>>('/auth/reset-password/richiedi', {
+    emailOUsername,
+  });
+  if (!data.success) {
+    throw new Error(data.message || 'Richiesta non riuscita');
+  }
+}
+
+/**
+ * GET /api/auth/reset-password/verifica?token= — pubblico, sempre 200.
+ * Non consuma il link. `token` va passato già decodificato: Axios lo encode una sola volta in query.
+ */
+export async function verifyResetPasswordToken(token: string): Promise<ResetLinkVerifica> {
+  const { data } = await apiClient.get<ApiResponseDto<ResetLinkVerifica>>(
+    '/auth/reset-password/verifica',
+    { params: { token } }
+  );
+  const payload = data.data;
+  if (!payload) {
+    return { valido: false, motivo: 'NON_TROVATO', nome: null, scadenza: null };
+  }
+  return {
+    valido: Boolean(payload.valido),
+    motivo: payload.motivo ?? null,
+    nome: payload.nome ?? null,
+    scadenza: payload.scadenza ?? null,
+  };
+}
+
+/** POST /api/auth/reset-password — pubblico. Interpretare 400/409/410 dallo status HTTP. */
+export async function submitResetPassword(token: string, nuovaPassword: string): Promise<void> {
+  try {
+    const { data } = await apiClient.post<ApiResponseDto<unknown>>('/auth/reset-password', {
+      token,
+      nuovaPassword,
+    });
+    if (!data.success) {
+      throw new PasswordLinkError(400, messageForPasswordLinkStatus(400, 'reset'));
+    }
+  } catch (e) {
+    if (e instanceof PasswordLinkError) throw e;
+    throwPasswordLinkError(e, 'reset');
+  }
+}
+
+/**
+ * POST /api/auth/applicazione/imposta-password — pubblico, primo accesso da invito.
+ * Accetta anche un token di reset (senza però controllare che la password sia diversa).
+ */
+export async function submitImpostaPassword(token: string, nuovaPassword: string): Promise<void> {
+  try {
+    const { data } = await apiClient.post<ApiResponseDto<unknown>>(
+      '/auth/applicazione/imposta-password',
+      { token, nuovaPassword }
+    );
+    if (!data.success) {
+      throw new PasswordLinkError(400, messageForPasswordLinkStatus(400, 'invite'));
+    }
+  } catch (e) {
+    if (e instanceof PasswordLinkError) throw e;
+    throwPasswordLinkError(e, 'invite');
   }
 }
 

@@ -1,4 +1,5 @@
 import { isAxiosError, type AxiosError } from 'axios';
+import { parseApiEnvelope, getEnvelopeErrorCode } from './apiEnvelope';
 
 /** Messaggi tecnici tipici del backend (anche in risposte 200 con `success: false`) da non mostrare così com’è. */
 function humanizeBackendErrorText(raw: string): string {
@@ -9,15 +10,33 @@ function humanizeBackendErrorText(raw: string): string {
   return t;
 }
 
+/**
+ * True se il corpo è l’envelope applicativo `{ success, message, data, error }`.
+ * I rifiuti della catena di sicurezza (token assente, scaduto, malformato) non ci passano:
+ * arriva la pagina d’errore del servlet container, che non è JSON.
+ */
+function hasEnvelopeBody(error: AxiosError): boolean {
+  return parseApiEnvelope(error.response?.data) != null;
+}
+
+/** Corpi HTML/XML (pagine d’errore del container) da non riversare in UI. */
+function looksLikeMarkup(text: string): boolean {
+  const t = text.trim();
+  return t.startsWith('<') || /<\/?(?:html|body|head|title)\b/i.test(t);
+}
+
 function extractServerMessage(error: AxiosError): string | null {
-  const d = error.response?.data;
-  if (d && typeof d === 'object') {
-    const msg = (d as { message?: unknown; error?: unknown }).message;
-    if (typeof msg === 'string' && msg.trim()) return msg.trim();
-    const err = (d as { error?: unknown }).error;
-    if (typeof err === 'string' && err.trim()) return err.trim();
+  const envelope = parseApiEnvelope(error.response?.data);
+  if (envelope) {
+    if (typeof envelope.message === 'string' && envelope.message.trim()) {
+      return envelope.message.trim();
+    }
+    if (typeof envelope.error === 'string' && envelope.error.trim()) {
+      return envelope.error.trim();
+    }
   }
-  if (typeof d === 'string' && d.trim().length > 0 && d.length < 500) {
+  const d = error.response?.data;
+  if (typeof d === 'string' && d.trim().length > 0 && d.length < 500 && !looksLikeMarkup(d)) {
     return d.trim();
   }
   return null;
@@ -25,12 +44,7 @@ function extractServerMessage(error: AxiosError): string | null {
 
 /** Codice `error` dell’envelope backend, quando presente. */
 function extractServerErrorCode(error: AxiosError): string | null {
-  const d = error.response?.data;
-  if (d && typeof d === 'object') {
-    const code = (d as { error?: unknown }).error;
-    if (typeof code === 'string' && code.trim()) return code.trim();
-  }
-  return null;
+  return getEnvelopeErrorCode(error.response?.data);
 }
 
 /** Messaggi generati da Axios da non mostrare così com’sono all’utente. */
@@ -98,8 +112,13 @@ export function getUserFacingApiErrorMessage(
       // La password gestionale scade a rotazione: non è una sessione da rifare.
       if (extractServerErrorCode(error) === 'PASSWORD_SCADUTA') {
         return `${prefix}${
-          serverMsg || 'La tua password è scaduta: cambiala dal gestionale per continuare.'
+          serverMsg ||
+          'La tua password è scaduta: cambiala da Profilo › Cambia Password per continuare.'
         }`;
+      }
+      // Senza envelope il 403 arriva dalla catena di sicurezza: manca il token, non i permessi.
+      if (!hasEnvelopeBody(error)) {
+        return `${prefix}Sessione non più valida. Effettua di nuovo il login.`;
       }
       return `${prefix}Non hai i permessi per accedere a questo contenuto.`;
     }

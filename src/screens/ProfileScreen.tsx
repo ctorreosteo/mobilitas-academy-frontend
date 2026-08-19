@@ -10,9 +10,11 @@ import {
   Pressable,
   ActivityIndicator,
   Linking,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
@@ -26,8 +28,12 @@ import {
   fetchOsteopatiPerStudio,
   fetchStudiAttivi,
 } from '../services/studioVisitsService';
+import { getUserFacingApiErrorMessage } from '../utils/apiErrorMessage';
 import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
 import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
+import type { ProfiloStackParamList } from './profilo/types';
+
+type ProfiloNav = StackNavigationProp<ProfiloStackParamList, 'ProfiloHome'>;
 
 const DELETE_ACCOUNT_WHATSAPP_PREFILL =
   'Buongiorno, vorrei richiedere la cancellazione definitiva del mio account Mobilitas Academy.';
@@ -46,6 +52,7 @@ function initialsFromProfile(p: StoredUserProfile | null): string {
 
 const ProfileScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();
+  const navigation = useNavigation<ProfiloNav>();
   const { signOut } = useAuth();
   const queryClient = useQueryClient();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
@@ -103,6 +110,11 @@ const ProfileScreen: React.FC = () => {
   const reviewStudi = studiReviewQuery.data ?? [];
   const selectedReviewStudio =
     reviewStudi.find((studio) => studio.id === selectedReviewStudioId) ?? null;
+  const reviewStudiError = studiReviewQuery.isError
+    ? getUserFacingApiErrorMessage(studiReviewQuery.error, {
+        context: 'Impossibile caricare gli studi',
+      })
+    : null;
 
   const displayName =
     profile?.nome && profile?.cognome
@@ -113,11 +125,6 @@ const ProfileScreen: React.FC = () => {
     profile?.ruoli?.length && profile.ruoli.length > 0
       ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
       : '—';
-  const stats = [
-    { key: 'completed', value: '2', label: 'Corsi completati', icon: 'checkmark-done-circle-outline' as const },
-    { key: 'ongoing', value: '6', label: 'In corso', icon: 'play-circle-outline' as const },
-    { key: 'progress', value: '53%', label: 'Progresso', icon: 'trending-up-outline' as const },
-  ];
 
   const handleCleanAndRefresh = () => {
     setConfirmCleanVisible(true);
@@ -274,18 +281,6 @@ const ProfileScreen: React.FC = () => {
           </View>
           <Text style={styles.userEmail}>{displayEmail}</Text>
           <Text style={styles.userRole}>{roleLine}</Text>
-        </View>
-
-        <View style={styles.statsContainer}>
-          {stats.map((stat) => (
-            <View key={stat.key} style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Ionicons name={stat.icon} size={15} color={withOpacity(theme.colors.secondary, 0.85)} />
-                <Text style={styles.statLabel}>{stat.label}</Text>
-              </View>
-              <Text style={styles.statNumber}>{stat.value}</Text>
-            </View>
-          ))}
         </View>
 
         <View style={styles.menuSection}>
@@ -447,7 +442,7 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.sectionCard}>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => setInactiveFeatureName('Cambia Password')}
+              onPress={() => navigation.navigate('CambioPassword')}
               activeOpacity={0.75}
             >
               <View style={styles.menuItemContent}>
@@ -487,93 +482,135 @@ const ProfileScreen: React.FC = () => {
         }}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <View style={[styles.modalIconWrap, styles.modalIconWrapAccent]}>
-              <Ionicons name="star-outline" size={20} color={theme.colors.accent} />
-            </View>
-            <Text style={styles.modalTitle}>Scrivi una recensione</Text>
-            <Text style={styles.modalText}>
-              Seleziona lo studio per cui vuoi lasciare una recensione Google.
-            </Text>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.reviewSelectInput,
-                pressed && styles.modalBtnPressed,
-                (studiReviewQuery.isLoading || reviewStudi.length === 0) && styles.reviewSelectInputDisabled,
-              ]}
-              onPress={() => setReviewStudioListVisible((v) => !v)}
-              disabled={studiReviewQuery.isLoading || reviewStudi.length === 0}
-            >
-              <Text style={selectedReviewStudio ? styles.reviewSelectValue : styles.reviewSelectPlaceholder}>
-                {studiReviewQuery.isLoading
-                  ? 'Caricamento studi...'
-                  : selectedReviewStudio?.nome ?? 'Seleziona studio'}
-              </Text>
-              <Ionicons
-                name={reviewStudioListVisible ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={withOpacity(theme.colors.text.secondary, 0.7)}
-              />
-            </Pressable>
-
+          <View style={[styles.modalCard, styles.reviewModalCard]}>
             {reviewStudioListVisible ? (
-              <View style={styles.reviewOptionsCard}>
-                {reviewStudi.map((studio) => {
-                  const isSelected = studio.id === selectedReviewStudioId;
-                  return (
-                    <Pressable
-                      key={studio.id}
-                      style={({ pressed }) => [
-                        styles.reviewOptionRow,
-                        isSelected && styles.reviewOptionRowSelected,
-                        pressed && styles.modalBtnPressed,
-                      ]}
-                      onPress={() => {
-                        setSelectedReviewStudioId(studio.id);
-                        setReviewStudioListVisible(false);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.reviewOptionText,
-                          isSelected && styles.reviewOptionTextSelected,
-                        ]}
-                      >
-                        {studio.nome}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : null}
-
-            {reviewActionError ? <Text style={styles.reviewErrorText}>{reviewActionError}</Text> : null}
-
-            <View style={styles.modalActions}>
-              <Pressable
-                style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
-                onPress={() => setReviewModalVisible(false)}
-                disabled={openingReviewLink}
-              >
-                <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.modalPrimaryBtn,
-                  pressed && styles.modalBtnPressed,
-                  (openingReviewLink || selectedReviewStudioId == null) && styles.modalPrimaryBtnDisabled,
-                ]}
-                onPress={handleOpenReviewLink}
-                disabled={openingReviewLink || selectedReviewStudioId == null}
-              >
-                {openingReviewLink ? (
-                  <ActivityIndicator size="small" color={theme.colors.background.primary} />
+              <>
+                <View style={styles.reviewPickerHeader}>
+                  <TouchableOpacity
+                    onPress={() => setReviewStudioListVisible(false)}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel="Indietro"
+                  >
+                    <Ionicons name="chevron-back" size={24} color={theme.colors.secondary} />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>Seleziona studio</Text>
+                </View>
+                {studiReviewQuery.isLoading ? (
+                  <View style={styles.reviewPickerLoading}>
+                    <ActivityIndicator color={theme.colors.secondary} />
+                    <Text style={styles.reviewEmptyText}>Caricamento studi...</Text>
+                  </View>
                 ) : (
-                  <Text style={styles.modalPrimaryBtnText}>Scrivi recensione</Text>
+                  <FlatList
+                    data={reviewStudi}
+                    keyExtractor={(item) => `studio-${item.id}`}
+                    style={styles.reviewPickerList}
+                    contentContainerStyle={styles.reviewOptionsContent}
+                    keyboardShouldPersistTaps="handled"
+                    ListEmptyComponent={
+                      <Text
+                        style={
+                          reviewStudiError
+                            ? [styles.reviewErrorText, styles.reviewEmptyText]
+                            : styles.reviewEmptyText
+                        }
+                      >
+                        {reviewStudiError ?? 'Nessuno studio disponibile.'}
+                      </Text>
+                    }
+                    renderItem={({ item }) => {
+                      const isSelected = item.id === selectedReviewStudioId;
+                      return (
+                        <TouchableOpacity
+                          style={[
+                            styles.reviewOptionRow,
+                            isSelected && styles.reviewOptionRowSelected,
+                          ]}
+                          onPress={() => {
+                            setSelectedReviewStudioId(item.id);
+                            setReviewStudioListVisible(false);
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <Text
+                            style={[
+                              styles.reviewOptionText,
+                              isSelected && styles.reviewOptionTextSelected,
+                            ]}
+                          >
+                            {item.nome}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    }}
+                  />
                 )}
-              </Pressable>
-            </View>
+              </>
+            ) : (
+              <>
+                <View style={[styles.modalIconWrap, styles.modalIconWrapAccent]}>
+                  <Ionicons name="star-outline" size={20} color={theme.colors.accent} />
+                </View>
+                <Text style={styles.modalTitle}>Scrivi una recensione</Text>
+                <Text style={styles.modalText}>
+                  Seleziona lo studio per cui vuoi lasciare una recensione Google.
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.reviewSelectInput}
+                  onPress={() => setReviewStudioListVisible(true)}
+                  activeOpacity={0.75}
+                >
+                  <Text
+                    style={
+                      selectedReviewStudio ? styles.reviewSelectValue : styles.reviewSelectPlaceholder
+                    }
+                  >
+                    {studiReviewQuery.isLoading
+                      ? 'Caricamento studi...'
+                      : selectedReviewStudio?.nome ??
+                        (reviewStudiError ? 'Impossibile caricare gli studi' : 'Seleziona studio')}
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={18}
+                    color={withOpacity(theme.colors.text.secondary, 0.7)}
+                  />
+                </TouchableOpacity>
+
+                {reviewStudiError ? (
+                  <Text style={styles.reviewErrorText}>{reviewStudiError}</Text>
+                ) : null}
+                {reviewActionError ? <Text style={styles.reviewErrorText}>{reviewActionError}</Text> : null}
+
+                <View style={styles.modalActions}>
+                  <Pressable
+                    style={({ pressed }) => [styles.modalSecondaryBtn, pressed && styles.modalBtnPressed]}
+                    onPress={() => setReviewModalVisible(false)}
+                    disabled={openingReviewLink}
+                  >
+                    <Text style={styles.modalSecondaryBtnText}>Annulla</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.modalPrimaryBtn,
+                      pressed && styles.modalBtnPressed,
+                      (openingReviewLink || selectedReviewStudioId == null) &&
+                        styles.modalPrimaryBtnDisabled,
+                    ]}
+                    onPress={handleOpenReviewLink}
+                    disabled={openingReviewLink || selectedReviewStudioId == null}
+                  >
+                    {openingReviewLink ? (
+                      <ActivityIndicator size="small" color={theme.colors.background.primary} />
+                    ) : (
+                      <Text style={styles.modalPrimaryBtnText}>Scrivi recensione</Text>
+                    )}
+                  </Pressable>
+                </View>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -904,50 +941,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 20,
-    gap: 10,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: withOpacity(theme.colors.primary, 0.45),
-    borderRadius: 18,
-    minHeight: 108,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.25),
-    shadowColor: theme.colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.26,
-    shadowRadius: 14,
-    elevation: 7,
-  },
-  statHeader: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  statNumber: {
-    fontSize: 38,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: theme.colors.secondary,
-    lineHeight: 42,
-    textAlign: 'center',
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
-    color: withOpacity(theme.colors.text.secondary, 0.76),
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    textAlign: 'center',
-  },
   menuSection: {
     marginHorizontal: 20,
     marginBottom: 24,
@@ -1055,6 +1048,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.primary,
     padding: 18,
     gap: 12,
+  },
+  reviewModalCard: {
+    maxHeight: '85%',
   },
   modalIconWrap: {
     width: 36,
@@ -1164,9 +1160,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  reviewSelectInputDisabled: {
-    opacity: 0.6,
-  },
   reviewSelectValue: {
     flex: 1,
     color: theme.colors.text.secondary,
@@ -1185,13 +1178,31 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
     lineHeight: 18,
   },
-  reviewOptionsCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.2),
-    backgroundColor: withOpacity(theme.colors.primary, 0.35),
-    maxHeight: 220,
-    overflow: 'hidden',
+  reviewPickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reviewPickerLoading: {
+    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  reviewPickerList: {
+    height: 280,
+  },
+  reviewOptionsContent: {
+    paddingVertical: 4,
+    flexGrow: 1,
+  },
+  reviewEmptyText: {
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    fontSize: 14,
+    lineHeight: 20,
+    color: withOpacity(theme.colors.text.secondary, 0.78),
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
   },
   reviewOptionRow: {
     paddingHorizontal: 14,
