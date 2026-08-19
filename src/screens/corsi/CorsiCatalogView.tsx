@@ -90,17 +90,66 @@ const CorsiCatalogView: React.FC<CorsiCatalogViewProps> = ({
   }, [courses]);
 
   const listHeader = useMemo(
-    () =>
-      isError && courses.length > 0 ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{errorMessage(error)}</Text>
-          <StudioWhatsAppSupportButton
-            prefilledMessage={copy.supportWhatsAppMessage}
-            style={styles.errorWhatsappBtn}
-          />
+    () => (
+      <>
+        {isError && courses.length > 0 ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{errorMessage(error)}</Text>
+            <StudioWhatsAppSupportButton
+              prefilledMessage={copy.supportWhatsAppMessage}
+              style={styles.errorWhatsappBtn}
+            />
+          </View>
+        ) : null}
+
+        <View style={[styles.statsCard, styles.statsCardInList]}>
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrap}>
+              <Ionicons
+                name="library-outline"
+                size={16}
+                color={withOpacity(theme.colors.secondary, 0.95)}
+              />
+            </View>
+            <Text style={styles.statNumber}>{stats.totalCourses}</Text>
+            <Text style={styles.statLabel}>Totali</Text>
+          </View>
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrap}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={16}
+                color={withOpacity(theme.colors.secondary, 0.95)}
+              />
+            </View>
+            <Text style={styles.statNumber}>{stats.completedCourses}</Text>
+            <Text style={styles.statLabel}>Completati</Text>
+          </View>
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrap}>
+              <Ionicons
+                name="trending-up-outline"
+                size={16}
+                color={withOpacity(theme.colors.secondary, 0.95)}
+              />
+            </View>
+            <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
+            <Text style={styles.statLabel}>Media</Text>
+          </View>
         </View>
-      ) : null,
-    [isError, error, courses.length, errorMessage, copy.supportWhatsAppMessage]
+
+        <View style={[styles.sectionHeader, styles.sectionHeaderInList]}>
+          <View style={styles.sectionHeaderTopRow}>
+            <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
+            <View style={styles.coursesCountBadge}>
+              <Text style={styles.coursesCountText}>{courses.length}</Text>
+            </View>
+          </View>
+          <Text style={styles.sectionHeaderHint}>Scorri per vedere e aprire i contenuti</Text>
+        </View>
+      </>
+    ),
+    [isError, error, courses.length, errorMessage, copy.supportWhatsAppMessage, stats]
   );
 
   if (isPending && courses.length === 0) {
@@ -134,44 +183,6 @@ const CorsiCatalogView: React.FC<CorsiCatalogViewProps> = ({
           <Ionicons name="library-outline" size={15} color={theme.colors.secondary} />
         </View>
         <View style={styles.dividerLine} />
-      </View>
-
-      <View style={styles.statsCard}>
-        <View style={styles.statItem}>
-          <View style={styles.statIconWrap}>
-            <Ionicons name="library-outline" size={16} color={withOpacity(theme.colors.secondary, 0.95)} />
-          </View>
-          <Text style={styles.statNumber}>{stats.totalCourses}</Text>
-          <Text style={styles.statLabel}>Totali</Text>
-        </View>
-        <View style={styles.statItem}>
-          <View style={styles.statIconWrap}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={16}
-              color={withOpacity(theme.colors.secondary, 0.95)}
-            />
-          </View>
-          <Text style={styles.statNumber}>{stats.completedCourses}</Text>
-          <Text style={styles.statLabel}>Completati</Text>
-        </View>
-        <View style={styles.statItem}>
-          <View style={styles.statIconWrap}>
-            <Ionicons name="trending-up-outline" size={16} color={withOpacity(theme.colors.secondary, 0.95)} />
-          </View>
-          <Text style={styles.statNumber}>{stats.avgProgress}%</Text>
-          <Text style={styles.statLabel}>Media</Text>
-        </View>
-      </View>
-
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionHeaderTopRow}>
-          <Text style={styles.sectionHeaderTitle}>Elenco corsi</Text>
-          <View style={styles.coursesCountBadge}>
-            <Text style={styles.coursesCountText}>{courses.length}</Text>
-          </View>
-        </View>
-        <Text style={styles.sectionHeaderHint}>Scorri per vedere e aprire i contenuti</Text>
       </View>
 
       <FlatList
@@ -322,6 +333,10 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 7,
   },
+  // Dentro la FlatList il padding orizzontale arriva già da coursesList.
+  statsCardInList: {
+    marginHorizontal: 0,
+  },
   statItem: {
     alignItems: 'center',
     minWidth: 80,
@@ -354,6 +369,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 20,
     marginBottom: 24,
+  },
+  sectionHeaderInList: {
+    paddingHorizontal: 0,
   },
   sectionHeaderTopRow: {
     flexDirection: 'row',
