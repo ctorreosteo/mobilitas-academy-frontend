@@ -8,6 +8,7 @@ import type { FitnessStackParamList } from './types';
 
 const Stack = createStackNavigator<FitnessStackParamList>();
 
+/** Tenuto nel progetto ma non montato nella tab bar: sostituito da Sessioni posturali. */
 const FitnessStack: React.FC = () => {
   return (
     <Stack.Navigator

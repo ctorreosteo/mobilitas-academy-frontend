@@ -77,6 +77,28 @@ export function hasPazienteRole(roles: string[] | null | undefined): boolean {
   return roles.some((role) => role.toUpperCase().includes('PAZIENTE'));
 }
 
+/** Ruoli puramente app mobile: non danno accesso alle API `/api/formazione`. */
+const MOBILE_ONLY_ROLES = new Set([
+  'ROLE_PAZIENTE',
+  'ROLE_UTENTE_MOBILE_APP',
+  'ROLE_ABBONATO_MOBILE_APP',
+]);
+
+/**
+ * True se l'utente ha almeno un ruolo gestionale (dipendente/osteopata/manager/admin).
+ * È la condizione che il backend usa per `/api/formazione`: chi ha solo ruoli mobile
+ * riceve 403. Un osteopata che è anche paziente resta gestionale.
+ */
+export function hasGestionaleRole(roles: string[] | null | undefined): boolean {
+  if (!Array.isArray(roles)) return false;
+  return roles.some((role) => {
+    const normalized = role.trim().toUpperCase();
+    if (!normalized) return false;
+    const withPrefix = normalized.startsWith('ROLE_') ? normalized : `ROLE_${normalized}`;
+    return !MOBILE_ONLY_ROLES.has(withPrefix);
+  });
+}
+
 function toStoredProfile(d: LoginResponseData | UserInfoResponseDto): StoredUserProfile {
   const profile: StoredUserProfile = {
     username: d.username,

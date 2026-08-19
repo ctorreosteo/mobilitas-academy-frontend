@@ -197,6 +197,8 @@ const BookVisitScreen: React.FC = () => {
     queryFn: fetchStudiAttivi,
   });
 
+  const studi = useMemo(() => studiQuery.data ?? [], [studiQuery.data]);
+
   const osteopatiQuery = useQuery({
     queryKey: ['visite-osteopati', studioId],
     queryFn: () => fetchOsteopatiPerStudio(studioId!),
@@ -354,7 +356,8 @@ const BookVisitScreen: React.FC = () => {
     if (isOsteopathBooking) return;
     if (studioId == null) return;
     const ref = osteopataRiferimentoQuery.data;
-    const refOsteopataId = ref?.id;
+    if (!ref) return;
+    const refOsteopataId = ref.id;
     if (typeof refOsteopataId !== 'number' || refOsteopataId <= 0) return;
     if (isOsteopataExcludedFromVisitBooking(ref)) return;
     if (!osteopatiForSelect.some((o) => o.id === refOsteopataId)) return;
@@ -387,7 +390,6 @@ const BookVisitScreen: React.FC = () => {
     osteopatiForSelect,
   ]);
 
-  const studi = studiQuery.data ?? [];
   const osteopataSelezionato = osteopatiForSelect.find((o) => o.id === osteopataId) ?? null;
   const studioSelezionato = studi.find((s) => s.id === studioId) ?? null;
 

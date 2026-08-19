@@ -4,14 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { theme, withOpacity } from '../theme';
 import { Course } from '../types';
+import type { CorsiStackParamList } from '../screens/corsi/types';
 
-type CoursesStackParamList = {
-  CoursesList: undefined;
-  CourseVideos: { course: Course };
-  VideoPlayer: { video: import('../types').Video; course?: Course };
-};
-
-type NavigationProp = StackNavigationProp<CoursesStackParamList, 'CourseVideos'>;
+type NavigationProp = StackNavigationProp<CorsiStackParamList, 'CourseVideos'>;
 
 interface CourseCardProps {
   course: Course;

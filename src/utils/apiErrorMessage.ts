@@ -23,6 +23,16 @@ function extractServerMessage(error: AxiosError): string | null {
   return null;
 }
 
+/** Codice `error` dell’envelope backend, quando presente. */
+function extractServerErrorCode(error: AxiosError): string | null {
+  const d = error.response?.data;
+  if (d && typeof d === 'object') {
+    const code = (d as { error?: unknown }).error;
+    if (typeof code === 'string' && code.trim()) return code.trim();
+  }
+  return null;
+}
+
 /** Messaggi generati da Axios da non mostrare così com’sono all’utente. */
 function isGenericAxiosMessage(msg: string): boolean {
   return /^Request failed with status code \d+$/i.test(msg.trim());
@@ -84,12 +94,22 @@ export function getUserFacingApiErrorMessage(
       return `${prefix}${NETWORK_USER_MESSAGE}`;
     }
 
-    if (status === 401 || status === 403) {
+    if (status === 403) {
+      // La password gestionale scade a rotazione: non è una sessione da rifare.
+      if (extractServerErrorCode(error) === 'PASSWORD_SCADUTA') {
+        return `${prefix}${
+          serverMsg || 'La tua password è scaduta: cambiala dal gestionale per continuare.'
+        }`;
+      }
+      return `${prefix}Non hai i permessi per accedere a questo contenuto.`;
+    }
+
+    if (status === 401) {
       return `${prefix}Accesso non autorizzato. Effettua di nuovo il login.`;
     }
 
     if (status === 404) {
-      return `${prefix}Servizio o contenuto non disponibile sul server (non trovato). Se il problema persiste, contatta la segreteria.`;
+      return `${prefix}Contenuto non disponibile.`;
     }
 
     if (status === 408 || status === 504) {

@@ -5,7 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
+import SpineIcon from '../components/SpineIcon';
 import { useAuth } from '../context/AuthContext';
+import { hasGestionaleRole } from '../services/authApi';
 import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const HomeScreen: React.FC = () => {
@@ -14,6 +16,8 @@ const HomeScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();
 
   const firstName = userProfile?.nome?.trim() || 'Professionista';
+  const isGestionale = hasGestionaleRole(userProfile?.ruoli);
+  const coursesLabel = isGestionale ? 'corsi aziendali' : 'corsi posturali';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -24,8 +28,8 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.heroOverline}>Mobilitas Academy</Text>
           <Text style={styles.heroTitle}>Ciao {firstName}</Text>
           <Text style={styles.heroSubtitle}>
-            Questa pagina ti guida tra tutte le azioni disponibili: formazione, visite, fitness, profilo
-            e gestione acquisti.
+            Questa pagina ti guida tra tutte le azioni disponibili: {coursesLabel}, visite, sessioni,
+            profilo e gestione acquisti.
           </Text>
         </View>
         <View style={styles.sectionBadge}>
@@ -61,18 +65,22 @@ const HomeScreen: React.FC = () => {
               <Ionicons name="library-outline" size={24} color={theme.colors.secondary} />
             </View>
             <Text style={styles.quickCardTitle}>Corsi</Text>
-            <Text style={styles.quickCardHint}>Riprendi la formazione e guarda i video.</Text>
+            <Text style={styles.quickCardHint}>
+              {isGestionale
+                ? 'Riprendi la formazione interna e guarda i video.'
+                : 'Riprendi i corsi posturali e guarda i video.'}
+            </Text>
           </Pressable>
 
           <Pressable
             style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
-            onPress={() => navigation.navigate('Fitness' as never)}
+            onPress={() => navigation.navigate('Sessioni' as never)}
           >
             <View style={styles.quickIconWrap}>
-              <Ionicons name="barbell-outline" size={24} color={theme.colors.secondary} />
+              <SpineIcon size={22} color={theme.colors.secondary} />
             </View>
-            <Text style={styles.quickCardTitle}>Fitness</Text>
-            <Text style={styles.quickCardHint}>Calendario sessioni e prenotazioni attive.</Text>
+            <Text style={styles.quickCardTitle}>Sessioni</Text>
+            <Text style={styles.quickCardHint}>Calendario posturali e prenotazioni attive.</Text>
           </Pressable>
 
         </View>
@@ -104,7 +112,7 @@ const HomeScreen: React.FC = () => {
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
             <Text style={styles.infoText}>
-              Sezione Fitness aggiornata: calendario sessioni, prenotazione rapida e gestione iscrizioni.
+              Sezione Sessioni: calendario posturali in presenza, prenotazione rapida e gestione prenotazioni.
             </Text>
           </View>
         </View>
@@ -112,7 +120,7 @@ const HomeScreen: React.FC = () => {
         <View style={styles.footerHint}>
           <Ionicons name="information-circle-outline" size={18} color={theme.colors.secondary} />
           <Text style={styles.footerHintText}>
-            Vai su Visite e Fitness per usare subito prenotazioni studio, sessioni e gestione acquisti.
+            Vai su Visite e Sessioni per usare subito prenotazioni studio, sessioni posturali e gestione acquisti.
           </Text>
         </View>
       </ScrollView>

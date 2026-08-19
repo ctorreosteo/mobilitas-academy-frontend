@@ -10,12 +10,11 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
-import CoursesScreen from './src/screens/CoursesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
-import CourseVideosScreen from './src/screens/CourseVideosScreen';
-import VideoPlayerScreen from './src/screens/VideoPlayerScreen';
+import CorsiStack from './src/screens/corsi/CorsiStack';
 import VisiteStack from './src/screens/visite/VisiteStack';
-import FitnessStack from './src/screens/fitness/FitnessStack';
+import SessioniStack from './src/screens/sessioni/SessioniStack';
+import SpineIcon from './src/components/SpineIcon';
 import LoginScreen from './src/screens/LoginScreen';
 import { theme } from './src/theme';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -28,7 +27,6 @@ const tabBarColors = {
 };
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
 const RootStack = createStackNavigator();
 const queryClient = new QueryClient();
 const navigationTheme = {
@@ -102,52 +100,9 @@ const errorBoundaryStyles = StyleSheet.create({
   },
 });
 
-const CoursesStack = () => {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.background.primary,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: theme.colors.secondary,
-        headerTitleStyle: {
-          fontWeight: '600',
-          color: theme.colors.secondary,
-        },
-      }}
-    >
-      <Stack.Screen
-        name="CoursesList"
-        component={CoursesScreen}
-        options={{
-          title: 'Corsi',
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="CourseVideos"
-        component={CourseVideosScreen}
-        options={{
-          title: 'Video del Corso',
-          headerBackTitle: '',
-        }}
-      />
-      <Stack.Screen
-        name="VideoPlayer"
-        component={VideoPlayerScreen}
-        options={{
-          title: 'Video',
-          headerBackTitle: '',
-        }}
-      />
-    </Stack.Navigator>
-  );
-};
-
 function MainTabNavigator() {
   const { bottom: bottomInset } = useSafeAreaInsets();
+  const tabBarBottomPadding = bottomInset > 0 ? bottomInset : 12;
 
   return (
     <Tab.Navigator
@@ -159,10 +114,11 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: tabBarColors.inactive,
         tabBarStyle: {
           position: 'absolute',
-          left: 14,
-          right: 14,
-          bottom: bottomInset,
-          borderRadius: 24,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
           backgroundColor: tabBarColors.background,
           borderTopWidth: 1,
           borderTopColor: tabBarColors.border,
@@ -170,12 +126,12 @@ function MainTabNavigator() {
           shadowColor: tabBarColors.shadow,
           shadowOffset: {
             width: 0,
-            height: 8,
+            height: -6,
           },
           shadowOpacity: 0.35,
           shadowRadius: 16,
-          height: 84,
-          paddingBottom: 20,
+          height: 64 + tabBarBottomPadding,
+          paddingBottom: tabBarBottomPadding,
           paddingTop: 12,
         },
         tabBarLabelStyle: {
@@ -209,7 +165,7 @@ function MainTabNavigator() {
       />
       <Tab.Screen
         name="Courses"
-        component={CoursesStack}
+        component={CorsiStack}
         options={{
           title: 'Corsi',
           tabBarLabel: 'Corsi',
@@ -232,15 +188,13 @@ function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Fitness"
-        component={FitnessStack}
+        name="Sessioni"
+        component={SessioniStack}
         options={{
-          title: 'Fitness',
-          tabBarLabel: 'Fitness',
+          title: 'Sessioni',
+          tabBarLabel: 'Sessioni',
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'barbell' : 'barbell-outline'} size={26} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <SpineIcon size={26} color={color} />,
         }}
       />
       <Tab.Screen
@@ -284,7 +238,7 @@ function RootNavigator() {
       <RootStack.Navigator
         screenOptions={{
           headerShown: false,
-          contentStyle: {
+          cardStyle: {
             paddingTop: 12,
           },
         }}

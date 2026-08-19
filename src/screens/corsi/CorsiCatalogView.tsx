@@ -10,28 +10,54 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
-import { theme, withOpacity } from '../theme';
-import CourseCard from '../components/CourseCard';
-import { Course } from '../types';
-import { useFormazioneCourses } from '../hooks/useFormazioneCourses';
-import { getUserFacingApiErrorMessage } from '../utils/apiErrorMessage';
-import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButton';
-import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
+import { theme, withOpacity } from '../../theme';
+import CourseCard from '../../components/CourseCard';
+import { Course } from '../../types';
+import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
+import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
+import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
-const COURSES_ERROR_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare l'elenco dei corsi di formazione. Potete aiutarmi? Grazie.";
-
-function coursesErrorMessage(error: unknown): string {
-  return getUserFacingApiErrorMessage(error, {
-    context: 'Impossibile caricare i corsi',
-    fallback: 'Non siamo riusciti a caricare l’elenco dei corsi. Riprova tra poco.',
-  });
+/** Testi propri del catalogo: li fornisce la schermata posturale o aziendale. */
+export interface CorsiCatalogCopy {
+  headerTitle: string;
+  headerSubtitle: string;
+  badge: string;
+  loadingSubtitle: string;
+  emptyText: string;
+  errorContext: string;
+  errorFallback: string;
+  supportWhatsAppMessage: string;
 }
 
-const CoursesScreen: React.FC = () => {
+interface CorsiCatalogViewProps {
+  copy: CorsiCatalogCopy;
+  courses: Course[];
+  isPending: boolean;
+  isError: boolean;
+  error: unknown;
+  isRefetching: boolean;
+  onRefresh: () => void;
+}
+
+const CorsiCatalogView: React.FC<CorsiCatalogViewProps> = ({
+  copy,
+  courses,
+  isPending,
+  isError,
+  error,
+  isRefetching,
+  onRefresh,
+}) => {
   const tabBarPad = useTabBarBottomPadding();
-  const { data: courses = [], isPending, isError, error, refetch, isRefetching } =
-    useFormazioneCourses();
+
+  const errorMessage = useCallback(
+    (e: unknown) =>
+      getUserFacingApiErrorMessage(e, {
+        context: copy.errorContext,
+        fallback: copy.errorFallback,
+      }),
+    [copy.errorContext, copy.errorFallback]
+  );
 
   const renderCourse = useCallback(
     ({ item }: { item: Course }) => (
@@ -67,22 +93,22 @@ const CoursesScreen: React.FC = () => {
     () =>
       isError && courses.length > 0 ? (
         <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{coursesErrorMessage(error)}</Text>
+          <Text style={styles.errorText}>{errorMessage(error)}</Text>
           <StudioWhatsAppSupportButton
-            prefilledMessage={COURSES_ERROR_WHATSAPP}
+            prefilledMessage={copy.supportWhatsAppMessage}
             style={styles.errorWhatsappBtn}
           />
         </View>
       ) : null,
-    [isError, error, courses.length]
+    [isError, error, courses.length, errorMessage, copy.supportWhatsAppMessage]
   );
 
   if (isPending && courses.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Corsi</Text>
-          <Text style={styles.headerSubtitle}>Sto caricando il catalogo formazione...</Text>
+          <Text style={styles.headerTitle}>{copy.headerTitle}</Text>
+          <Text style={styles.headerSubtitle}>{copy.loadingSubtitle}</Text>
         </View>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.secondary} />
@@ -95,14 +121,12 @@ const CoursesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Corsi</Text>
-        <Text style={styles.headerSubtitle}>
-          Catalogo dei corsi accessibili, con progresso e ripresa rapida.
-        </Text>
+        <Text style={styles.headerTitle}>{copy.headerTitle}</Text>
+        <Text style={styles.headerSubtitle}>{copy.headerSubtitle}</Text>
       </View>
       <View style={styles.headerBadge}>
         <Ionicons name="book-outline" size={14} color={theme.colors.text.primary} />
-        <Text style={styles.headerBadgeText}>Area formazione</Text>
+        <Text style={styles.headerBadgeText}>{copy.badge}</Text>
       </View>
       <View style={styles.dividerWrap}>
         <View style={styles.dividerLine} />
@@ -160,18 +184,18 @@ const CoursesScreen: React.FC = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={() => refetch()}
+            onRefresh={onRefresh}
             tintColor={theme.colors.secondary}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {isError ? coursesErrorMessage(error) : 'Nessun corso disponibile'}
+              {isError ? errorMessage(error) : copy.emptyText}
             </Text>
             {isError ? (
               <StudioWhatsAppSupportButton
-                prefilledMessage={COURSES_ERROR_WHATSAPP}
+                prefilledMessage={copy.supportWhatsAppMessage}
                 style={styles.emptyWhatsappBtn}
               />
             ) : null}
@@ -387,4 +411,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CoursesScreen;
+export default CorsiCatalogView;

@@ -51,7 +51,7 @@ export const colors = {
     white: '#FFFFFF',
   },
   gradients: {
-    splash: ['#0A3D62', '#1E88E5', '#42A5F5'],
+    splash: ['#0A3D62', '#1E88E5', '#42A5F5'] as const,
   }
 };
 

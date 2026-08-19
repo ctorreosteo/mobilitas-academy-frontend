@@ -9,17 +9,12 @@ import { theme, withOpacity } from '../theme';
 import { Course, Video, Chapter } from '../types';
 import ChapterSection from '../components/ChapterSection';
 import { getCachedDurationFromHls } from '../utils/hlsDuration';
-import { loadFormazioneCourseContent } from '../services/formazioneCourseContent';
+import { loadCourseContent } from '../services/courseContent';
 import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
+import type { CorsiStackParamList } from './corsi/types';
 
-type CoursesStackParamList = {
-  CoursesList: undefined;
-  CourseVideos: { course: Course };
-  VideoPlayer: { video: Video; course?: Course };
-};
-
-type CourseVideosScreenRouteProp = RouteProp<CoursesStackParamList, 'CourseVideos'>;
-type NavigationProp = StackNavigationProp<CoursesStackParamList, 'VideoPlayer'>;
+type CourseVideosScreenRouteProp = RouteProp<CorsiStackParamList, 'CourseVideos'>;
+type NavigationProp = StackNavigationProp<CorsiStackParamList, 'VideoPlayer'>;
 
 const CourseVideosScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();
@@ -27,6 +22,8 @@ const CourseVideosScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { course } = route.params;
 
+  /** Corso mostrato in pagina: il param di navigazione, poi il dettaglio remoto. */
+  const [displayCourse, setDisplayCourse] = useState<Course>(course);
   const [courseChapters, setCourseChapters] = useState<Chapter[]>([]);
   /** Solo da API: l’effetto durate dipende da questo per evitare loop. */
   const [sourceVideos, setSourceVideos] = useState<Video[]>([]);
@@ -42,8 +39,13 @@ const CourseVideosScreen: React.FC = () => {
       try {
         setLoading(true);
         setLoadError(null);
-        const { chapters, videos } = await loadFormazioneCourseContent(course);
+        setDisplayCourse(course);
+        setDisplayCourse(course);
+        const { chapters, videos, course: refreshedCourse } = await loadCourseContent(course);
         if (cancelled) return;
+        if (refreshedCourse) {
+          setDisplayCourse(refreshedCourse);
+        }
         setCourseChapters(chapters);
         setSourceVideos(videos);
         setVideosWithDuration(videos);
@@ -100,7 +102,7 @@ const CourseVideosScreen: React.FC = () => {
   }, [sourceVideos]);
 
   const handleVideoPress = (video: Video) => {
-    navigation.navigate('VideoPlayer', { video, course });
+    navigation.navigate('VideoPlayer', { video, course: displayCourse });
   };
 
   const totalDuration = useMemo(
@@ -140,12 +142,12 @@ const CourseVideosScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.courseTitle}>{course.title}</Text>
-          <Text style={styles.instructor}>di {course.instructor}</Text>
+          <Text style={styles.courseTitle}>{displayCourse.title}</Text>
+          <Text style={styles.instructor}>di {displayCourse.instructor}</Text>
         </View>
 
         <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionText}>{course.description}</Text>
+          <Text style={styles.descriptionText}>{displayCourse.description}</Text>
         </View>
         <View style={styles.headerBadge}>
           <Ionicons name="bookmarks-outline" size={14} color={theme.colors.text.primary} />

@@ -38,6 +38,13 @@ export interface User {
   role: 'admin' | 'instructor' | 'student';
 }
 
+/**
+ * Cataloghi distinti e non intercambiabili:
+ * - `formazione`: LMS interno (`/api/formazione`), riservato a chi lavora in azienda
+ * - `posturale`: catalogo pazienti (`/api/corsi-posturali`)
+ */
+export type CourseCatalog = 'formazione' | 'posturale';
+
 export interface Course {
   id: string;
   title: string;
@@ -50,7 +57,12 @@ export interface Course {
   difficulty: 'Principiante' | 'Intermedio' | 'Avanzato';
   coverImage?: string;
   youtubePlaylistId?: string; // ID playlist YouTube per questo corso
-  /** Da GET /api/formazione/corsi/accessibili: corso accessibile all'utente */
+  /**
+   * Catalogo di provenienza: decide gli endpoint di moduli e lezioni.
+   * Se assente si assume `formazione`.
+   */
+  catalog?: CourseCatalog;
+  /** Corso visibile all'utente (`attivo: true`). */
   formazioneAttivo?: boolean;
   ruoloRichiestoTipo?: string | null;
   ruoloRichiestoId?: number | null;
