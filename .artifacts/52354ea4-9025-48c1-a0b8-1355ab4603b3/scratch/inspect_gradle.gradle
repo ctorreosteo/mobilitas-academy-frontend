@@ -1,0 +1,5 @@
+println "--- Gradle Inspection ---"
+println "rootProject.projectDir: ${rootProject.projectDir}"
+println "rootProject.file('local.properties') exists: ${rootProject.file('local.properties').exists()}"
+println "settingsDir: ${settingsDir}"
+println "-------------------------"

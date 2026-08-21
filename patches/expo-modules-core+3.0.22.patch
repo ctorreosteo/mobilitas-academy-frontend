@@ -1,0 +1,36 @@
+diff --git a/node_modules/expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/gradle/ExpoGradleHelperExtension.kt b/node_modules/expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/gradle/ExpoGradleHelperExtension.kt
+index 7c387ab..25c823f 100644
+--- a/node_modules/expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/gradle/ExpoGradleHelperExtension.kt
++++ b/node_modules/expo-modules-core/expo-module-gradle-plugin/src/main/kotlin/expo/modules/plugin/gradle/ExpoGradleHelperExtension.kt
+@@ -43,7 +43,7 @@ open class ExpoGradleHelperExtension {
+     reactNativeDir = reactNativeDirFromSource ?: File(
+       project.providers.exec { env ->
+         env.workingDir(project.rootDir)
+-        env.commandLine("node", "--print", "require.resolve('react-native/package.json')")
++        env.commandLine(resolveNodeBinary(project), "--print", "require.resolve('react-native/package.json')")
+       }.standardOutput.asText.get().trim()
+     ).parentFile
+ 
+@@ -74,4 +74,22 @@ open class ExpoGradleHelperExtension {
+     reactNativeVersion = Version.fromString(version)
+     return reactNativeVersion
+   }
++
++  private fun resolveNodeBinary(project: Project): String {
++    val fromEnv = System.getenv("NODE_BINARY")?.trim()
++    if (!fromEnv.isNullOrEmpty() && File(fromEnv).canExecute()) {
++      return fromEnv
++    }
++    val local = File(project.rootDir, "local.properties")
++    if (local.isFile) {
++      val line = local.readLines().firstOrNull { it.startsWith("node.executable=") }
++      if (line != null) {
++        val path = line.substringAfter("=").trim()
++        if (path.isNotEmpty() && File(path).canExecute()) {
++          return path
++        }
++      }
++    }
++    return "node"
++  }
+ }

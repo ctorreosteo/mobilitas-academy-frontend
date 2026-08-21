@@ -17,7 +17,8 @@
     "build:android:production": "eas build --platform android --profile production",
     "submit:ios": "eas submit --platform ios --latest",
     "submit:android": "eas submit --platform android --latest",
-    "fill-video-durations": "node scripts/fill-video-durations.js"
+    "fill-video-durations": "node scripts/fill-video-durations.js",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   },
   "private": true

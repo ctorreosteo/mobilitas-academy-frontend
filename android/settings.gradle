@@ -13,6 +13,32 @@ pluginManagement {
     return "node"
   }()
 
+  // expo-autolinking-settings and other scripts still exec bare `node`. Prepend node's dir to PATH
+  // and set NODE_BINARY env var so Android Studio (no nvm) can apply the plugin and run tasks.
+  def nodeFile = new File(nodeExecutable)
+  if (nodeFile.isFile()) {
+    def nodeHome = nodeFile.parentFile.absolutePath
+    def currentPath = System.getenv("PATH") ?: ""
+    if (!currentPath.split(File.pathSeparator).contains(nodeHome)) {
+      def newPath = nodeHome + File.pathSeparator + currentPath
+      try {
+        def processEnvironment = Class.forName("java.lang.ProcessEnvironment")
+        def variableClass = Class.forName("java.lang.ProcessEnvironment\$Variable")
+        def valueClass = Class.forName("java.lang.ProcessEnvironment\$Value")
+        def variableOf = variableClass.getDeclaredMethod("valueOf", String.class)
+        def valueOf = valueClass.getDeclaredMethod("valueOf", String.class)
+        variableOf.setAccessible(true)
+        valueOf.setAccessible(true)
+        def envField = processEnvironment.getDeclaredField("theEnvironment")
+        envField.setAccessible(true)
+        def env = envField.get(null)
+        env.put(variableOf.invoke(null, "PATH"), valueOf.invoke(null, newPath))
+        env.put(variableOf.invoke(null, "NODE_BINARY"), valueOf.invoke(null, nodeExecutable))
+      } catch (Throwable ignored) {
+      }
+    }
+  }
+
   def reactNativeGradlePlugin = new File(
     providers.exec {
       workingDir(rootDir)

@@ -1,0 +1,53 @@
+diff --git a/node_modules/expo-constants/scripts/get-app-config-android.gradle b/node_modules/expo-constants/scripts/get-app-config-android.gradle
+index 6dc16fc..f86c426 100644
+--- a/node_modules/expo-constants/scripts/get-app-config-android.gradle
++++ b/node_modules/expo-constants/scripts/get-app-config-android.gradle
+@@ -2,18 +2,37 @@
+ 
+ import org.apache.tools.ant.taskdefs.condition.Os
+ 
++def resolveNodeBinary() {
++  def n = System.getenv("NODE_BINARY")
++  if (n != null && !n.trim().isEmpty()) return n.trim()
++  def f = rootProject.file("local.properties")
++  if (f.exists()) {
++    def p = new Properties()
++    f.withInputStream { p.load(it) }
++    n = p.getProperty("node.executable")
++    if (n != null && !n.trim().isEmpty()) return n.trim()
++  }
++  return "node"
++}
+ 
+ def expoConstantsDir = project.providers.exec {
+   workingDir(projectDir)
+-  commandLine("node", "-e", "console.log(require('path').dirname(require.resolve('expo-constants/package.json')));")
++  commandLine(resolveNodeBinary(), "-e", "console.log(require('path').dirname(require.resolve('expo-constants/package.json')));")
+ }.standardOutput.asText.get().trim()
+ 
+ def config = project.hasProperty("react") ? project.react : [];
+-def nodeExecutableAndArgs = config.nodeExecutableAndArgs ?: ["node"]
++def nodeBin = resolveNodeBinary()
++def nodeExecutableAndArgs = config.nodeExecutableAndArgs ?: [nodeBin]
++// :expo-constants does not inherit app/build.gradle nodeExecutableAndArgs; RN defaults to ["node"].
++if (nodeExecutableAndArgs instanceof Collection && !nodeExecutableAndArgs.isEmpty() && nodeExecutableAndArgs[0] == "node") {
++  nodeExecutableAndArgs = [nodeBin] + nodeExecutableAndArgs.drop(1)
++}
+ 
+ afterEvaluate {
+   def projectRoot = file("${rootProject.projectDir}")
+   def assetsDir = file("$buildDir/generated/assets/expo-constants")
++  def nodeDir = new File(nodeBin).parent
++  def execPath = (nodeDir ? (nodeDir + File.pathSeparator) : "") + (System.getenv("PATH") ?: "/usr/bin:/bin:/usr/sbin:/sbin")
+ 
+   def currentCreateConfigTask = tasks.register('createExpoConfig', Exec) {
+     description = 'expo-constants: Create app.config.'
+@@ -34,6 +53,8 @@ afterEvaluate {
+ 
+     // Switch to project root and generate the app config
+     workingDir projectRoot
++    environment "PATH", execPath
++    environment "NODE_BINARY", nodeBin
+ 
+     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+       commandLine("cmd", "/c", *nodeExecutableAndArgs, "$expoConstantsDir/scripts/getAppConfig.js", projectRoot, assetsDir)
