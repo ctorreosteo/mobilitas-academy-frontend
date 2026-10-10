@@ -16,6 +16,7 @@ import VisiteStack from './src/screens/visite/VisiteStack';
 import SessioniStack from './src/screens/sessioni/SessioniStack';
 import SpineIcon from './src/components/SpineIcon';
 import ForceUpdateGate from './src/components/ForceUpdateGate';
+import { useVisitReminders } from './src/hooks/useVisitReminders';
 import LoginScreen from './src/screens/LoginScreen';
 import PasswordDimenticataScreen from './src/screens/auth/PasswordDimenticataScreen';
 import ImpostaPasswordScreen from './src/screens/auth/ImpostaPasswordScreen';
@@ -107,6 +108,7 @@ const errorBoundaryStyles = StyleSheet.create({
 });
 
 function MainTabNavigator() {
+  useVisitReminders();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const tabBarBottomPadding = bottomInset > 0 ? bottomInset : 12;
 

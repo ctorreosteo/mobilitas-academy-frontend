@@ -6,6 +6,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - EXConstants (18.0.13):
     - ExpoModulesCore
+  - EXNotifications (0.32.17):
+    - ExpoModulesCore
   - Expo (54.0.20):
     - ExpoModulesCore
     - hermes-engine
@@ -1962,6 +1964,7 @@ DEPENDENCIES:
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
+  - EXNotifications (from `../node_modules/expo-notifications/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo/node_modules/expo-asset/ios`)
   - ExpoCalendar (from `../node_modules/expo-calendar/ios`)
@@ -2058,6 +2061,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-av/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
+  EXNotifications:
+    :path: "../node_modules/expo-notifications/ios"
   Expo:
     :path: "../node_modules/expo"
   ExpoAsset:
@@ -2238,6 +2243,7 @@ SPEC CHECKSUMS:
   EXApplication: 1e98d4b1dccdf30627f92917f4b2c5a53c330e5f
   EXAV: e3fefaca88f14624bca01d9a128562a5f8e738f8
   EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
+  EXNotifications: c67e92b9fdfe785ff9dbdc5f4c0ff935de357da7
   Expo: c524bec66bed697b2140037e2ba110b3a8281b78
   ExpoAsset: 9ba6fbd677fb8e241a3899ac00fa735bc911eadf
   ExpoCalendar: b35805a0a9e3f46a4cef0cbfdf36673b4c973c63

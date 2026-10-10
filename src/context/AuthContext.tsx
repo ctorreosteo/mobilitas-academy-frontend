@@ -22,6 +22,7 @@ import {
   restorePersistedSession,
 } from '../services/authApi';
 import { subscribePasswordExpired, beginAuthTeardown, endAuthTeardown } from '../services/passwordExpired';
+import { clearVisitReminders } from '../services/visitRemindersService';
 import {
   clearSessioniPosturaliCatalogCache,
   prefetchSessioniPosturaliCatalog,
@@ -148,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     beginAuthTeardown();
     try {
+      await clearVisitReminders();
       await logoutMobilitas();
       clearSessioniPosturaliCatalogCache();
       setPasswordExpired(false);
