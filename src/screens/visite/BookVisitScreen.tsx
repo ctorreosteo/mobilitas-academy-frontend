@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme, withOpacity } from '../../theme';
@@ -48,6 +48,13 @@ import {
 } from '../../services/acquistiService';
 import { SelectModal } from './SelectModal';
 import { CreaAcquistoModal } from './CreaAcquistoModal';
+import { AddToCalendarModal } from './AddToCalendarModal';
+import { SlotConfirmModal } from './SlotConfirmModal';
+import {
+  buildVisitCalendarEvent,
+  formatStudioAddress,
+  type VisitCalendarEvent,
+} from '../../services/calendarEventService';
 import {
   addDays,
   addMonths,
@@ -64,10 +71,12 @@ import {
 } from './visiteFormatting';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 
+/** Domani; se domani è domenica (studio chiuso) si parte da lunedì. */
 function initialVisitYmdTomorrow(): string {
   const t = new Date();
   t.setHours(0, 0, 0, 0);
-  return toLocalYmd(addDays(t, 1));
+  const tomorrow = addDays(t, 1);
+  return toLocalYmd(tomorrow.getDay() === 0 ? addDays(tomorrow, 1) : tomorrow);
 }
 
 type FormSectionRow = { readonly kind: 'form' };
@@ -118,18 +127,25 @@ const BookVisitScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();
   const queryClient = useQueryClient();
   const navigation = useNavigation<StackNavigationProp<VisiteStackParamList, 'BookVisit'>>();
+  const prefill = useRoute<RouteProp<VisiteStackParamList, 'BookVisit'>>().params;
   const [dataVisitaYmd, setDataVisitaYmd] = useState(initialVisitYmdTomorrow);
   const range = useMemo(
     () => ({ dataInizio: dataVisitaYmd, dataFine: dataVisitaYmd }),
     [dataVisitaYmd]
   );
 
-  const [studioId, setStudioId] = useState<number | null>(null);
-  const [osteopataId, setOsteopataId] = useState<number | null>(null);
+  const [studioId, setStudioId] = useState<number | null>(prefill?.studioId ?? null);
+  const [osteopataId, setOsteopataId] = useState<number | null>(prefill?.osteopataId ?? null);
   const [slotSelezionato, setSlotSelezionato] = useState<SlotDisponibilitaDto | null>(null);
   const [modalOsteopata, setModalOsteopata] = useState(false);
   const [modalStudio, setModalStudio] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  /** Visita appena prenotata dal paziente: apre il pop-up "aggiungi al calendario". */
+  const [calendarPrompt, setCalendarPrompt] = useState<{
+    event: VisitCalendarEvent;
+    summary: string;
+    studioIndirizzo: string;
+  } | null>(null);
   const [iosPickerDate, setIosPickerDate] = useState(
     () => new Date(`${initialVisitYmdTomorrow()}T12:00:00`)
   );
@@ -286,14 +302,36 @@ const BookVisitScreen: React.FC = () => {
           : {}),
       });
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
       setSlotSelezionato(null);
       queryClient.invalidateQueries({ queryKey: ['visite-by-paziente'] });
       queryClient.invalidateQueries({ queryKey: ['calendario-completo'] });
       queryClient.invalidateQueries({ queryKey: ['visite-disponibilita'] });
       queryClient.invalidateQueries({ queryKey: ['acquisti-paziente'] });
-      navigation.popToTop();
-      Alert.alert('Prenotazione registrata', 'Riceverai conferma secondo le procedure dello studio.');
+      if (isOsteopathBooking) {
+        navigation.popToTop();
+        Alert.alert('Prenotazione registrata', 'Riceverai conferma secondo le procedure dello studio.');
+        return;
+      }
+      // Il pop-up resta su questa schermata: popToTop solo alla chiusura.
+      // Ritardo: iOS non presenta un Modal mentre quello di conferma si sta chiudendo.
+      const studio = studi.find((s) => s.id === vars.studioId) ?? null;
+      const osteopata = osteopatiForSelect.find((o) => o.id === vars.osteopataId);
+      const { dataVisita } = slotIsoToVisitaFields(vars.slot.inizio, vars.slot.fine);
+      const prompt = {
+        event: buildVisitCalendarEvent(
+          vars.slot,
+          studio,
+          osteopata ? osteopataLabel(osteopata) : null
+        ),
+        summary: `${formatDayTitle(dataVisita)}, ${formatSlotLabel(vars.slot.inizio, vars.slot.fine)}`,
+        // Come nei riquadri di "Gestisci le tue visite": via e città, altrimenti il nome.
+        studioIndirizzo:
+          [studio?.indirizzo, studio?.citta].filter((x) => x?.trim()).join(', ') ||
+          studio?.nome?.trim() ||
+          '',
+      };
+      setTimeout(() => setCalendarPrompt(prompt), 450);
     },
     onError: (e: unknown) => {
       Alert.alert(
@@ -354,6 +392,8 @@ const BookVisitScreen: React.FC = () => {
 
   useEffect(() => {
     if (isOsteopathBooking) return;
+    // Riprenotazione: l’osteopata della visita disdetta ha la precedenza su quello di riferimento.
+    if (prefill?.osteopataId != null) return;
     if (studioId == null) return;
     const ref = osteopataRiferimentoQuery.data;
     if (!ref) return;
@@ -366,6 +406,7 @@ const BookVisitScreen: React.FC = () => {
     setSlotSelezionato(null);
   }, [
     isOsteopathBooking,
+    prefill?.osteopataId,
     studioId,
     osteopataRiferimentoQuery.data,
     osteopatiForSelect,
@@ -500,27 +541,16 @@ const BookVisitScreen: React.FC = () => {
       );
       return;
     }
-    Alert.alert(
-      'Confermi la prenotazione?',
-      `${formatDayTitle(new Date(slotSelezionato.inizio).toISOString().slice(0, 10))}\n${formatSlotLabel(slotSelezionato.inizio, slotSelezionato.fine)}`,
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Conferma',
-          onPress: () =>
-            prenotaMutation.mutate({
-              slot: slotSelezionato,
-              osteopataId,
-              studioId,
-              pazienteId: effectivePazienteId,
-              acquistoId:
-                showAcquistoField && selectedAcquistoId != null && selectedAcquistoId > 0
-                  ? selectedAcquistoId
-                  : undefined,
-            }),
-        },
-      ]
-    );
+    prenotaMutation.mutate({
+      slot: slotSelezionato,
+      osteopataId,
+      studioId,
+      pazienteId: effectivePazienteId,
+      acquistoId:
+        showAcquistoField && selectedAcquistoId != null && selectedAcquistoId > 0
+          ? selectedAcquistoId
+          : undefined,
+    });
   };
 
   const studiError = studiQuery.error
@@ -537,12 +567,36 @@ const BookVisitScreen: React.FC = () => {
       })
     : null;
 
-  const canShowConfirmFooter =
-    osteopataId != null &&
-    studioId != null &&
-    !disponibilitaQuery.isLoading &&
-    !disponibilitaError &&
-    daySections.length > 0;
+  const confirmHints = [
+    isOsteopathBooking && !selectedPaziente ? 'Seleziona un paziente prima di confermare.' : null,
+    showAcquistoField && acquistiQuery.isPending ? 'In attesa del caricamento degli acquisti…' : null,
+    showAcquistoField && needsAcquistoChoice && !acquistoOk && !acquistiQuery.isPending
+      ? 'Seleziona un acquisto di riferimento per il paziente.'
+      : null,
+  ].filter((h): h is string => h != null);
+
+  const slotConfirmDetails = slotSelezionato
+    ? [
+        osteopataSelezionato
+          ? { icon: 'person-outline', label: 'Osteopata', value: osteopataLabel(osteopataSelezionato) }
+          : null,
+        studioSelezionato
+          ? {
+              icon: 'location-outline',
+              label: 'Studio',
+              value: [studioSelezionato.nome, formatStudioAddress(studioSelezionato)]
+                .filter(Boolean)
+                .join('\n'),
+            }
+          : null,
+        pazienteNomeCompleto && isOsteopathBooking
+          ? { icon: 'people-outline', label: 'Paziente', value: pazienteNomeCompleto }
+          : null,
+        acquistoSelezionato
+          ? { icon: 'wallet-outline', label: 'Acquisto', value: acquistoLabel(acquistoSelezionato) }
+          : null,
+      ].filter((d): d is { icon: string; label: string; value: string } => d != null)
+    : [];
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -863,60 +917,7 @@ const BookVisitScreen: React.FC = () => {
               </Pressable>
             );
           }}
-          ListFooterComponent={
-            canShowConfirmFooter ? (
-              <View style={styles.confirmFooter}>
-                {slotSelezionato ? (
-                  <View style={styles.selectedBanner}>
-                    <Text style={styles.selectedBannerLabel}>Slot selezionato</Text>
-                    <Text style={styles.selectedBannerValue}>
-                      {formatDayTitle(new Date(slotSelezionato.inizio).toISOString().slice(0, 10))}
-                      {'\n'}
-                      {formatSlotLabel(slotSelezionato.inizio, slotSelezionato.fine)}
-                      {pazienteNomeCompleto ? `\n${pazienteNomeCompleto}` : ''}
-                      {acquistoSelezionato ? `\n${acquistoLabel(acquistoSelezionato)}` : ''}
-                    </Text>
-                  </View>
-                ) : null}
-                {isOsteopathBooking && !selectedPaziente ? (
-                  <Text style={styles.footerHint}>Seleziona un paziente in alto per abilitare la conferma.</Text>
-                ) : null}
-                {showAcquistoField && acquistiQuery.isPending ? (
-                  <Text style={styles.footerHint}>In attesa del caricamento degli acquisti…</Text>
-                ) : null}
-                {showAcquistoField && needsAcquistoChoice && !acquistoOk && !acquistiQuery.isPending ? (
-                  <Text style={styles.footerHint}>Seleziona un acquisto di riferimento per il paziente.</Text>
-                ) : null}
-                <Pressable
-                  style={[
-                    styles.primaryBtn,
-                    (!slotSelezionato ||
-                      prenotaMutation.isPending ||
-                      (isOsteopathBooking && !selectedPaziente) ||
-                      (showAcquistoField && acquistiQuery.isPending) ||
-                      (showAcquistoField && needsAcquistoChoice && !acquistoOk)) &&
-                      styles.primaryBtnDisabled,
-                  ]}
-                  disabled={
-                    !slotSelezionato ||
-                    prenotaMutation.isPending ||
-                    (isOsteopathBooking && !selectedPaziente) ||
-                    (showAcquistoField && acquistiQuery.isPending) ||
-                    (showAcquistoField && needsAcquistoChoice && !acquistoOk)
-                  }
-                  onPress={confermaPrenotazione}
-                >
-                  {prenotaMutation.isPending ? (
-                    <ActivityIndicator color={theme.colors.primary} />
-                  ) : (
-                    <Text style={styles.primaryBtnText}>Conferma prenotazione</Text>
-                  )}
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.listFooterSpacer} />
-            )
-          }
+          ListFooterComponent={<View style={styles.listFooterSpacer} />}
         />
       )}
 
@@ -973,6 +974,33 @@ const BookVisitScreen: React.FC = () => {
           }}
         />
       ) : null}
+
+      <SlotConfirmModal
+        visible={slotSelezionato != null}
+        dayLabel={
+          slotSelezionato
+            ? formatDayTitle(slotIsoToVisitaFields(slotSelezionato.inizio, slotSelezionato.fine).dataVisita)
+            : ''
+        }
+        timeLabel={slotSelezionato ? formatSlotLabel(slotSelezionato.inizio, slotSelezionato.fine) : ''}
+        details={slotConfirmDetails}
+        hints={confirmHints}
+        canConfirm={confirmHints.length === 0}
+        pending={prenotaMutation.isPending}
+        onConfirm={confermaPrenotazione}
+        onClose={() => setSlotSelezionato(null)}
+      />
+
+      <AddToCalendarModal
+        visible={calendarPrompt != null}
+        event={calendarPrompt?.event ?? null}
+        summary={calendarPrompt?.summary}
+        studioIndirizzo={calendarPrompt?.studioIndirizzo}
+        onClose={() => {
+          setCalendarPrompt(null);
+          navigation.popToTop();
+        }}
+      />
 
       <Modal visible={datePickerOpen} animationType="fade" transparent>
         <View style={styles.dateModalRoot}>
@@ -1264,42 +1292,8 @@ const styles = StyleSheet.create({
   slotPrenotaBtnTextSelected: {
     color: theme.colors.secondary,
   },
-  confirmFooter: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 28,
-  },
   listFooterSpacer: {
     height: 24,
-  },
-  selectedBanner: {
-    marginTop: 0,
-    marginBottom: 0,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: withOpacity(theme.colors.secondary, 0.12),
-    borderWidth: 1,
-    borderColor: withOpacity(theme.colors.secondary, 0.35),
-  },
-  selectedBannerLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: theme.colors.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  selectedBannerValue: {
-    marginTop: 6,
-    fontSize: 16,
-    color: theme.colors.text.secondary,
-    lineHeight: 22,
-  },
-  footerHint: {
-    marginTop: 12,
-    fontSize: 13,
-    color: theme.colors.text.secondary,
-    opacity: 0.9,
-    lineHeight: 18,
   },
   pazienteBlock: {
     marginBottom: 8,
@@ -1370,21 +1364,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.text.secondary,
     opacity: 0.8,
-  },
-  primaryBtn: {
-    marginTop: 16,
-    backgroundColor: theme.colors.secondary,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  primaryBtnDisabled: {
-    opacity: 0.45,
-  },
-  primaryBtnText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
   },
   dateModalRoot: {
     flex: 1,

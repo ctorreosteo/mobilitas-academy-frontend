@@ -44,7 +44,18 @@ const HomeScreen: React.FC = () => {
           <View style={styles.dividerLine} />
         </View>
 
-        <Text style={styles.sectionTitle}>Azioni rapide</Text>
+        <View style={styles.policyCard}>
+          <View style={styles.policyHeader}>
+            <Ionicons name="time-outline" size={20} color={theme.colors.error} />
+            <Text style={styles.policyTitle}>Politica di disdetta</Text>
+          </View>
+          <Text style={styles.policyText}>
+            Per disdire o spostare una visita è necessario farlo almeno 24 ore prima dell’appuntamento. In caso
+            contrario, la visita viene contabilizzata e considerata come effettuata.
+          </Text>
+        </View>
+
+        <Text style={[styles.sectionTitle, styles.quickActionsTitle]}>Azioni rapide</Text>
         <View style={styles.quickGrid}>
           <Pressable
             style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
@@ -89,31 +100,23 @@ const HomeScreen: React.FC = () => {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
-            <Text style={styles.infoText}>Prenotazione su giorno singolo con disponibilità chiare.</Text>
+            <Text style={styles.infoText}>Prenota la tua visita scegliendo il giorno che preferisci: vedi subito gli orari liberi.</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
-            <Text style={styles.infoText}>
-              Acquisti paziente: selezione prenotabili e creazione rapida dal form visita.
-            </Text>
+            <Text style={styles.infoText}>Ritrovi tutti i tuoi appuntamenti in un unico posto, nella sezione Visite.</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
-            <Text style={styles.infoText}>
-              Nuovo acquisto con servizio attivo, metodo pagamento, sconto e note.
-            </Text>
+            <Text style={styles.infoText}>Puoi consultare lo storico dei tuoi pagamenti e scaricare le relative fatture, quando disponibili, direttamente dall’app.</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
-            <Text style={styles.infoText}>
-              Menu a tendina ottimizzati con riquadri per migliorare leggibilità.
-            </Text>
+            <Text style={styles.infoText}>Sessioni posturali: guarda il calendario, prenota il tuo posto e annulla la prenotazione se non puoi partecipare.</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="checkmark-circle" size={18} color={theme.colors.secondary} />
-            <Text style={styles.infoText}>
-              Sezione Sessioni: calendario posturali in presenza, prenotazione rapida e gestione prenotazioni.
-            </Text>
+            <Text style={styles.infoText}>Corsi posturali: guarda i video quando vuoi, anche da casa.</Text>
           </View>
         </View>
 
@@ -170,6 +173,32 @@ const styles = StyleSheet.create({
   },
   operationalNewsTitle: {
     marginTop: 48,
+  },
+  quickActionsTitle: {
+    marginTop: 48,
+  },
+  policyCard: {
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.error, 0.7),
+    backgroundColor: withOpacity(theme.colors.error, 0.14),
+    gap: 8,
+  },
+  policyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  policyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.error,
+  },
+  policyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: withOpacity(theme.colors.text.secondary, 0.94),
   },
   sectionBadge: {
     alignSelf: 'flex-start',

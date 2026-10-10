@@ -29,11 +29,14 @@
     "@tanstack/react-query": "^5.90.5",
     "axios": "^1.12.2",
     "expo": "~54.0.20",
+    "expo-application": "~7.0.8",
     "expo-auth-session": "~7.0.8",
     "expo-av": "~16.0.7",
+    "expo-calendar": "~15.0.8",
     "expo-constants": "~18.0.13",
     "expo-crypto": "~15.0.7",
     "expo-file-system": "~19.0.24",
+    "expo-in-app-updates": "^0.12.0",
     "expo-linear-gradient": "~15.0.7",
     "expo-screen-orientation": "~9.0.8",
     "expo-sharing": "~14.0.8",
@@ -51,5 +54,14 @@
     "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "autolinking": {
+      "ios": {
+        "exclude": [
+          "expo-in-app-updates"
+        ]
+      }
+    }
+  }
 }

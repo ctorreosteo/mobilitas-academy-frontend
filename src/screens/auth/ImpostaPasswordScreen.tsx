@@ -111,12 +111,12 @@ const ImpostaPasswordScreen: React.FC = () => {
     [submitting, isLongEnough, doesConfirmMatch]
   );
 
+  /**
+   * Reset, non navigate: con navigate ImpostaPassword restava sotto Login e,
+   * dopo l’accesso, la conferma ricompariva prima di entrare nell’app.
+   */
   const goToLogin = useCallback(() => {
-    if (isSignedIn) {
-      navigation.navigate('Main');
-      return;
-    }
-    navigation.navigate('Login');
+    navigation.reset({ index: 0, routes: [{ name: isSignedIn ? 'Main' : 'Login' }] });
   }, [isSignedIn, navigation]);
 
   const onSubmit = useCallback(async () => {

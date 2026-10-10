@@ -47,6 +47,10 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito.</string>
     <key>RCTNewArchEnabled</key>

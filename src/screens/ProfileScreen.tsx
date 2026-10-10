@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../theme';
 import { cleanAndRefreshCaches } from '../services/appCacheService';
 import { getStoredUserProfile, StoredUserProfile } from '../services/authTokenStorage';
-import { fetchCurrentUser } from '../services/authApi';
+import { fetchCurrentUser, hasGestionaleRole } from '../services/authApi';
 import { useAuth } from '../context/AuthContext';
 import { fetchOsteopataRiferimentoPaziente } from '../services/pazientiService';
 import {
@@ -121,10 +121,10 @@ const ProfileScreen: React.FC = () => {
       ? `${profile.nome} ${profile.cognome}`.trim()
       : profile?.username || profile?.email?.split('@')[0] || 'Utente';
   const displayEmail = profile?.email || '—';
-  const roleLine =
-    profile?.ruoli?.length && profile.ruoli.length > 0
-      ? profile.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
-      : '—';
+  /** Il ruolo si mostra solo a chi lavora in studio: i pazienti non vedono l’etichetta. */
+  const roleLine = hasGestionaleRole(profile?.ruoli)
+    ? profile!.ruoli.map((r) => r.replace(/^ROLE_/, '')).join(', ')
+    : null;
 
   const handleCleanAndRefresh = () => {
     setConfirmCleanVisible(true);
@@ -280,7 +280,7 @@ const ProfileScreen: React.FC = () => {
             ) : null}
           </View>
           <Text style={styles.userEmail}>{displayEmail}</Text>
-          <Text style={styles.userRole}>{roleLine}</Text>
+          {roleLine ? <Text style={styles.userRole}>{roleLine}</Text> : null}
         </View>
 
         <View style={styles.menuSection}>

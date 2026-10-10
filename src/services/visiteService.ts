@@ -6,6 +6,7 @@ import type { ApiResponseDto } from './formazioneService';
  * Visite paziente (backend):
  * GET /api/visite/by-paziente/{pazienteId}?sortOrder=ASC|DESC
  * POST /api/visite — creazione visita (VisitaDto); permitAll sul path in SecurityConfig.
+ * PUT /api/visite/{id}/disdetta — disdetta (body DisdettaVisitaDto), risponde con il VisitaDto aggiornato.
  */
 export type VisitaSortOrder = 'ASC' | 'DESC';
 
@@ -21,6 +22,7 @@ export interface VisitaMinimaleDto {
   id: number;
   dataVisita: string;
   oraInizio?: string | null;
+  oraFine?: string | null;
   pazienteNome?: string | null;
   pazienteCognome?: string | null;
   osteopataNome?: string | null;
@@ -29,6 +31,10 @@ export interface VisitaMinimaleDto {
   statusPagamento?: string | null;
   siglaVisita?: string | null;
   prezzoVisita?: number | null;
+  studioId?: number | null;
+  studioNome?: string | null;
+  studioIndirizzo?: string | null;
+  studioCitta?: string | null;
 }
 
 /** Discriminatore timeline GET /api/calendario/completo. `id` non è globale: chiave UI = tipo + id. */
@@ -180,6 +186,19 @@ export async function fetchVisiteByPaziente(
   return data.data;
 }
 
+/** Rilancia con il messaggio dell’envelope backend, se presente. */
+function rethrowWithBackendMessage(e: unknown): never {
+  if (isAxiosError(e) && e.response?.data && typeof e.response.data === 'object') {
+    const envelope = e.response.data as ApiResponseDto<unknown>;
+    const msg = envelope.message || envelope.error;
+    if (typeof msg === 'string' && msg.length > 0) throw new Error(msg);
+  }
+  if (isAxiosError(e) && typeof e.response?.data === 'string') {
+    throw new Error(e.response.data);
+  }
+  throw e;
+}
+
 export async function createVisita(body: CreateVisitaRequestDto): Promise<VisitaCreataDto> {
   try {
     const { data } = await apiClient.post<ApiResponseDto<VisitaCreataDto>>('/visite', body);
@@ -188,14 +207,30 @@ export async function createVisita(body: CreateVisitaRequestDto): Promise<Visita
     }
     return data.data;
   } catch (e) {
-    if (isAxiosError(e) && e.response?.data && typeof e.response.data === 'object') {
-      const envelope = e.response.data as ApiResponseDto<unknown>;
-      const msg = envelope.message || envelope.error;
-      if (typeof msg === 'string' && msg.length > 0) throw new Error(msg);
+    rethrowWithBackendMessage(e);
+  }
+}
+
+/** Visita disdetta: servono osteopata e studio per proporre la riprenotazione. */
+export type VisitaDisdettaDto = VisitaMinimaleDto & {
+  osteopata?: VisitaIdRefDto | null;
+  studio?: VisitaIdRefDto | null;
+};
+
+export async function disdiciVisita(
+  visitaId: number,
+  motivoDisdetta?: string
+): Promise<VisitaDisdettaDto> {
+  try {
+    const { data } = await apiClient.put<ApiResponseDto<VisitaDisdettaDto>>(
+      `/visite/${visitaId}/disdetta`,
+      { motivoDisdetta: motivoDisdetta ?? null }
+    );
+    if (!data.success || !data.data) {
+      throw new Error(data.message || data.error || 'Errore nella disdetta della visita');
     }
-    if (isAxiosError(e) && typeof e.response?.data === 'string') {
-      throw new Error(e.response.data);
-    }
-    throw e;
+    return data.data;
+  } catch (e) {
+    rethrowWithBackendMessage(e);
   }
 }

@@ -79,7 +79,7 @@ const VisiteMenuScreen: React.FC = () => {
               </View>
               <Text style={styles.cardTitle}>I tuoi pagamenti</Text>
               <Text style={styles.cardHint}>
-                Importo, stato, data e ora di ogni pagamento.
+                Importo, stato, data e ora di ogni pagamento, con la relativa fattura da scaricare quando disponibile.
               </Text>
             </Pressable>
           ) : null}

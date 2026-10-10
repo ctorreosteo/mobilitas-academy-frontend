@@ -57,7 +57,13 @@
           "microphonePermission": "Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
         }
       ],
-      "expo-screen-orientation"
+      "expo-screen-orientation",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti."
+        }
+      ]
     ]
   }
 }

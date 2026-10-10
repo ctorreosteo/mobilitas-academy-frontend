@@ -15,6 +15,7 @@ import CorsiStack from './src/screens/corsi/CorsiStack';
 import VisiteStack from './src/screens/visite/VisiteStack';
 import SessioniStack from './src/screens/sessioni/SessioniStack';
 import SpineIcon from './src/components/SpineIcon';
+import ForceUpdateGate from './src/components/ForceUpdateGate';
 import LoginScreen from './src/screens/LoginScreen';
 import PasswordDimenticataScreen from './src/screens/auth/PasswordDimenticataScreen';
 import ImpostaPasswordScreen from './src/screens/auth/ImpostaPasswordScreen';
@@ -306,9 +307,11 @@ export default function App() {
     <ErrorBoundary>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <RootNavigator />
-          </AuthProvider>
+          <ForceUpdateGate>
+            <AuthProvider>
+              <RootNavigator />
+            </AuthProvider>
+          </ForceUpdateGate>
         </QueryClientProvider>
       </SafeAreaProvider>
     </ErrorBoundary>

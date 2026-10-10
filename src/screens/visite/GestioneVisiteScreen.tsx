@@ -9,16 +9,21 @@ import {
   Pressable,
   Modal,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 // @ts-ignore - @expo/vector-icons è parte di Expo SDK
 import { Ionicons } from '@expo/vector-icons';
 import { theme, withOpacity } from '../../theme';
 import {
+  disdiciVisita,
   fetchCalendarioCompletoGiorno,
   fetchVisiteByPaziente,
+  type VisitaMinimaleDto,
   type CalendarioEventoItem,
   type CalendarioItemDto,
   type CalendarioNonReperibilitaItem,
@@ -39,6 +44,45 @@ import {
 import { openStudioWhatsApp } from '../../utils/openStudioWhatsApp';
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
+import type { VisiteStackParamList } from './types';
+import { AppDialog } from '../../components/AppDialog';
+import { AddToCalendarModal } from './AddToCalendarModal';
+import { buildCalendarEventFromVisita } from '../../services/calendarEventService';
+
+const DISDETTA_PREAVVISO_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Millisecondi tra `from` e `to` escludendo le domeniche (studio chiuso).
+ * Es.: da sabato 18:00 a lunedì 18:00 sono 24 ore utili, non 48.
+ */
+function msEscludendoDomeniche(from: Date, to: Date): number {
+  let total = 0;
+  let cursor = new Date(from);
+  while (cursor < to) {
+    const nextMidnight = new Date(cursor);
+    nextMidnight.setHours(24, 0, 0, 0);
+    const segmentEnd = nextMidnight < to ? nextMidnight : to;
+    if (cursor.getDay() !== 0) total += segmentEnd.getTime() - cursor.getTime();
+    cursor = segmentEnd;
+  }
+  return total;
+}
+
+/** Inizio visita nel fuso del dispositivo (dataVisita YYYY-MM-DD + oraInizio HH:mm[:ss]). */
+function visitaStart(v: VisitaMinimaleDto): Date {
+  return new Date(`${v.dataVisita}T${v.oraInizio?.trim() || '00:00:00'}`);
+}
+
+/** Es. "Via Lamarmora 35, Torino"; senza indirizzo ripiega sul nome dello studio. */
+function visitaStudioIndirizzo(v: VisitaMinimaleDto): string {
+  const indirizzo = [v.studioIndirizzo, v.studioCitta].filter((x) => x?.trim()).join(', ');
+  return indirizzo || v.studioNome?.trim() || '';
+}
+
+/** Visita prenotata e non ancora iniziata: si può disdire o aggiungere al calendario. */
+function isVisitaPrenotataFutura(v: VisitaMinimaleDto): boolean {
+  return v.statusVisita?.toUpperCase() === 'PRENOTATA' && visitaStart(v).getTime() > Date.now();
+}
 
 function isOsteopathRole(ruoli: string[] | undefined): boolean {
   if (!ruoli?.length) return false;
@@ -86,6 +130,39 @@ function eventoTitolo(item: CalendarioEventoItem): string {
   const titolo = item.titolo?.trim();
   if (titolo) return titolo;
   return tipoEventoLabel(item.tipoEvento);
+}
+
+/** Stati che contano come visita: prenotata, effettuata o no-show addebitato. */
+const STATI_VISITA_CONTEGGIATI = new Set(['PRENOTATA', 'EFFETTUATA', 'NO_SHOW_CONTA']);
+
+/**
+ * Numero progressivo per ogni visita (lista in ordine cronologico crescente).
+ * Le visite che non contano (es. disdette) ripetono il numero della precedente.
+ */
+function numeriProgressiviVisite(visite: VisitaMinimaleDto[]): number[] {
+  let n = 0;
+  return visite.map((v) => {
+    if (STATI_VISITA_CONTEGGIATI.has(v.statusVisita?.toUpperCase() ?? '')) n += 1;
+    return n;
+  });
+}
+
+/** Disdetta: `DISDETTA` o `NO_SHOW_NON_CONTA` (mostrata come "DISDETTA", vedi visitaStatusLabel). */
+function isVisitaDisdetta(v: VisitaMinimaleDto): boolean {
+  const s = v.statusVisita?.toUpperCase();
+  return s === 'DISDETTA' || s === 'NO_SHOW_NON_CONTA';
+}
+
+function DisdettaBadge() {
+  return (
+    <View
+      style={[styles.visitNumberBadge, styles.disdettaBadge]}
+      accessibilityRole="text"
+      accessibilityLabel="Visita disdetta"
+    >
+      <Ionicons name="close" size={18} color={theme.colors.error} />
+    </View>
+  );
 }
 
 function VisitNumberBadge({ number }: { number: number }) {
@@ -235,6 +312,110 @@ const GestioneVisiteScreen: React.FC = () => {
     staleTime: 60_000,
   });
 
+  const navigation = useNavigation<StackNavigationProp<VisiteStackParamList, 'GestioneVisite'>>();
+  const queryClient = useQueryClient();
+
+  /**
+   * Un solo pop-up che cambia contenuto (conferma → esito): iOS non apre un Modal
+   * mentre un altro si sta chiudendo.
+   */
+  const [disdettaDialog, setDisdettaDialog] = useState<
+    | { kind: 'confirm'; visita: VisitaMinimaleDto; quando: string }
+    | { kind: 'tooLate'; quando: string }
+    | { kind: 'done'; quando: string; osteopataId?: number; studioId?: number }
+    | null
+  >(null);
+
+  /** Visita da aggiungere al calendario dell’utente (pop-up già usato dopo la prenotazione). */
+  const [calendarVisita, setCalendarVisita] = useState<VisitaMinimaleDto | null>(null);
+
+  const disdettaMutation = useMutation({
+    mutationFn: (v: VisitaMinimaleDto) => disdiciVisita(v.id, 'Disdetta dal paziente tramite app'),
+    onSuccess: (disdetta) => {
+      queryClient.invalidateQueries({ queryKey: ['visite-by-paziente'] });
+      queryClient.invalidateQueries({ queryKey: ['visite-disponibilita'] });
+      setDisdettaDialog((d) => ({
+        kind: 'done',
+        quando: d?.quando ?? '',
+        osteopataId: disdetta.osteopata?.id ?? undefined,
+        studioId: disdetta.studio?.id ?? undefined,
+      }));
+    },
+    onError: (e: unknown) => {
+      setDisdettaDialog(null);
+      Alert.alert(
+        'Errore',
+        getUserFacingApiErrorMessage(e, {
+          context: 'Impossibile disdire la visita',
+          fallback: 'Impossibile disdire la visita. Riprova più tardi.',
+        })
+      );
+    },
+  });
+
+  const onDisdiciVisita = useCallback((v: VisitaMinimaleDto) => {
+    const ora = formatOraDisplay(v.oraInizio);
+    const quando = `${formatDayTitle(v.dataVisita)}${ora ? ` alle ${ora}` : ''}`;
+    if (msEscludendoDomeniche(new Date(), visitaStart(v)) < DISDETTA_PREAVVISO_MS) {
+      setDisdettaDialog({ kind: 'tooLate', quando });
+      return;
+    }
+    setDisdettaDialog({ kind: 'confirm', visita: v, quando });
+  }, []);
+
+  const closeDisdettaDialog = useCallback(() => {
+    if (!disdettaMutation.isPending) setDisdettaDialog(null);
+  }, [disdettaMutation.isPending]);
+
+  /** Contenuto del pop-up di disdetta per lo step corrente (stesso Modal per tutti gli step). */
+  const disdettaDialogContent = (() => {
+    const d = disdettaDialog;
+    if (d?.kind === 'confirm') {
+      return {
+        icon: 'calendar-clear-outline',
+        iconColor: theme.colors.error,
+        title: 'Vuoi disdire la visita?',
+        message: `La visita di ${d.quando} verrà disdetta.`,
+        primaryLabel: 'Sì, disdici',
+        primaryTone: 'danger' as const,
+        loading: disdettaMutation.isPending,
+        onPrimary: () => disdettaMutation.mutate(d.visita),
+        secondaryLabel: 'No, mantieni la visita',
+      };
+    }
+    if (d?.kind === 'tooLate') {
+      return {
+        icon: 'time-outline',
+        iconColor: theme.colors.error,
+        title: 'Mancano meno di 24 ore',
+        message:
+          'Le visite si possono disdire o spostare dall’app fino a 24 ore prima (la domenica non viene conteggiata). Oltre questo limite la visita viene contabilizzata e considerata come effettuata. Per qualsiasi necessità scrivi allo studio.',
+        primaryLabel: 'Scrivi allo studio',
+        tone: 'danger' as const,
+        primaryTone: 'danger' as const,
+        onPrimary: () => {
+          setDisdettaDialog(null);
+          openStudioWhatsApp({ message: `Buongiorno, avrei bisogno di disdire la visita di ${d.quando}.` });
+        },
+        secondaryLabel: 'Chiudi',
+      };
+    }
+    return {
+      icon: 'checkmark-circle-outline',
+      title: 'Visita disdetta',
+      message: `La visita di ${d?.quando ?? ''} è stata disdetta.\nVuoi prenotarne una nuova?`,
+      primaryLabel: 'Riprenota visita',
+      onPrimary: () => {
+        setDisdettaDialog(null);
+        navigation.navigate('BookVisit', {
+          osteopataId: d?.kind === 'done' ? d.osteopataId : undefined,
+          studioId: d?.kind === 'done' ? d.studioId : undefined,
+        });
+      },
+      secondaryLabel: 'Chiudi',
+    };
+  })();
+
   const profile = profileQuery.data;
   const pazienteId = profile?.pazienteId ?? null;
   const osteopataId = profile?.osteopataId ?? null;
@@ -294,6 +475,7 @@ const GestioneVisiteScreen: React.FC = () => {
       : null;
   const calendarioOsteoList = calendarioOsteopataQuery.data ?? [];
   const visitePazienteList = visitePazienteQuery.data ?? [];
+  const numeriVisite = useMemo(() => numeriProgressiviVisite(visitePazienteList), [visitePazienteList]);
 
   const showPatientEmptyState =
     !osteopathAgenda &&
@@ -463,8 +645,10 @@ const GestioneVisiteScreen: React.FC = () => {
               return null;
             })
           : visitePazienteList.map((v, index) => {
+              const numero = numeriVisite[index];
               const prezzo = formatPrezzoEUR(v.prezzoVisita);
               const ora = formatOraDisplay(v.oraInizio);
+              const studioIndirizzo = visitaStudioIndirizzo(v);
               return (
                 <View key={v.id} style={styles.bookingCard}>
                   <View style={styles.bookingTopRow}>
@@ -472,7 +656,12 @@ const GestioneVisiteScreen: React.FC = () => {
                       {formatDayTitle(v.dataVisita)}
                       {ora ? `\n${ora}` : ''}
                     </Text>
-                    <VisitNumberBadge number={index + 1} />
+                    {/* 0: visite non conteggiate prima della prima visita valida. */}
+                    {isVisitaDisdetta(v) ? (
+                      <DisdettaBadge />
+                    ) : numero > 0 ? (
+                      <VisitNumberBadge number={numero} />
+                    ) : null}
                   </View>
                   <Text style={styles.bookingMeta}>
                     {[v.osteopataNome, v.osteopataCognome].filter(Boolean).join(' ') ||
@@ -485,10 +674,68 @@ const GestioneVisiteScreen: React.FC = () => {
                     <Text style={styles.bookingStato}>Pagamento: {v.statusPagamento}</Text>
                   ) : null}
                   {prezzo ? <Text style={styles.bookingStato}>Importo: {prezzo}</Text> : null}
+                  {studioIndirizzo ? (
+                    <View style={styles.bookingAddressRow}>
+                      <Ionicons
+                        name="location-outline"
+                        size={13}
+                        color={withOpacity(theme.colors.text.secondary, 0.55)}
+                      />
+                      <Text style={styles.bookingAddress}>{studioIndirizzo}</Text>
+                    </View>
+                  ) : null}
+                  {isVisitaPrenotataFutura(v) ? (
+                    <Pressable
+                      style={({ pressed }) => [styles.calendarBtn, pressed && styles.disdiciBtnPressed]}
+                      onPress={() => setCalendarVisita(v)}
+                      accessibilityRole="button"
+                    >
+                      <Ionicons name="calendar-outline" size={18} color={theme.colors.secondary} />
+                      <Text style={styles.calendarBtnText}>Aggiungi al calendario</Text>
+                    </Pressable>
+                  ) : null}
+                  {isVisitaPrenotataFutura(v) ? (
+                    <Pressable
+                      style={({ pressed }) => [styles.disdiciBtn, pressed && styles.disdiciBtnPressed]}
+                      onPress={() => onDisdiciVisita(v)}
+                      disabled={disdettaMutation.isPending}
+                      accessibilityRole="button"
+                    >
+                      {disdettaMutation.isPending && disdettaMutation.variables?.id === v.id ? (
+                        <ActivityIndicator size="small" color={theme.colors.error} />
+                      ) : (
+                        <>
+                          <Ionicons name="close-circle-outline" size={18} color={theme.colors.error} />
+                          <Text style={styles.disdiciBtnText}>Disdici visita</Text>
+                        </>
+                      )}
+                    </Pressable>
+                  ) : null}
                 </View>
               );
             })}
       </ScrollView>
+
+      <AddToCalendarModal
+        visible={calendarVisita != null}
+        variant="existing"
+        event={calendarVisita ? buildCalendarEventFromVisita(calendarVisita) : null}
+        summary={
+          calendarVisita
+            ? [formatDayTitle(calendarVisita.dataVisita), formatOraDisplay(calendarVisita.oraInizio)]
+                .filter(Boolean)
+                .join(', ')
+            : undefined
+        }
+        studioIndirizzo={calendarVisita ? visitaStudioIndirizzo(calendarVisita) : undefined}
+        onClose={() => setCalendarVisita(null)}
+      />
+
+      <AppDialog
+        visible={disdettaDialog != null}
+        onClose={closeDisdettaDialog}
+        {...disdettaDialogContent}
+      />
 
       <Modal visible={datePickerOpen} animationType="fade" transparent>
         <View style={styles.dateModalRoot}>
@@ -787,6 +1034,13 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.secondary,
     backgroundColor: withOpacity(theme.colors.secondary, 0.14),
   },
+  disdettaBadge: {
+    // Cerchio perfetto: senza padding orizzontale l’icona non allarga il badge.
+    width: 32,
+    paddingHorizontal: 0,
+    borderColor: theme.colors.error,
+    backgroundColor: withOpacity(theme.colors.error, 0.14),
+  },
   visitNumberBadgeText: {
     fontSize: 14,
     fontWeight: '800',
@@ -826,6 +1080,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.text.secondary,
     opacity: 0.85,
+  },
+  bookingAddressRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  bookingAddress: {
+    flex: 1,
+    fontSize: 12,
+    color: withOpacity(theme.colors.text.secondary, 0.55),
+  },
+  calendarBtn: {
+    marginTop: 20,
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.5),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+  },
+  calendarBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.secondary,
+  },
+  disdiciBtn: {
+    marginTop: 8,
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.error, 0.6),
+    backgroundColor: withOpacity(theme.colors.error, 0.1),
+  },
+  disdiciBtnPressed: {
+    opacity: 0.85,
+  },
+  disdiciBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.error,
   },
   dateModalRoot: {
     flex: 1,
