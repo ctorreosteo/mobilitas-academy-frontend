@@ -22,7 +22,7 @@ import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButt
 import { useTabBarBottomPadding } from '../hooks/useTabBarBottomPadding';
 
 const FITNESS_ERROR_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare le prenotazioni fitness / il calendario. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e non riesco a caricare le prenotazioni fitness / il calendario. Potete aiutarmi? Grazie.";
 
 type FitnessNav = StackNavigationProp<FitnessStackParamList, 'FitnessCalendar'>;
 

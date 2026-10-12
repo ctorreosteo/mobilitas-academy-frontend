@@ -32,7 +32,7 @@ import StudioWhatsAppSupportButton from '../components/StudioWhatsAppSupportButt
 const inputBg = theme.colors.background.secondary;
 
 const REGISTER_WHATSAPP_PREFILL =
-  'Buongiorno, vorrei registrarmi all’app Mobilitas Academy. Potete aiutarmi con la procedura? Grazie.';
+  'Buongiorno, vorrei registrarmi all’app Mobilitas. Potete aiutarmi con la procedura? Grazie.';
 
 const LOGIN_MAX_FAILED_ATTEMPTS = 5;
 const LOGIN_COOLDOWN_SECONDS = 60;

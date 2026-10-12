@@ -88,7 +88,7 @@ export function AddToCalendarModal({
       if (list === null) {
         Alert.alert(
           'Accesso al calendario negato',
-          'Per aggiungere la visita consenti a Mobilitas Academy l’accesso al calendario nelle impostazioni.',
+          'Per aggiungere la visita consenti a Mobilitas l’accesso al calendario nelle impostazioni.',
           [
             { text: 'Annulla', style: 'cancel' },
             { text: 'Apri impostazioni', onPress: () => Linking.openSettings() },

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mobilitas Academy",
+    "name": "Mobilitas",
     "slug": "mobilitas-academy",
     "version": "2.0.3",
     "scheme": "mobilitas-academy",
@@ -18,11 +18,12 @@
       "bundleIdentifier": "com.mobilitas.academy",
       "buildNumber": "6",
       "associatedDomains": [
-        "applinks:app.studiomobilitas.it"
+        "applinks:app.studiomobilitas.it",
+        "webcredentials:app.studiomobilitas.it"
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
+        "NSMicrophoneUsageDescription": "Mobilitas può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
       }
     },
     "android": {
@@ -59,15 +60,15 @@
       [
         "expo-av",
         {
-          "microphonePermission": "Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
+          "microphonePermission": "Mobilitas può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito."
         }
       ],
       "expo-screen-orientation",
       [
         "expo-calendar",
         {
-          "calendarPermission": "Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.",
-          "remindersPermission": "Mobilitas Academy non usa i promemoria: il permesso è richiesto solo dal modulo calendario."
+          "calendarPermission": "Mobilitas usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.",
+          "remindersPermission": "Mobilitas non usa i promemoria: il permesso è richiesto solo dal modulo calendario."
         }
       ]
     ]

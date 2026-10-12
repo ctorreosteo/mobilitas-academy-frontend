@@ -38,7 +38,7 @@ import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportB
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const SESSIONI_CALENDAR_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a usare il calendario delle sessioni posturali. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e non riesco a usare il calendario delle sessioni posturali. Potete aiutarmi? Grazie.";
 
 const SESSION_COVER_HEIGHT = 184;
 

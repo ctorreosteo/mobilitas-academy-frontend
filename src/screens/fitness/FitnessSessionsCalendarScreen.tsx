@@ -36,7 +36,7 @@ import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportB
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const FITNESS_CALENDAR_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a usare il calendario fitness / le sessioni. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e non riesco a usare il calendario fitness / le sessioni. Potete aiutarmi? Grazie.";
 
 /** Altezza area copertina card sessione (px). */
 const SESSION_COVER_HEIGHT = 184;

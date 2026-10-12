@@ -27,7 +27,7 @@ type Nav = StackNavigationProp<RootStackParamList, 'PasswordDimenticata'>;
 
 const RESET_COOLDOWN_SECONDS = 60;
 const WHATSAPP_PREFILL =
-  'Buongiorno, non ricevo l’email per reimpostare la password dell’app Mobilitas Academy. Potete aiutarmi?';
+  'Buongiorno, non ricevo l’email per reimpostare la password dell’app Mobilitas. Potete aiutarmi?';
 
 const inputBg = theme.colors.background.secondary;
 

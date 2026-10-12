@@ -22,7 +22,7 @@ import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportB
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const SESSIONI_ERROR_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare le prenotazioni / il calendario delle sessioni posturali. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e non riesco a caricare le prenotazioni / il calendario delle sessioni posturali. Potete aiutarmi? Grazie.";
 
 type SessioniNav = StackNavigationProp<SessioniStackParamList, 'SessioniHome'>;
 

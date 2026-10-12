@@ -11,7 +11,7 @@ const COPY: CorsiCatalogCopy = {
   errorContext: 'Impossibile caricare i corsi aziendali',
   errorFallback: 'Non siamo riusciti a caricare l’elenco dei corsi aziendali. Riprova tra poco.',
   supportWhatsAppMessage:
-    "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare l'elenco dei corsi aziendali. Potete aiutarmi? Grazie.",
+    "Buongiorno, utilizzo l'app Mobilitas e non riesco a caricare l'elenco dei corsi aziendali. Potete aiutarmi? Grazie.",
 };
 
 /** Catalogo formazione interna: GET /api/formazione/corsi/accessibili. */

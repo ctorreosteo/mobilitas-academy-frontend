@@ -11,7 +11,7 @@ const COPY: CorsiCatalogCopy = {
   errorContext: 'Impossibile caricare i corsi posturali',
   errorFallback: 'Non siamo riusciti a caricare l’elenco dei corsi posturali. Riprova tra poco.',
   supportWhatsAppMessage:
-    "Buongiorno, utilizzo l'app Mobilitas Academy e non riesco a caricare l'elenco dei corsi posturali. Potete aiutarmi? Grazie.",
+    "Buongiorno, utilizzo l'app Mobilitas e non riesco a caricare l'elenco dei corsi posturali. Potete aiutarmi? Grazie.",
 };
 
 /** Catalogo per pazienti e utenti app: GET /api/corsi-posturali. */

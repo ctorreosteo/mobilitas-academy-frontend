@@ -27,7 +27,7 @@ import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportB
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const SESSIONI_PRENOTAZIONI_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e ho problemi con le prenotazioni alle sessioni posturali. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e ho problemi con le prenotazioni alle sessioni posturali. Potete aiutarmi? Grazie.";
 
 function toHour(time: string): string {
   return time.slice(0, 5);

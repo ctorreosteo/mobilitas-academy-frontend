@@ -36,7 +36,7 @@ import type { ProfiloStackParamList } from './profilo/types';
 type ProfiloNav = StackNavigationProp<ProfiloStackParamList, 'ProfiloHome'>;
 
 const DELETE_ACCOUNT_WHATSAPP_PREFILL =
-  'Buongiorno, vorrei richiedere la cancellazione definitiva del mio account Mobilitas Academy.';
+  'Buongiorno, vorrei richiedere la cancellazione definitiva del mio account Mobilitas.';
 
 function initialsFromProfile(p: StoredUserProfile | null): string {
   if (p?.nome?.trim() && p?.cognome?.trim()) {

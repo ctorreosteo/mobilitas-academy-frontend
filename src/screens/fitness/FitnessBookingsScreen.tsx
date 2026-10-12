@@ -27,7 +27,7 @@ import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportB
 import { useTabBarBottomPadding } from '../../hooks/useTabBarBottomPadding';
 
 const FITNESS_BOOKINGS_WHATSAPP =
-  "Buongiorno, utilizzo l'app Mobilitas Academy e ho problemi con le prenotazioni fitness nell'app. Potete aiutarmi? Grazie.";
+  "Buongiorno, utilizzo l'app Mobilitas e ho problemi con le prenotazioni fitness nell'app. Potete aiutarmi? Grazie.";
 
 const FitnessBookingsScreen: React.FC = () => {
   const tabBarPad = useTabBarBottomPadding();

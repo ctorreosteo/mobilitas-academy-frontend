@@ -25,7 +25,7 @@ const HomeScreen: React.FC = () => {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 28 + tabBarPad }]}
       >
         <View style={styles.heroIntro}>
-          <Text style={styles.heroOverline}>Mobilitas Academy</Text>
+          <Text style={styles.heroOverline}>Mobilitas</Text>
           <Text style={styles.heroTitle}>Ciao {firstName}</Text>
           <Text style={styles.heroSubtitle}>
             Questa pagina ti guida tra tutte le azioni disponibili: {coursesLabel}, visite, sessioni,

@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Mobilitas Academy</string>
+    <string>Mobilitas</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -48,15 +48,15 @@
       <true/>
     </dict>
     <key>NSCalendarsUsageDescription</key>
-    <string>Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
+    <string>Mobilitas usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>Mobilitas Academy usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
+    <string>Mobilitas usa il calendario solo per aggiungere, su tua richiesta, le visite che prenoti.</string>
     <key>NSRemindersUsageDescription</key>
-    <string>Mobilitas Academy non usa i promemoria: il permesso è richiesto solo dal modulo calendario.</string>
+    <string>Mobilitas non usa i promemoria: il permesso è richiesto solo dal modulo calendario.</string>
     <key>NSRemindersFullAccessUsageDescription</key>
-    <string>Mobilitas Academy non usa i promemoria: il permesso è richiesto solo dal modulo calendario.</string>
+    <string>Mobilitas non usa i promemoria: il permesso è richiesto solo dal modulo calendario.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Mobilitas Academy può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito.</string>
+    <string>Mobilitas può usare il microfono solo se attivi funzioni interattive durante una lezione. Nessun audio viene registrato senza il tuo consenso esplicito.</string>
     <key>RCTNewArchEnabled</key>
     <true/>
     <key>UILaunchStoryboardName</key>

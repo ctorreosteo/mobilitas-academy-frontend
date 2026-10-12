@@ -73,7 +73,7 @@ const ForceUpdateGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         <Text style={styles.title}>È disponibile una nuova versione</Text>
         <Text style={styles.body}>
-          Per continuare a usare Mobilitas Academy aggiorna l’app all’ultima versione. Bastano pochi
+          Per continuare a usare Mobilitas aggiorna l’app all’ultima versione. Bastano pochi
           secondi: troverai le ultime novità e i miglioramenti più recenti.
         </Text>
 

@@ -21,8 +21,11 @@ import {
   PasswordLinkError,
   submitImpostaPassword,
   submitResetPassword,
+  verifyInvitoToken,
   verifyResetPasswordToken,
+  type ResetLinkVerifica,
 } from '../../services/authApi';
+import { commitAutofill } from '../../../modules/autofill-commit';
 import { getUserFacingApiErrorMessage } from '../../utils/apiErrorMessage';
 import { useAuth } from '../../context/AuthContext';
 import StudioWhatsAppSupportButton from '../../components/StudioWhatsAppSupportButton';
@@ -31,11 +34,11 @@ import type { RootStackParamList } from '../../navigation/types';
 type Nav = StackNavigationProp<RootStackParamList, 'ImpostaPassword'>;
 type ScreenRoute = RouteProp<RootStackParamList, 'ImpostaPassword'>;
 
-type ScreenStatus = 'loading' | 'form' | 'blocked' | 'success';
+type ScreenStatus = 'loading' | 'form' | 'blocked' | 'entering' | 'success';
 type TokenFlow = 'reset' | 'invite';
 
 const WHATSAPP_PREFILL =
-  'Buongiorno, il link per impostare la password dell’app Mobilitas Academy non funziona. Potete inviarmene uno nuovo?';
+  'Buongiorno, il link per impostare la password dell’app Mobilitas non funziona. Potete inviarmene uno nuovo?';
 
 const inputBg = theme.colors.background.secondary;
 
@@ -53,13 +56,15 @@ function blockedMessage(motivo: string | null): string {
 const ImpostaPasswordScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const route = useRoute<ScreenRoute>();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, signIn } = useAuth();
   /** Già decodificato dal deep link: non va ri-encodato. */
   const token = route.params?.token ?? '';
 
   const [status, setStatus] = useState<ScreenStatus>(token ? 'loading' : 'blocked');
   const [flow, setFlow] = useState<TokenFlow>('invite');
   const [nome, setNome] = useState<string | null>(null);
+  /** Email dell'account dal backend: mostrata in alto e usata per l'accesso automatico. */
+  const [email, setEmail] = useState<string | null>(null);
   const [blockedText, setBlockedText] = useState(
     token ? '' : 'Link non valido: chiedi allo studio un nuovo invito.'
   );
@@ -74,29 +79,48 @@ const ImpostaPasswordScreen: React.FC = () => {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
+    const showForm = (nextFlow: TokenFlow, result: ResetLinkVerifica | null) => {
+      setFlow(nextFlow);
+      setNome(result?.nome ?? null);
+      setEmail(result?.email?.trim() || null);
+      setStatus('form');
+    };
+    const showBlocked = (result: ResetLinkVerifica) => {
+      setBlockedText(blockedMessage(result.motivo));
+      setStatus('blocked');
+    };
     (async () => {
       try {
-        const result = await verifyResetPasswordToken(token);
+        const reset = await verifyResetPasswordToken(token);
         if (cancelled) return;
-        if (result.valido) {
-          setFlow('reset');
-          setNome(result.nome);
-          setStatus('form');
+        if (reset.valido) {
+          showForm('reset', reset);
           return;
         }
-        if (result.motivo === 'SCADUTO' || result.motivo === 'GIA_USATO') {
-          setBlockedText(blockedMessage(result.motivo));
-          setStatus('blocked');
+        if (reset.motivo === 'SCADUTO' || reset.motivo === 'GIA_USATO') {
+          showBlocked(reset);
           return;
         }
-        // NON_TROVATO: può essere un token di primo accesso da invito.
-        setFlow('invite');
-        setStatus('form');
       } catch {
         if (cancelled) return;
         // Rete assente: mostriamo comunque il form e proviamo l’endpoint invito.
-        setFlow('invite');
-        setStatus('form');
+        showForm('invite', null);
+        return;
+      }
+
+      // NON_TROVATO come reset: può essere un token di primo accesso da invito.
+      try {
+        const invito = await verifyInvitoToken(token);
+        if (cancelled) return;
+        if (invito.valido) {
+          showForm('invite', invito);
+        } else {
+          showBlocked(invito);
+        }
+      } catch {
+        if (cancelled) return;
+        // Backend senza verifica invito o rete assente: form senza email, decide il submit.
+        showForm('invite', null);
       }
     })();
     return () => {
@@ -119,6 +143,16 @@ const ImpostaPasswordScreen: React.FC = () => {
     navigation.reset({ index: 0, routes: [{ name: isSignedIn ? 'Main' : 'Login' }] });
   }, [isSignedIn, navigation]);
 
+  /**
+   * Dopo l'accesso automatico lo stack monta `Main` solo al render successivo: si resetta
+   * quando `isSignedIn` è vero, così ImpostaPassword non resta sopra l'app.
+   */
+  useEffect(() => {
+    if (status === 'entering' && isSignedIn) {
+      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+    }
+  }, [isSignedIn, navigation, status]);
+
   const onSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setError(null);
@@ -137,17 +171,34 @@ const ImpostaPasswordScreen: React.FC = () => {
       } else {
         await submitImpostaPassword(token, newPassword);
       }
-      setStatus('success');
     } catch (e) {
       if (e instanceof PasswordLinkError) {
         setError(e.message);
       } else {
         setError(getUserFacingApiErrorMessage(e, { context: 'Password non impostata' }));
       }
+      setSubmitting(false);
+      return;
+    }
+
+    // Password salvata: si entra subito con le stesse credenziali, senza passare dal login.
+    if (!email) {
+      setSubmitting(false);
+      setStatus('success');
+      return;
+    }
+    try {
+      await signIn(email, newPassword, { rememberUsername: true });
+      // Android propone "Salvare la password?" solo a sessione Autofill chiusa.
+      commitAutofill();
+      setStatus('entering');
+    } catch {
+      // Password già impostata: se l'accesso fallisce si ripiega sul login manuale.
+      setStatus('success');
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, confirmPassword, flow, newPassword, token]);
+  }, [canSubmit, confirmPassword, email, flow, newPassword, signIn, token]);
 
   const renderPasswordField = (
     label: string,
@@ -171,8 +222,10 @@ const ImpostaPasswordScreen: React.FC = () => {
           secureTextEntry={!visible}
           autoCapitalize="none"
           autoCorrect={false}
-          autoComplete="off"
+          autoComplete="password-new"
           textContentType="newPassword"
+          passwordRules={`minlength: ${MIN_PASSWORD_LENGTH};`}
+          importantForAutofill="yes"
           editable={!submitting}
         />
         <TouchableOpacity onPress={onToggle} hitSlop={10} accessibilityRole="button">
@@ -215,6 +268,13 @@ const ImpostaPasswordScreen: React.FC = () => {
             </View>
           ) : null}
 
+          {status === 'entering' ? (
+            <View style={styles.centered}>
+              <ActivityIndicator size="large" color={theme.colors.secondary} />
+              <Text style={styles.muted}>Accesso in corso…</Text>
+            </View>
+          ) : null}
+
           {status === 'success' ? (
             <View>
               <Text style={styles.title}>Password impostata</Text>
@@ -227,6 +287,33 @@ const ImpostaPasswordScreen: React.FC = () => {
 
           {status === 'form' ? (
             <>
+              {email ? (
+                <View style={styles.emailBox}>
+                  <Ionicons name="mail-outline" size={20} color={theme.colors.secondary} />
+                  <View style={styles.flex}>
+                    <Text style={styles.emailLabel}>La tua email di accesso</Text>
+                    <Text style={styles.emailValue} selectable>
+                      {email}
+                    </Text>
+                  </View>
+                  {/*
+                    Campo username invisibile e non raggiungibile: serve al portachiavi
+                    (iOS e Android) per associare la nuova password a questa email.
+                  */}
+                  <TextInput
+                    style={styles.hiddenUsername}
+                    value={email}
+                    textContentType="username"
+                    autoComplete="username"
+                    importantForAutofill="yes"
+                    pointerEvents="none"
+                    caretHidden
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
+                </View>
+              ) : null}
+
               <Text style={styles.title}>
                 {nome ? `Ciao ${nome}, scegli una password` : 'Scegli una password'}
               </Text>
@@ -311,6 +398,36 @@ const styles = StyleSheet.create({
   },
   fieldBlock: {
     marginBottom: 18,
+  },
+  emailBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: withOpacity(theme.colors.secondary, 0.32),
+    backgroundColor: withOpacity(theme.colors.secondary, 0.1),
+  },
+  emailLabel: {
+    fontSize: 13,
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: withOpacity(theme.colors.text.secondary, 0.7),
+    marginBottom: 2,
+  },
+  emailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : theme.fonts.primary,
+    color: theme.colors.secondary,
+  },
+  hiddenUsername: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
   },
   label: {
     fontSize: 14,

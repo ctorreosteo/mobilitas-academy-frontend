@@ -5,6 +5,7 @@
     <key>com.apple.developer.associated-domains</key>
     <array>
       <string>applinks:app.studiomobilitas.it</string>
+      <string>webcredentials:app.studiomobilitas.it</string>
     </array>
   </dict>
 </plist>

@@ -346,6 +346,8 @@ export interface ResetLinkVerifica {
   valido: boolean;
   motivo: ResetLinkMotivo;
   nome: string | null;
+  /** Email dell'account, presente solo se il link è valido. */
+  email: string | null;
   scadenza: string | null;
 }
 
@@ -413,18 +415,30 @@ export async function requestPasswordReset(emailOUsername: string): Promise<void
  * Non consuma il link. `token` va passato già decodificato: Axios lo encode una sola volta in query.
  */
 export async function verifyResetPasswordToken(token: string): Promise<ResetLinkVerifica> {
-  const { data } = await apiClient.get<ApiResponseDto<ResetLinkVerifica>>(
-    '/auth/reset-password/verifica',
-    { params: { token } }
-  );
+  return verifyPasswordLinkToken('/auth/reset-password/verifica', token);
+}
+
+/**
+ * GET /api/auth/applicazione/verifica?token= — pubblico, sempre 200.
+ * Come la verifica reset, ma per il link di primo accesso da invito. Non consuma il link.
+ */
+export async function verifyInvitoToken(token: string): Promise<ResetLinkVerifica> {
+  return verifyPasswordLinkToken('/auth/applicazione/verifica', token);
+}
+
+async function verifyPasswordLinkToken(path: string, token: string): Promise<ResetLinkVerifica> {
+  const { data } = await apiClient.get<ApiResponseDto<ResetLinkVerifica>>(path, {
+    params: { token },
+  });
   const payload = data.data;
   if (!payload) {
-    return { valido: false, motivo: 'NON_TROVATO', nome: null, scadenza: null };
+    return { valido: false, motivo: 'NON_TROVATO', nome: null, email: null, scadenza: null };
   }
   return {
     valido: Boolean(payload.valido),
     motivo: payload.motivo ?? null,
     nome: payload.nome ?? null,
+    email: payload.email ?? null,
     scadenza: payload.scadenza ?? null,
   };
 }
