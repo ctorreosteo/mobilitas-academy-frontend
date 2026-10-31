@@ -67,8 +67,7 @@ I ruoli sono veicolati dal profilo backend (`ruoli`) e consumati nel frontend pe
 
 ## 3. Repository e naming
 
-- Cartella di lavoro tipica: `mobilitas-academy-frontend`.
-- In `package.json` il campo **`name`** è ancora `studio-osteopatico-frontend` (legacy npm); il prodotto e `app.json` usano **Mobilitas Academy** / slug `mobilitas-academy`.
+- Nome del progetto: `mobilitas-mobile-app` (cartella di lavoro e campo **`name`** di `package.json`); `app.json` usa lo slug `mobilitas-academy`.
 - Identifiers nativi: `com.mobilitas.academy` (iOS bundle id, Android package).
 
 ---
@@ -405,7 +404,6 @@ Sezione **`submit.production`** contiene placeholder Apple da sostituire prima d
 
 ## 15. Debito tecnico e incongruenze
 
-- `package.json` **name** non allineato al brand (`studio-osteopatico-frontend`).
 - Dipendenze **`react-native-youtube-iframe`** e **`react-native-webview`** senza uso in `src/`.
 - **`VideoPlayerScreen`**: per stream non-HLS l’esperienza di riproduzione è limitata rispetto a HLS.
 - Alcune azioni UI (es. «Segna come completato») possono essere placeholder — verificare il file prima di promettere comportamento in release.

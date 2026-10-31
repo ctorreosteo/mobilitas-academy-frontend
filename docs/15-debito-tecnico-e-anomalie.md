@@ -254,7 +254,6 @@ chi legge il codice.
 
 | Problema | Dove |
 |---|---|
-| Nome pacchetto `studio-osteopatico-frontend` vs brand "Mobilitas Academy" | `package.json:2` |
 | Terminologia mista italiano/inglese nel modello dati (`Corso`/`Course`, `Lezione`/`Video`) | `src/types`, mapper |
 | `Course.duration` in **minuti**, `Video.duration` in **secondi** | modello dati |
 | Convenzioni di query key non uniformi | vedi [13](./13-stato-cache-e-storage.md) |

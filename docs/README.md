@@ -1,16 +1,21 @@
-# Mobilitas Academy — Documentazione tecnica completa
+# Mobilitas — Documentazione tecnica completa
 
-Documentazione di riferimento dell'app mobile **Mobilitas Academy** (React Native + Expo).
+Documentazione di riferimento dell'app mobile **Mobilitas** (React Native + Expo).
 Ogni affermazione in questi documenti è derivata dal codice sorgente presente nel repository e riporta,
 dove utile, il riferimento `file:riga`.
 
-- **Nome commerciale**: Mobilitas Academy
-- **Nome pacchetto npm**: `studio-osteopatico-frontend` (`package.json:2`) — disallineato rispetto al brand
+> **Stato di aggiornamento.** I capitoli 01–16 fotografano il codice al 19/08/2026 (commit `22db5e9`):
+> numeri di riga, nome "Mobilitas Academy" e versioni riportate lì vanno letti con quella data.
+> Tutto ciò che è cambiato dopo è nel capitolo [17](./17-aggiornamenti-post-agosto-2026.md), che prevale
+> in caso di contrasto.
+
+- **Nome del progetto**: `mobilitas-mobile-app` (`package.json`)
+- **Nome commerciale**: Mobilitas
 - **Bundle identifier**: `com.mobilitas.academy` (iOS e Android)
-- **Versione applicativa**: `1.0.0` (`app.json`), `versionCode` Android `2`, `CFBundleVersion` iOS `2`
+- **Versione applicativa**: `2.0.4` (`app.json`), `versionCode` Android `7`, `buildNumber` iOS `7`
 - **Lingua UI**: italiano (nessun sistema di i18n: tutte le stringhe sono hardcoded nei componenti)
-- **Righe di codice sorgente**: 17.164 su 74 file in `src/`, di cui **4.111 non raggiungibili**
-  (moduli e integrazioni dismesse, vedi [15](./15-debito-tecnico-e-anomalie.md))
+- **Codice sorgente**: 20.853 righe su 94 file in `src/`. L'ultima misura del codice non raggiungibile
+  risale ad agosto: 4.111 righe (vedi [15](./15-debito-tecnico-e-anomalie.md))
 
 ---
 
@@ -34,10 +39,11 @@ dove utile, il riferimento `file:riga`.
 | 14 | [Errori e messaggistica utente](./14-errori-e-messaggistica.md) | `getUserFacingApiErrorMessage`, tutti i messaggi utente, template WhatsApp |
 | 15 | [Debito tecnico e anomalie](./15-debito-tecnico-e-anomalie.md) | Codice morto, funzionalità incomplete, rischi di sicurezza, incongruenze, piano di intervento in 5 fasi |
 | 16 | [Glossario e mappa dei file](./16-glossario-e-mappa-file.md) | Terminologia di dominio, corrispondenze italiano/inglese, indice file → responsabilità, indice per compito |
+| 17 | [Aggiornamenti dopo agosto 2026](./17-aggiornamenti-post-agosto-2026.md) | Identità del progetto, aggiornamento obbligatorio, deep link, flussi password, disdetta, calendario, promemoria, moduli nativi, nuovi endpoint |
 
 ### Da dove iniziare
 
-- **Primo giorno sul progetto**: 01 → 16 (glossario e mappa file) → 06 (navigazione)
+- **Primo giorno sul progetto**: 01 → 17 (novità) → 16 (glossario e mappa file) → 06 (navigazione)
 - **Devo mettere in piedi l'ambiente**: 02
 - **Devo lavorare su una feature**: il documento del modulo (07, 08, 09 o 10) più 04 per gli endpoint
 - **Devo capire un bug su dati che non si aggiornano**: 13
@@ -47,7 +53,7 @@ dove utile, il riferimento `file:riga`.
 
 ## Sintesi in una pagina
 
-**Mobilitas Academy** è l'app mobile di uno studio osteopatico di Torino. Serve due tipologie di
+**Mobilitas** è l'app mobile di uno studio osteopatico di Torino. Serve due tipologie di
 utenti dallo stesso binario di codice, differenziandosi a runtime in base ai ruoli restituiti da
 `GET /api/auth/me`:
 
@@ -76,7 +82,7 @@ YouTube (Data API v3 + OAuth PKCE + Firebase Cloud Functions come proxy token) c
 | `Courses` | Corsi | `CorsiStack` → catalogo aziendale **oppure** posturale in base al ruolo |
 | `StudioVisits` | Visite | `VisiteStack` → menu, prenotazione, agenda/storico, pagamenti |
 | `Sessioni` | Sessioni | `SessioniStack` → hub, prenotazioni attive, calendario |
-| `Profile` | Profilo | Area personale, recensioni Google, pulizia cache, logout, eliminazione account |
+| `Profile` | Profilo | `ProfiloStack` → area personale, cambio password, recensioni Google, pulizia cache, logout, eliminazione account |
 
 ---
 

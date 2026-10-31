@@ -280,7 +280,7 @@ dominio formativo è tradotto; visite, sessioni e pagamenti restano in italiano 
 | `app.json` | Configurazione Expo: nome, versione, bundle id, schema, splash, permessi |
 | `eas.json` | Profili di build EAS |
 | `tsconfig.json` | Configurazione TypeScript (estende `expo/tsconfig.base`) |
-| `package.json` | Dipendenze e script npm; nome pacchetto `studio-osteopatico-frontend` |
+| `package.json` | Dipendenze e script npm; nome pacchetto `mobilitas-mobile-app` |
 | `.env` / `.env.example` | Variabili `EXPO_PUBLIC_*` |
 | `.easignore`, `.gitignore` | Esclusioni |
 | `android/`, `ios/` | Progetti nativi (prebuild): manifest, `Info.plist`, `build.gradle` |

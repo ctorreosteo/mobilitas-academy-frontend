@@ -268,7 +268,7 @@ stack. Non esiste quindi alcun modo di tornare indietro al Login con il gesto di
 ## 1.6 Struttura del repository
 
 ```
-mobilitas-academy-frontend/
+mobilitas-mobile-app/
 ├── App.tsx                     Root: provider, tab bar, gate di sessione, ErrorBoundary
 ├── AppTest.tsx                 Componente di test isolato — NON referenziato (codice morto)
 ├── index.ts                    registerRootComponent
